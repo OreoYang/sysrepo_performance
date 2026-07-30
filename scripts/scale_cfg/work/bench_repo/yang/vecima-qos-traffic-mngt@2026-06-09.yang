@@ -1,0 +1,83 @@
+module vecima-qos-traffic-mngt {
+  yang-version 1.1;
+  namespace "urn:vecima:yang:vecima-qos-traffic-mngt";
+  prefix vcm-qos-tm;
+
+  import bbf-yang-types {
+    prefix bbf-yang;
+  }
+  import bbf-qos-traffic-mngt {
+    prefix bbf-qos-tm;
+  }
+  import bbf-xpongemtcont {
+    prefix bbf-xpongemtcont;
+  }
+  import bbf-xpongemtcont-qos {
+    prefix bbf-xpongemtcont-qos;
+  }
+
+  organization
+    "Vecima Networks Inc.";
+  contact
+    "https://www.vecima.com";
+  description
+    "Vecima extensions for QoS traffic management.
+
+     Copyright (c) 2026 Vecima Networks Inc.
+     All rights reserved.";
+
+  revision 2026-06-09 {
+    description
+      "Introduce tm-queue-profile under tm-profiles.";
+    reference
+      "";
+  }
+
+  feature tm-queue-profile {
+    description
+      "Indicates support for tm-queue-profile based traffic
+       management configuration on T-CONTs.";
+  }
+
+  grouping tm-queue-profile-ref {
+    description
+      "A reference to a traffic management root profile.";
+    leaf tm-queue-profile-name {
+      if-feature "tm-queue-profile";
+      type leafref {
+        path "/bbf-qos-tm:tm-profiles/vcm-qos-tm:tm-queue-profile/vcm-qos-tm:name";
+      }
+      description
+        "The name of the traffic management root profile applied to
+         this T-CONT. Queue configuration, traffic-class to queue
+         mapping, and per-queue shapers are defined in the profile.";
+    }
+  }
+
+  augment "/bbf-qos-tm:tm-profiles" {
+    description
+      "Augment BBF traffic management profiles with
+       tm-queue-profile.";
+    list tm-queue-profile {
+      if-feature "tm-queue-profile";
+      key "name";
+      description
+        "A reusable traffic management root profile for T-CONTs.";
+      leaf name {
+        type bbf-yang:string-ascii64;
+        description
+          "The name of a traffic management root profile.";
+      }
+      choice children-type {
+        description
+          "Choice of children types of a traffic management root.";
+        case queues {
+          description
+            "The profile contains a set of queues that are
+             scheduled in a single stage.";
+          uses bbf-qos-tm:queues;
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,1 @@
+{"ietf-truststore:truststore":{"certificate-bags":{"certificate-bag":[{"name":"ca-certs","certificate":[{"name":"eac-cert","cert-data":"FAKE"},{"name":"root-cert","cert-data":"FAKE"}]}]},"public-key-bags":{}}}

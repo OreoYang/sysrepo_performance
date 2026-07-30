@@ -1,0 +1,43 @@
+=== Mode S D2b: split export + incremental import ===
+started: 2026-07-30T08:49:51+08:00
+Step A: split export.xml
+{
+  "onu_total": 1022,
+  "provision_files": 1022,
+  "service_files": 1016,
+  "base_files": 15
+}
+configs written under /home/oreo/works/repo/build-xpon/workspace/sources/netconf-polt/scripts/scale_cfg/work/configs
+Step B1: install YANG on fresh repo
+Step B2: import base configs (not timed, merge via --edit)
+  base: hardware.xml
+  base: qos-stack.xml
+  base: platform-stack.xml
+  base: network-vsubif.xml
+  base: xpongemtcont-base.xml
+  base: onu-templates.xml
+  base: forwarding-shell.xml
+  base: keystore.xml
+  base: truststore.xml
+  base: system.xml
+  base: device.xml
+  base: datastore.xml
+  base: subsys.xml
+  base: netconf-server.xml
+  base: lldp.xml
+Step B2.5: preflight — verify chpart/chpair/templates in running before ONU provision
+preflight: 24 unique chpart, 24 chpair, 19 templates from create files
+ok: all channel-partition refs present in running/ietf-interfaces
+ok: all channel-pair refs present in running/ietf-interfaces
+ok: all template refs present in running/bbf-onus
+running ietf-interfaces: 136 interfaces exported
+running bbf-onus: 19 templates exported
+preflight: base ready for ONU provision
+Step B3: timed ONU provision imports
+Step B4: timed ONU service imports
+provision: ok=1022 fail=0 time=332.094s
+service: ok=1016 fail=0 time=1908.205s
+incremental total: 2240.299s status=ok
+results: /home/oreo/works/repo/build-xpon/workspace/sources/netconf-polt/scripts/scale_cfg/results/mode_s_d2b.csv
+configs: /home/oreo/works/repo/build-xpon/workspace/sources/netconf-polt/scripts/scale_cfg/work/configs
+finished: 2026-07-30T09:27:49+08:00

@@ -1,0 +1,272 @@
+module bbf-onu-if-type {
+  yang-version 1.1;
+  namespace "urn:bbf:yang:bbf-onu-if-type";
+  prefix bbf-onuift;
+
+  organization
+    "Broadband Forum <https://www.broadband-forum.org>
+     Common YANG Work Area";
+  contact
+    "Comments or questions about this Broadband Forum YANG module
+     should be directed to <mailto:help@broadband-forum.org>.
+
+     Editor:      Joey Boyd, Adtran
+
+     Editor:      Robert Peschi, Nokia
+
+     PS Leader:   Joey Boyd, Adtran
+
+     WA Director: Marta Seda, Calix";
+  description
+    "This module contains a collection of YANG definitions for
+     supporting the Broadband Forum requirements on the management of
+     Optical Network Units (ONUs).
+
+     Specifically, this module defines interface identities that are
+     needed for managing ONUs.
+
+     This module is based on definitions provided in:
+     - iana-if-type.yang, revision 2017-03-30;
+     - bbf-if-type.yang, TR-383 Amendment 3.
+     - bbf-xpon-if-type, TR-385 Issue 2 Amendment 1.
+
+     Copyright (c) 2023, Broadband Forum
+
+     Redistribution and use in source and binary forms, with or
+     without modification, are permitted provided that the following
+     conditions are met:
+
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+
+     2. Redistributions in binary form must reproduce the above
+        copyright notice, this list of conditions and the following
+        disclaimer in the documentation and/or other materials
+        provided with the distribution.
+
+     3. Neither the name of the copyright holder nor the names of its
+        contributors may be used to endorse or promote products
+        derived from this software without specific prior written
+        permission.
+
+     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+     CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+     INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+     CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+     STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+     ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+     The above license is used as a license under copyright only.
+     Please reference the Forum IPR Policy for patent licensing terms
+     <https://www.broadband-forum.org/ipr-policy>.
+
+     Any moral rights which are necessary to exercise under the above
+     license grant are also deemed granted under this license.
+
+     This version of this YANG module is part of WT-505; see the WT
+     itself for full legal notices.";
+
+  revision 2026-03-28 {
+    description
+      "Vecima: ensure voiceFXS identity is present for ONU template
+       POTS (bbf-onu-interfaces interface/type). Bump revision so
+       sysrepo upgrades replace older catalog copies that lacked
+       this identity.";
+    reference
+      "RFC 2863; WT-505 ONU interfaces";
+  }
+  revision 2024-06-07 {
+    description
+      "TBD
+       * Approval Date:    TBD.
+       * Publication Date: TBD.";
+    reference
+      "TBD";
+  }
+
+  identity interface-type {
+    description
+      "Base identity from which specific interface types are
+       derived.";
+  }
+
+  identity iana-interface-type {
+    base interface-type;
+    description
+      "This identity is used as a base for all interface types
+       originally defined in the module iana-if-type.
+
+       This allows 'copy-paste' of the original interface types.";
+  }
+
+  identity ethernetCsmacd {
+    base iana-interface-type;
+    description
+      "For all Ethernet-like interfaces, regardless of speed,
+       as per RFC 3635.";
+    reference
+      "RFC 3635";
+  }
+
+  identity ieee8023adLag {
+    base iana-interface-type;
+    description
+      "IEEE 802.3ad Link Aggregate.";
+  }
+
+  identity fastdsl {
+    base iana-interface-type;
+    description
+      "FastDSL.";
+    reference
+      "BBF TR-355";
+  }
+
+  identity g9981 {
+    base iana-interface-type;
+    description
+      "G.998.1 bonded interface.";
+  }
+
+  identity g9982 {
+    base iana-interface-type;
+    description
+      "G.998.2 bonded interface.";
+  }
+
+  identity g9983 {
+    base iana-interface-type;
+    description
+      "G.998.3 bonded interface.";
+  }
+
+  identity ptm {
+    base iana-interface-type;
+    description
+      "Packet Transfer Mode.";
+  }
+
+  identity l2vlan {
+    base iana-interface-type;
+    description
+      "Layer 2 Virtual LAN using 802.1Q.";
+  }
+
+  identity ipForward {
+    base iana-interface-type;
+    description
+      "IP Forwarding Interface.";
+  }
+
+  identity voiceFXS {
+    base iana-interface-type;
+    description
+      "Voice FXS (Foreign Exchange Station) interface. Represents
+       a POTS telephone line port on the ONU.";
+    reference
+      "RFC 2863";
+  }
+
+  identity bbf-interface-type {
+    base interface-type;
+    description
+      "This identity is used as a base for all interface types
+       defined by the BBF that are not in the 'ifType definitions'
+       registry maintained by IANA.";
+  }
+
+  identity sub-interface {
+    base bbf-interface-type;
+    description
+      "Base type for generic sub-interfaces.";
+  }
+
+  identity vlan-sub-interface {
+    base l2vlan;
+    base sub-interface;
+    description
+      "A sub-interface which carries traffic that is parsed for VLAN
+       tags. I.e. either the frames carries VLAN tags, or the first
+       Ethertype differs from one of the VLAN TPIDs defined by IEEE
+       and then the frame is considered as untagged.";
+  }
+
+  identity l2-termination {
+    base bbf-interface-type;
+    description
+      "An interface which terminates layer 2 traffic without the need
+       to be associated with any Ethernet-like interface.";
+  }
+
+  identity ethernet-like {
+    base bbf-interface-type;
+    description
+      "An abstract identity defining a class of interfaces which
+       represents a logical interface transporting Ethernet frames,
+       i.e., frames with a destination and source MAC address, an
+       Ethernet type or length field, and a payload. This 'interface
+       type' is intended only to be used to define constraints against
+       a class of interfaces each of which have their 'type' derived
+       from this identity (as well as potentially others). At no time
+       should this identity be used as the 'type' for an interface.";
+  }
+
+  identity ani {
+    base bbf-interface-type;
+    description
+      "The Access Network Interface (ANI) located on the Optical
+       Network Unit (ONU).";
+  }
+
+  identity onu-v-enet {
+    base bbf-interface-type;
+    base ethernet-like;
+    description
+      "Base type for ONU-vENET interfaces. The ONU-vENET interfaces
+       are virtual interfaces which carry Ethernet frames, which
+       belong to the Optical Network Unit (ONU) and which are facing
+       the xPON side of the ONU i.e., facing the Optical Line
+       Termination (OLT).
+
+       ONU-vENET are virtual interfaces in the sense that they do not
+       directly refer to a physical port of an ONU. Instead, ONU-vENET
+       interfaces have the Access Network Interfaces (ANI) of the ONU
+       as underlying interface. ONU-vENET are NOT facing the user side
+       of the ONU.
+
+       An ONU-vENET can be used as the xPON side Ethernet
+       aggregation interface of an ONU which performs Ethernet
+       traffic aggregation from several user-facing interfaces.
+
+       An ONU-vENET can also be used to support an IP host in the
+       ONU.";
+  }
+
+  identity onu-v-vrefpoint {
+    base bbf-interface-type;
+    base ethernet-like;
+    description
+      "Base type for ONU-vUNI interfaces. The ONU-vUNI interface is a
+       virtual interface which carry Ethernet frames, which belong to
+       the Optical Network Unit (ONU) and which is facing the user.
+
+       It is intended for use as ONU 'Virtual V reference point'
+       defined in TR-167 (ref TR-167, Section 4 and 4.1). ONU-vUNI are
+       virtual interfaces in the sense that they do not refer to a
+       physical port of an ONU.
+
+       ONU-vUNI are virtual equivalents of the physical interfaces at
+       the ONU U reference point defined in TR-156 (ref. TR-156,
+       Section 4).";
+    reference
+      "BBF TR-156;
+       BBF TR-167";
+  }
+}

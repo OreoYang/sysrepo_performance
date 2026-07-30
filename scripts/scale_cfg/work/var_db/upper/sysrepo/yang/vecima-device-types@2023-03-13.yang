@@ -1,0 +1,51 @@
+module vecima-device-types {
+  yang-version 1.1;
+  namespace "urn:vecima:yang:vecima-device-types";
+  prefix vcm-dvct;
+
+  organization
+    "Vecima Networks Inc.";
+  contact
+    "https://www.vecima.com";
+  description
+    "This module contains a collection of YANG definitions for
+     supporting Vecima devices management.";
+
+  revision 2023-03-13 {
+    description
+      "Initial version.";
+    reference
+      "";
+  }
+
+  identity device-type {
+    description
+      "Base identity from which specific device node types are
+       derived.";
+  }
+
+  identity access-device-type {
+    base device-type;
+    description
+      "Base identity from which specific access device node types are
+       derived.";
+  }
+
+  identity olt {
+    base access-device-type;
+    description
+      "Optical Line Terminal (OLT).";
+  }
+
+  identity device-model {
+    description
+      "Base identity from which specific subcategories of device types
+       are derived.";
+  }
+
+  identity exs1610 {
+    base device-model;
+    description
+      "Shelf/pizza box type 16 port 10G symmetrical XPON OLT device.";
+  }
+}

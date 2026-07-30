@@ -1,0 +1,1 @@
+{"ietf-alarms:alarms":{"control":{"max-alarm-status-changes":32,"@max-alarm-status-changes":{"ietf-netconf-with-defaults:default":true},"notify-status-changes":"all-state-changes","@notify-status-changes":{"ietf-netconf-with-defaults:default":true}}}}

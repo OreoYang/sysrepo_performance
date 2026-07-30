@@ -1,0 +1,205 @@
+module bbf-onu-qos-traffic-mngt {
+  yang-version 1.1;
+  namespace "urn:bbf:yang:bbf-onu-qos-traffic-mngt";
+  prefix bbf-onu-qos-tm;
+
+  import bbf-onus {
+    prefix bbf-onus;
+  }
+  import bbf-onu-management {
+    prefix bbf-onum;
+  }
+  import bbf-onu-interfaces {
+    prefix bbf-onu-if;
+  }
+  import bbf-qos-traffic-mngt-profiles-common {
+    prefix bbf-qos-tm-profc;
+  }
+  import bbf-onu-qos-traffic-mngt-profiles {
+    prefix bbf-onu-qos-tm-prof;
+  }
+
+  organization
+    "Broadband Forum <https://www.broadband-forum.org>
+     Common YANG Work Area";
+  contact
+    "Comments or questions about this Broadband Forum YANG module
+     should be directed to <mailto:help@broadband-forum.org>.
+
+     Editor:      Joey Boyd, Adtran
+
+     Editor:      Robert Peschi, Nokia
+
+     PS Leader:   Joey Boyd, Adtran
+
+     WA Director: Marta Seda, Calix";
+  description
+    "This module contains a collection of YANG definitions for
+     supporting the Broadband Forum requirements on the management of
+     Optical Network Units (ONUs).
+
+     Specifically, this module defines data nodes for QoS traffic
+     management (TM) on interfaces.
+
+     This module is based on definitions provided in:
+     - bbf-qos-traffic-mngt.yang, TR-383 Amendment 6.
+
+     Copyright (c) 2023, Broadband Forum
+
+     Redistribution and use in source and binary forms, with or
+     without modification, are permitted provided that the following
+     conditions are met:
+
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+
+     2. Redistributions in binary form must reproduce the above
+        copyright notice, this list of conditions and the following
+        disclaimer in the documentation and/or other materials
+        provided with the distribution.
+
+     3. Neither the name of the copyright holder nor the names of its
+        contributors may be used to endorse or promote products
+        derived from this software without specific prior written
+        permission.
+
+     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+     CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+     INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+     CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+     STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+     ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+     The above license is used as a license under copyright only.
+     Please reference the Forum IPR Policy for patent licensing terms
+     <https://www.broadband-forum.org/ipr-policy>.
+
+     Any moral rights which are necessary to exercise under the above
+     license grant are also deemed granted under this license.
+
+     This version of this YANG module is part of WT-505; see the WT
+     itself for full legal notices.";
+
+  revision 2025-08-25 {
+    description
+      "TBD
+       * Approval Date:    TBD.
+       * Publication Date: TBD.";
+    reference
+      "TBD";
+  }
+
+  feature queue-template-in-tm-root {
+    description
+      "Indicates that the ONU supports templates to configure queues
+       in an interface's container 'tm-root'.";
+  }
+
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-stand-alone-instance/bbf-onu-if:interfaces/bbf-onu-if:interface" {
+    description
+      "Intended for a stand-alone ONU instance (i.e., that does not
+       rely on any template).
+
+       Augments the interface with traffic management data.";
+    uses bbf-qos-tm-profc:tm-root {
+      augment "tm-root" {
+        description
+          "Augments the traffic management root.";
+        uses bbf-onu-qos-tm-prof:tc-id-2-queue-id-mapping-profile-ref;
+      }
+      augment "tm-root/children-type" {
+        description
+          "Augments the choice  for configuring traffic management
+           with the possibility to configure queues.";
+        case queues {
+          description
+            "In this mode the interface related to the tm-root can
+             directly be selected by the forwarding process and has
+             its own set of queues. Hence the scheduling of a frame
+             from a forwarder to the egress queue takes place in a
+             single stage.";
+          uses bbf-qos-tm-profc:queues {
+            augment "queue" {
+              description
+                "Adds a reference to a Buffer Acceptance Control (BAC)
+                 entry to the queues.";
+              uses bbf-onu-qos-tm-prof:bac-ref;
+            }
+          }
+        }
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template/bbf-onu-if:interfaces/bbf-onu-if:interface" {
+    description
+      "Intended for an ONU instance derived from template(s).
+
+       Augments the interface with traffic management data.";
+    uses bbf-qos-tm-profc:tm-root {
+      augment "tm-root" {
+        description
+          "Augments the traffic management root.";
+        uses bbf-onu-qos-tm-prof:tc-id-2-queue-id-mapping-profile-ref;
+      }
+      augment "tm-root/children-type" {
+        description
+          "Augments the choice  for configuring traffic management
+           with the possibility to reference a queue template.";
+        case queues-from-template {
+          if-feature "bbf-onu-qos-tm-prof:queue-templates and queue-template-in-tm-root";
+          description
+            "The child data nodes are a list of queues, however these
+             queues are not explicitly configured. Instead a reference
+             is provided to a template that contains the definition of
+             queues to be created.
+
+             The queues' state data is as for case 'queue', i.e., when
+             queue statistics collection is enabled, then the state
+             data will contain data statistics per queue. The
+             'queue-id' of the queues is the 'queue-id' used in the
+             template.";
+          uses bbf-onu-qos-tm-prof:queues-from-template;
+        }
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:template/bbf-onum:data/bbf-onu-if:interfaces/bbf-onu-if:interface" {
+    description
+      "Augments the interface with traffic management data.";
+    uses bbf-qos-tm-profc:tm-root {
+      augment "tm-root" {
+        description
+          "Augments the traffic management root.";
+        uses bbf-onu-qos-tm-prof:tc-id-2-queue-id-mapping-profile-ref;
+      }
+      augment "tm-root/children-type" {
+        description
+          "Augments the choice  for configuring traffic management
+           with the possibility to configure queues.";
+        case queues {
+          description
+            "In this mode the interface related to the tm-root can
+             directly be selected by the forwarding process and has
+             its own set of queues. Hence the scheduling of a frame
+             from a forwarder to the egress queue takes place in a
+             single stage.";
+          uses bbf-qos-tm-profc:queues {
+            augment "queue" {
+              description
+                "Adds a reference to a Buffer Acceptance Control (BAC)
+                 entry to the queues.";
+              uses bbf-onu-qos-tm-prof:bac-ref;
+            }
+          }
+        }
+      }
+    }
+  }
+}

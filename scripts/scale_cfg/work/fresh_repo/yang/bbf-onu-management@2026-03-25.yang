@@ -1,0 +1,258 @@
+module bbf-onu-management {
+  yang-version 1.1;
+  namespace "urn:bbf:yang:bbf-onu-management";
+  prefix bbf-onum;
+
+  import bbf-onus {
+    prefix bbf-onus;
+  }
+  import bbf-yang-types {
+    prefix bbf-yang;
+  }
+
+  organization
+    "Broadband Forum <https://www.broadband-forum.org>
+     Fiber Access Networks Work Area";
+  contact
+    "Comments or questions about this Broadband Forum YANG module
+     should be directed to <mailto:info@broadband-forum.org>.
+
+     Editor:      Joey Boyd, Adtran
+
+     Editor:      Robert Peschi, Nokia
+
+     PS Leader:   Joey Boyd, Adtran
+
+     WA Director: Marta Seda, Calix";
+  description
+    "This module contains a collection of YANG definitions for
+     supporting the Broadband Forum requirements on the management of
+     Optical Network Units (ONUs).
+
+     Specifically, this module defines data nodes used for managing
+     Optical Network Unit (ONU) instances and ONU templates..
+
+     Copyright (c) 2023, Broadband Forum
+
+     Redistribution and use in source and binary forms, with or
+     without modification, are permitted provided that the following
+     conditions are met:
+
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+
+     2. Redistributions in binary form must reproduce the above
+        copyright notice, this list of conditions and the following
+        disclaimer in the documentation and/or other materials
+        provided with the distribution.
+
+     3. Neither the name of the copyright holder nor the names of its
+        contributors may be used to endorse or promote products
+        derived from this software without specific prior written
+        permission.
+
+     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+     CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+     INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+     CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+     STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+     ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+     The above license is used as a license under copyright only.
+     Please reference the Forum IPR Policy for patent licensing terms
+     <https://www.broadband-forum.org/ipr-policy>.
+
+     Any moral rights which are necessary to exercise under the above
+     license grant are also deemed granted under this license.
+
+     This version of this YANG module is part of WT-505; see the WT
+     itself for full legal notices.";
+
+  revision 2026-03-25 {
+    description
+      "TBD
+       * Approval Date:    TBD.
+       * Publication Date: TBD.";
+    reference
+      "TBD";
+  }
+
+  feature onu-templates {
+    description
+      "This feature indicates that the ONU management function
+       supports ONU templates.";
+  }
+
+  identity onu-origin-base {
+    description
+      "Determines the purpose of an entry in the onus/onu list.";
+  }
+
+  identity standalone-instance {
+    base onu-origin-base;
+    description
+      "A stand-alone ONU instance, not relying on any template.";
+  }
+
+  identity instance-from-template {
+    if-feature "bbf-onum:onu-templates";
+    base onu-origin-base;
+    description
+      "An ONU instance that inherits its data nodes from one or
+       several template(s).";
+  }
+
+  augment "/bbf-onus:onus" {
+    description
+      "Augments the ONU management data.";
+    list onu {
+      key "name";
+      description
+        "A stand-alone ONU instance (i.e. an instance which
+         configuration is not derived from any template), or an ONU
+         instance which configuration is derived from template(s), as
+         discriminated by the 'instance-origin' data node.";
+      leaf name {
+        type bbf-yang:string-ascii64;
+        description
+          "The name of the ONU.";
+      }
+      leaf description {
+        type bbf-yang:string-ascii128;
+        description
+          "Human readable text description of the ONU.";
+      }
+      container meta-data {
+        description
+          "Configuration metadata intended for the Optical Network
+           Unit (ONU) physical device. This is data about the ONU,
+           available to the ONU Manager for its own purpose.
+           The ONU manager does not configure this data to the ONU.";
+        leaf instance-origin {
+          if-feature "bbf-onum:onu-templates";
+          type identityref {
+            base bbf-onum:onu-origin-base;
+          }
+          description
+            "When the feature 'onu-template' is suported, the ONU
+             instance can be stand-alone, not relying on any template,
+             or an instance that inherits its data nodes from one or
+             several templates. If the feature 'onu-template' is not
+             supported, the list can only contain stand-alone ONU
+             instences.";
+        }
+        container template-references {
+          when "../bbf-onum:instance-origin = 'bbf-onum:instance-from-template'" {
+            description
+              "When the ONU instance configuration is expanded from
+               one or several ONU template(s) this meta-data indicates
+               the templates that the ONU instance relies on.";
+          }
+          if-feature "bbf-onum:onu-templates";
+          description
+            "Identifies the template(s) that the instance will
+             inherit from, in case the ONU instance inherits data
+             nodes from template(s).";
+          choice template-method {
+            description
+              "Provides methods for identifying templates to be
+               applied for building the intended ONU data.";
+            case direct-reference {
+              description
+                "Provides a direct set of references to template
+                 instances from which configuration data is to be
+                 taken for building the intended ONU data.";
+              leaf-list template {
+                type leafref {
+                  path "/bbf-onus:onus/bbf-onum:template/bbf-onum:name";
+                }
+                ordered-by user;
+                description
+                  "The name of an ONU template.
+
+                   To build the data of an ONU one first takes all
+                   the data configured inside the 'data-original'
+                   container of the first referenced template, then
+                   one merges all the data configured inside the
+                   'data-original' container of the second
+                   template(s), etc. The end result provides the
+                   baseline data over which all the data configured
+                   inside the 'data-instance-from-template' container
+                   of this ONU instance is merged.";
+              }
+            }
+          }
+        }
+      }
+      container data-stand-alone-instance {
+        when "not(../bbf-onum:meta-data/bbf-onum:instance-origin) or ../bbf-onum:meta-data/bbf-onum:instance-origin = 'bbf-onum:standalone-instance'";
+        description
+          "The data nodes in this container form the complete
+           configuration to be applied to the ONU, with no
+           contribution coming from any template.
+           The YANG schema in this container contains unaltered
+           state and configuration data nodes originated from TR-383,
+           TR-385 and other standards. In particular they have
+           the same defaults and mandatories as per original TR-383,
+           TR-385 and other standards.";
+      }
+      container data-instance-from-template {
+        when "../bbf-onum:meta-data/bbf-onum:instance-origin = 'bbf-onum:instance-from-template'";
+        if-feature "bbf-onum:onu-templates";
+        presence "Indicates specific data nodes that will be merged with
+         data nodes coming from template(s) to form the ONU
+         instance configuration.";
+        description
+          "This container contains data nodes originating from
+           TR-383 and TR-385 but having some alteration such as
+           having no defaults nor mandatories. These data nodes
+           are to be merged with data nodes originating from the
+           expansion of one or several ONU template(s) in order to
+           form the configuration of a specific ONU. The term
+           'merge' must be understood as 'replace data originating
+           from template' or 'add, if no such data is originting
+           from any template'.";
+      }
+    }
+    list template {
+      if-feature "bbf-onum:onu-templates";
+      key "name";
+      description
+        "A template for an Optical Network Unit (ONU) that can be used
+         to derive the configuration of ONU instances that have the
+         meta data 'instance-origine' = 'instance-from-template'.
+
+         A template contains a set of data nodes to be merged into the
+         '/onus/onu/data-instance-from-template' container of the
+         instance.";
+      leaf name {
+        type bbf-yang:string-ascii64;
+        description
+          "The name of the ONU template.";
+      }
+      leaf description {
+        type bbf-yang:string-ascii128;
+        description
+          "Human readable text description of the ONU template.";
+      }
+      container meta-data {
+        description
+          "Configuration metadata intended for the Optical Network
+           Unit (ONU) template. This is data about the template,
+           available to the ONU Manager for its own purpose, but not
+           part of the ONU template itself.";
+      }
+      container data {
+        description
+          "The template data nodes.";
+      }
+    }
+  }
+}

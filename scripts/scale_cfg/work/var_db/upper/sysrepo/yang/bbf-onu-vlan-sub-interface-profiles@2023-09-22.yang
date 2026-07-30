@@ -1,0 +1,423 @@
+module bbf-onu-vlan-sub-interface-profiles {
+  yang-version 1.1;
+  namespace "urn:bbf:yang:bbf-onu-vlan-sub-interface-profiles";
+  prefix bbf-onu-vsi-prof;
+
+  import bbf-onus {
+    prefix bbf-onus;
+  }
+  import bbf-yang-types {
+    prefix bbf-yang;
+  }
+  import bbf-dot1q-types {
+    prefix bbf-dot1qt;
+  }
+  import bbf-frame-classification {
+    prefix bbf-classif;
+  }
+  import bbf-frame-editing {
+    prefix bbf-fedit;
+  }
+  import bbf-frame-processing {
+    prefix bbf-fp;
+  }
+  import bbf-frame-processing-types {
+    prefix bbf-fpt;
+  }
+
+  organization
+    "Broadband Forum <https://www.broadband-forum.org>
+     Common YANG Work Area";
+  contact
+    "Comments or questions about this Broadband Forum YANG module
+     should be directed to <mailto:help@broadband-forum.org>.
+
+     Editor:      Joey Boyd, Adtran
+
+     Editor:      Robert Peschi, Nokia
+
+     PS Leader:   Joey Boyd, Adtran
+
+     WA Director: Marta Seda, Calix";
+  description
+    "This module contains a collection of YANG definitions for
+     supporting the Broadband Forum requirements on the management of
+     Optical Network Units (ONUs).
+
+     Specifically, this module defines Optical Network Unit (ONU) VLAN
+     sub-interface profiles in support for managing ONU VLAN
+     sub-interfaces.
+
+     This module is based on definitions provided in:
+     - bbf-vlan-sub-interface-profiles.yang, TR-383 Amendment 6;
+     - bbf-vlan-sub-interface-profile-fp.yang, TR-383 Amendment 6.
+
+     Copyright (c) 2023, Broadband Forum
+
+     Redistribution and use in source and binary forms, with or
+     without modification, are permitted provided that the following
+     conditions are met:
+
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+
+     2. Redistributions in binary form must reproduce the above
+        copyright notice, this list of conditions and the following
+        disclaimer in the documentation and/or other materials
+        provided with the distribution.
+
+     3. Neither the name of the copyright holder nor the names of its
+        contributors may be used to endorse or promote products
+        derived from this software without specific prior written
+        permission.
+
+     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+     CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+     INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+     CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+     STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+     ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+     The above license is used as a license under copyright only.
+     Please reference the Forum IPR Policy for patent licensing terms
+     <https://www.broadband-forum.org/ipr-policy>.
+
+     Any moral rights which are necessary to exercise under the above
+     license grant are also deemed granted under this license.
+
+     This version of this YANG module is part of WT-505; see the WT
+     itself for full legal notices.";
+
+  revision 2023-09-22 {
+    description
+      "TBD
+       * Approval Date:    TBD.
+       * Publication Date: TBD.";
+    reference
+      "TBD";
+  }
+
+  feature vlan-id-translation {
+    description
+      "Indicates support for VLAN ID translation.";
+  }
+
+  grouping pop-and-push-vlan-tags-onu-ds {
+    description
+      "Provides data nodes for VLAN tag manipulation actions.";
+    leaf pop-tags {
+      type uint8 {
+        range "0..2";
+      }
+      default "0";
+      description
+        "The number of tags to pop.";
+    }
+    list push-tag {
+      key "index";
+      max-elements 2;
+      description
+        "The VLAN tags to push.";
+      leaf index {
+        type bbf-fpt:tag-index;
+        must '(count(../../push-tag[index = 0]) > 0)' {
+          error-message
+            "An inner tag has been specified without an outer tag";
+          description
+            "Only allow a push of an inner tag if an outer tag is also
+             being pushed.";
+        }
+        description
+          "The index into the tag stack.";
+      }
+      leaf tag-type {
+        type union {
+          type bbf-dot1qt:dot1q-tag-type;
+          type bbf-dot1qt:ether-type;
+          type bbf-dot1qt:ether-type-hex;
+        }
+        mandatory true;
+        description
+          "VLAN tag type.";
+      }
+      leaf vlan-id {
+        type union {
+          type bbf-dot1qt:vlan-id-or-0;
+          type enumeration {
+            enum "vlan-id-is-a-parameter" {
+              description
+                "The VLAN ID of the tag to push into frames is
+                 not specified inside this profile but has to be
+                 specified at the place where this profile is
+                 referenced.";
+            }
+          }
+        }
+        mandatory true;
+        description
+          "The VLAN ID value to write in the sent frames'
+           identified VLAN tag.";
+      }
+      uses bbf-fedit:write-pbit;
+      choice dei {
+        mandatory true;
+        description
+          "Selects how the DEI bit is to be written.";
+        case copy-dei-from-input-or-0 {
+          description
+            "Copy DEI from the specified input tag, or write DEI=0 if
+             the input tag does not exist.";
+          leaf dei-from-tag-index {
+            type bbf-fpt:tag-index;
+            description
+              "Specifies from which tag the DEI bit MUST be copied.";
+          }
+        }
+      }
+    }
+  }
+
+  augment "/bbf-onus:onus" {
+    description
+      "Augments the set of ONU profiles.";
+    container vsi-profiles {
+      description
+        "Configuration of VLAN sub-interface profiles.";
+      list vsi-profile {
+        key "name";
+        description
+          "A profile providing a mechanism to configure data for VLAN
+           sub-interfaces.
+
+           Data nodes configured in a VLAN sub-interface profile are
+           to be applied to VLAN sub-interfaces that reference the
+           VLAN sub-interface profile where they get the same meaning
+           as if the data was configured directly on the VLAN
+           sub-interface.";
+        leaf name {
+          type bbf-yang:string-ascii64;
+          description
+            "The name of the profile.";
+        }
+        choice frame-processing {
+          description
+            "Configuring frame processing for a VLAN sub-interface is
+             relative to the lower-layer interface configured in the
+             VLAN sub-interface its leaf 'subif-lower-layer'.
+
+             The frame processing refers to both directions:
+             - Ingress, which refers to frames received from the
+               lower-layer interface.
+             - Egress, which refers to frames received from a
+               higher-layer interface, or from a forwarder, and to be
+               transmitted to the lower-layer interface.
+             - In the ingress direction classification criteria
+               identify whether a received frame shall be offered to
+               this sub-interface.
+             - For both the ingress and egress direction, rewrite,
+               i.e., tag manipulation actions, can be supported.
+
+             For example, if there is configuration for ingress frame
+             processing, then this means that frames received on the
+             referenced lower-layer interface are subject to
+             evaluation using the criteria configured.
+
+             Not configuring any frame processing implies that there
+             are no ingress match criteria to select frames received
+             from the lower-layer interface into this sub-interface,
+             and hence this sub-interface will not have to process any
+             ingress frame.";
+          case inline-multiple-rules-with-parameters {
+            description
+              "Case for configuring the frame processing inline in the
+               VLAN sub-interface profile, with multiple rules for
+               ingress frame matching, and with the possibility to
+               configure the VLAN ID outside of this profile.";
+            container frame-processing-rules {
+              description
+                "Contains data nodes to configure the frame processing
+                 directly in the VLAN sub-interface profile while
+                 allowing multiple rules for ingress frame matching
+                 and configuring the VLAN ID outside of this profile,
+                 i.e., at the place where the profile is referenced.";
+              uses bbf-fp:frame-processing {
+                augment "ingress-rule/rule" {
+                  description
+                    "Provides data nodes for configuring frame
+                     processing per rule.";
+                  container match-criteria {
+                    presence "The presence of this container indicates that
+                     the profile will be configured with positive
+                     match criteria.";
+                    description
+                      "This container collects match criteria for
+                       various frame fields.
+
+                       The match criteria are unambiguous in case a
+                       frame field is unique. This is not the case for
+                       the match criteria defined via leaf 'ethernet-
+                       frame-type'. The value is to be compared with
+                       the first Ethertype of an untagged Ethernet
+                       frame; or for frames that contain one or more
+                       VLAN tags it is the value to be compared with
+                       the Ethertype that is the first after the VLAN
+                       tags for which a matching criteria is specified
+                       via the leafs in the case 'vlan-tagged'.
+
+                       For example, if matching criteria are specified
+                       for one outer VLAN tag, and a received IPoE
+                       frame is single tagged, then the leaf
+                       'ethernet-frame-type' refers to the Ethertype
+                       0x0800 being the Ethertype that identifies the
+                       frame as IPoE. While the same YANG
+                       configuration applied to a received IPoE frame
+                       that is double tagged, then the leaf
+                       'ethernet-frame-type' refers to the Ethertype
+                       0x8100 being the Ethertype that identifies the
+                       frame contains an inner VLAN tag.";
+                    leaf any-frame {
+                      type empty;
+                      description
+                        "Any frame.
+
+                         Configuring the 'any-frame' case is
+                         equivalent to not configuring any match-
+                         criteria and means that 'all frames match'.
+                         This permits explicit configuration, e.g., in
+                         case of the Transparent LAN Service (TLS).";
+                    }
+                    container vlans {
+                      presence "The presence of this container enables
+                       configuration of a filter on VLAN tags.";
+                      description
+                        "Match criteria associated with VLAN tags.
+
+                         If the container is not present, then the
+                         presence or absence of VLAN tags in the frame
+                         is not a filter criterion and then, as to
+                         this filter, 'all frames match'.";
+                      uses bbf-classif:vlan-tag-match {
+                        augment "vlan-tag-match-type/vlan-tagged/tag" {
+                          description
+                            "Defines match criteria for all the fields
+                             of VLAN tags, being the TPID, the VLAN
+                             ID, the p-bits, and the DEI bit.";
+                          leaf tag-type {
+                            type union {
+                              type bbf-dot1qt:dot1q-tag-type;
+                              type bbf-dot1qt:ether-type;
+                              type bbf-dot1qt:ether-type-hex;
+                              type enumeration {
+                                enum "any" {
+                                  description
+                                    "Matches any tag type.";
+                                }
+                              }
+                            }
+                            mandatory true;
+                            description
+                              "The VLAN tag type to match for this
+                               tag.";
+                          }
+                          leaf vlan-id {
+                            type union {
+                              type bbf-dot1qt:vlan-id-range;
+                              type enumeration {
+                                enum "any" {
+                                  description
+                                    "Matches any VLAN ID in the range
+                                     1 to 4094, or matches priority
+                                     tagged frames.";
+                                }
+                                enum "priority-tagged" {
+                                  description
+                                    "Priority-tagged frames are frames
+                                     with a VLAN tag present and that
+                                     match VLAN ID 0.";
+                                }
+                                enum "vlan-id-is-a-parameter" {
+                                  description
+                                    "The VLAN ID to classify frames
+                                     for is not specified inside this
+                                     profile but has to be specified
+                                     at the place where this profile
+                                     is referenced.";
+                                }
+                              }
+                            }
+                            mandatory true;
+                            description
+                              "The VLAN IDs to match for this tag.";
+                          }
+                          leaf pbit {
+                            type union {
+                              type bbf-dot1qt:pbit-list;
+                              type enumeration {
+                                enum "any" {
+                                  description
+                                    "Matches any value of the p-bits in
+                                     the range of 0 to 7.";
+                                }
+                              }
+                            }
+                            default "any";
+                            description
+                              "Allowed value of the p-bits.";
+                          }
+                          leaf dei {
+                            type union {
+                              type bbf-dot1qt:dei;
+                              type enumeration {
+                                enum "any" {
+                                  description
+                                    "Matches any Drop Eligible
+                                     Indicator (DEI) value, i.e.,
+                                     value 0 or 1.";
+                                }
+                              }
+                            }
+                            default "any";
+                            description
+                              "Allowed DEI values.";
+                          }
+                        }
+                      }
+                    }
+                    uses bbf-classif:ethertype-match-no-default;
+                  }
+                }
+                augment "ingress-rule/rule/ingress-rewrite" {
+                  description
+                    "Provides data nodes for configuring ingress tag
+                     manipulation actions.";
+                  uses bbf-fedit:pop-and-push-vlan-tags {
+                    refine "push-tag" {
+                      if-feature "vlan-id-translation";
+                    }
+                  }
+                }
+                augment "egress-rewrite" {
+                  description
+                    "Provides data nodes for configuring egress tag
+                     manipulation actions.";
+                  uses pop-and-push-vlan-tags-onu-ds {
+                    refine "push-tag" {
+                      if-feature "vlan-id-translation";
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

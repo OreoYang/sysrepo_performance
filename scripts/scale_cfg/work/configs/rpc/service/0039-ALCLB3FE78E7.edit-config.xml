@@ -1,0 +1,205 @@
+<edit-config>
+    <target>
+        <running/>
+    </target>
+    <test-option>test-then-set</test-option>
+    <error-option>rollback-on-error</error-option>
+    <config xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+        <hardware xmlns="urn:ietf:params:xml:ns:yang:ietf-hardware"/>
+        <interfaces xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces">
+          <interface>
+            <name>ALCLB3FE78E7-veip1</name>
+            <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:olt-v-enet</type>
+            <enabled>true</enabled>
+            <olt-v-enet xmlns="urn:bbf:yang:bbf-xponvani">
+              <lower-layer-interface>ALCLB3FE78E7-vani</lower-layer-interface>
+            </olt-v-enet>
+          </interface>
+          <interface>
+            <name>ALCLB3FE78E7-veip1.vsi.cvlan2001.ovlan881</name>
+            <type xmlns:bbfift="urn:bbf:yang:bbf-if-type">bbfift:vlan-sub-interface</type>
+            <l2-dhcpv4-relay xmlns="urn:bbf:yang:bbf-l2-dhcpv4-relay">
+              <enable>true</enable>
+              <profile-ref>dhcp-relay-profile</profile-ref>
+            </l2-dhcpv4-relay>
+            <dhcpv6-ldra xmlns="urn:bbf:yang:bbf-ldra">
+              <enable>true</enable>
+              <profile-ref>dhcpv6_replay_profile</profile-ref>
+            </dhcpv6-ldra>
+            <ingress-qos-policy-profile xmlns="urn:bbf:yang:bbf-qos-policies">pp-all-to-tc0</ingress-qos-policy-profile>
+            <subif-lower-layer xmlns="urn:bbf:yang:bbf-sub-interfaces">
+              <interface>ALCLB3FE78E7-veip1</interface>
+            </subif-lower-layer>
+            <inline-frame-processing xmlns="urn:bbf:yang:bbf-sub-interfaces">
+              <ingress-rule>
+                <rule>
+                  <name>igr_cvlan2001_ovlan881</name>
+                  <priority>1</priority>
+                  <flexible-match>
+                    <match-criteria xmlns="urn:bbf:yang:bbf-sub-interface-tagging">
+                      <tag>
+                        <index>0</index>
+                        <dot1q-tag>
+                          <tag-type xmlns:bbf-dot1qt="urn:bbf:yang:bbf-dot1q-types">bbf-dot1qt:c-vlan</tag-type>
+                          <vlan-id>881</vlan-id>
+                        </dot1q-tag>
+                      </tag>
+                    </match-criteria>
+                  </flexible-match>
+                  <ingress-rewrite>
+                    <pop-tags xmlns="urn:bbf:yang:bbf-sub-interface-tagging">1</pop-tags>
+                    <push-tag xmlns="urn:bbf:yang:bbf-sub-interface-tagging">
+                      <index>0</index>
+                      <dot1q-tag>
+                        <tag-type xmlns:bbf-dot1qt="urn:bbf:yang:bbf-dot1q-types">bbf-dot1qt:c-vlan</tag-type>
+                        <vlan-id>2001</vlan-id>
+                        <write-pbit>0</write-pbit>
+                        <write-dei-0/>
+                      </dot1q-tag>
+                    </push-tag>
+                  </ingress-rewrite>
+                </rule>
+              </ingress-rule>
+              <egress-rewrite>
+                <push-tag xmlns="urn:bbf:yang:bbf-sub-interface-tagging">
+                  <index>0</index>
+                  <dot1q-tag>
+                    <tag-type xmlns:bbf-dot1qt="urn:bbf:yang:bbf-dot1q-types">bbf-dot1qt:c-vlan</tag-type>
+                    <vlan-id>881</vlan-id>
+                    <write-pbit>0</write-pbit>
+                    <write-dei-0/>
+                  </dot1q-tag>
+                </push-tag>
+              </egress-rewrite>
+            </inline-frame-processing>
+          </interface>
+          <interface>
+            <name>ALCLB3FE78E7-vuni</name>
+            <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:olt-v-enet</type>
+            <olt-v-enet xmlns="urn:bbf:yang:bbf-xponvani">
+              <lower-layer-interface>ALCLB3FE78E7-vani</lower-layer-interface>
+            </olt-v-enet>
+          </interface>
+          <interface>
+            <name>ALCLB3FE78E7-vuni.vsi.cvlan2001.ovlan881</name>
+            <type xmlns:bbfift="urn:bbf:yang:bbf-if-type">bbfift:vlan-sub-interface</type>
+            <l2-dhcpv4-relay xmlns="urn:bbf:yang:bbf-l2-dhcpv4-relay">
+              <enable>true</enable>
+              <profile-ref>dhcp-relay-profile</profile-ref>
+            </l2-dhcpv4-relay>
+            <dhcpv6-ldra xmlns="urn:bbf:yang:bbf-ldra">
+              <enable>true</enable>
+              <profile-ref>dhcpv6_replay_profile</profile-ref>
+            </dhcpv6-ldra>
+            <ingress-qos-policy-profile xmlns="urn:bbf:yang:bbf-qos-policies">pp-all-to-tc0</ingress-qos-policy-profile>
+            <subif-lower-layer xmlns="urn:bbf:yang:bbf-sub-interfaces">
+              <interface>ALCLB3FE78E7-vuni</interface>
+            </subif-lower-layer>
+            <inline-frame-processing xmlns="urn:bbf:yang:bbf-sub-interfaces">
+              <ingress-rule>
+                <rule>
+                  <name>igr_cvlan2001_ovlan881</name>
+                  <priority>1</priority>
+                  <flexible-match>
+                    <match-criteria xmlns="urn:bbf:yang:bbf-sub-interface-tagging">
+                      <tag>
+                        <index>0</index>
+                        <dot1q-tag>
+                          <tag-type xmlns:bbf-dot1qt="urn:bbf:yang:bbf-dot1q-types">bbf-dot1qt:c-vlan</tag-type>
+                          <vlan-id>881</vlan-id>
+                        </dot1q-tag>
+                      </tag>
+                    </match-criteria>
+                  </flexible-match>
+                  <ingress-rewrite>
+                    <pop-tags xmlns="urn:bbf:yang:bbf-sub-interface-tagging">1</pop-tags>
+                    <push-tag xmlns="urn:bbf:yang:bbf-sub-interface-tagging">
+                      <index>0</index>
+                      <dot1q-tag>
+                        <tag-type xmlns:bbf-dot1qt="urn:bbf:yang:bbf-dot1q-types">bbf-dot1qt:c-vlan</tag-type>
+                        <vlan-id>2001</vlan-id>
+                        <write-pbit>0</write-pbit>
+                        <write-dei-0/>
+                      </dot1q-tag>
+                    </push-tag>
+                  </ingress-rewrite>
+                </rule>
+              </ingress-rule>
+              <egress-rewrite>
+                <push-tag xmlns="urn:bbf:yang:bbf-sub-interface-tagging">
+                  <index>0</index>
+                  <dot1q-tag>
+                    <tag-type xmlns:bbf-dot1qt="urn:bbf:yang:bbf-dot1q-types">bbf-dot1qt:c-vlan</tag-type>
+                    <vlan-id>881</vlan-id>
+                    <write-pbit>0</write-pbit>
+                    <write-dei-0/>
+                  </dot1q-tag>
+                </push-tag>
+              </egress-rewrite>
+            </inline-frame-processing>
+          </interface>
+          <interface>
+            <name>ALCLB3FE78E7-vani</name>
+            <v-ani xmlns="urn:bbf:yang:bbf-xponvani">
+              <shaper-name xmlns="urn:vecima:yang:vecima-interfaces">ds_cir_50m</shaper-name>
+            </v-ani>
+          </interface>
+        </interfaces>
+        <xpongemtcont xmlns="urn:bbf:yang:bbf-xpongemtcont">
+          <tconts>
+            <tcont>
+              <name>tcont-ALCLB3FE78E7/veip1.tcont-1</name>
+              <interface-reference>ALCLB3FE78E7-vani</interface-reference>
+              <traffic-descriptor-profile-ref>assured_10m</traffic-descriptor-profile-ref>
+            </tcont>
+            <tcont>
+              <name>tcont-ALCLB3FE78E7/vuni.tcont-1</name>
+              <interface-reference>ALCLB3FE78E7-vani</interface-reference>
+              <traffic-descriptor-profile-ref>assured_10m</traffic-descriptor-profile-ref>
+            </tcont>
+          </tconts>
+          <gemports>
+            <gemport>
+              <name>gem-ALCLB3FE78E7/veip1.cvlan2001.ovlan881.tc0</name>
+              <interface>ALCLB3FE78E7-veip1.vsi.cvlan2001.ovlan881</interface>
+              <traffic-class>0</traffic-class>
+              <tcont-ref>tcont-ALCLB3FE78E7/veip1.tcont-1</tcont-ref>
+            </gemport>
+            <gemport>
+              <name>gem-ALCLB3FE78E7/vuni.cvlan2001.ovlan881.tc0</name>
+              <interface>ALCLB3FE78E7-vuni.vsi.cvlan2001.ovlan881</interface>
+              <traffic-class>0</traffic-class>
+              <tcont-ref>tcont-ALCLB3FE78E7/vuni.tcont-1</tcont-ref>
+            </gemport>
+          </gemports>
+        </xpongemtcont>
+        <onus xmlns="urn:bbf:yang:bbf-onus" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+          <onu xmlns="urn:bbf:yang:bbf-onu-management">
+            <name>ALCLB3FE78E7-vani</name>
+            <meta-data>
+              <instance-origin>instance-from-template</instance-origin>
+              <template-references nc:operation="replace">
+                <template>Prod_GPON_HGU_NOCLEICODEG2425GA</template>
+              </template-references>
+            </meta-data>
+          </onu>
+        </onus>
+        <forwarding xmlns="urn:bbf:yang:bbf-l2-forwarding">
+          <forwarders>
+            <forwarder>
+              <name>fwd_nto1_cvlan2001_ovlan881</name>
+              <ports>
+                <port>
+                  <name>fwd-port-onu-ALCLB3FE78E7/veip1-cvlan2001-ovlan881</name>
+                  <sub-interface>ALCLB3FE78E7-veip1.vsi.cvlan2001.ovlan881</sub-interface>
+                </port>
+                <port>
+                  <name>fwd-port-onu-ALCLB3FE78E7/vuni-cvlan2001-ovlan881</name>
+                  <sub-interface>ALCLB3FE78E7-vuni.vsi.cvlan2001.ovlan881</sub-interface>
+                </port>
+              </ports>
+            </forwarder>
+          </forwarders>
+        </forwarding>
+    </config>
+</edit-config>

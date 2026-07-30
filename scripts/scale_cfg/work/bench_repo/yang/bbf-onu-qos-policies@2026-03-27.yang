@@ -1,0 +1,690 @@
+module bbf-onu-qos-policies {
+  yang-version 1.1;
+  namespace "urn:bbf:yang:bbf-onu-qos-policies";
+  prefix bbf-onu-qos-pol;
+
+  import bbf-yang-types {
+    prefix bbf-yang;
+  }
+  import bbf-dot1q-types {
+    prefix bbf-dot1qt;
+  }
+  import bbf-frame-classification {
+    prefix bbf-classif;
+  }
+  import bbf-qos-types {
+    prefix bbf-qos-t;
+  }
+  import bbf-frame-processing-types {
+    prefix bbf-fpt;
+  }
+  import bbf-onus {
+    prefix bbf-onus;
+  }
+
+  organization
+    "Broadband Forum <https://www.broadband-forum.org>
+     Common YANG Work Area";
+  contact
+    "Comments or questions about this Broadband Forum YANG module
+     should be directed to <mailto:help@broadband-forum.org>.
+
+     Editor:      Joey Boyd, Adtran
+
+     Editor:      Robert Peschi, Nokia
+
+     PS Leader:   Joey Boyd, Adtran
+
+     WA Director: Marta Seda, Calix";
+  description
+    "This module contains a collection of YANG definitions for
+     supporting the Broadband Forum requirements on the management of
+     Optical Network Units (ONUs).
+
+     Specifically, this module contains data nodes for Quality of
+     Service (QoS) profiles, policies and classifiers that can be used
+     to control the QoS flow processing of frames in Optical Network
+     Units (ONUs).
+
+     This module is based on definitions provided in:
+     - bbf-qos-policies.yang, TR-383 Amendment 6;
+     - bbf-qos-classifiers.yang, TR-383 Amendment 6;
+     - bbf-qos-policing.yang, TR-383 Amendment 6;
+     - bbf-qos-composite-filters.yang, TR-383 Amendment 6.
+
+     Copyright (c) 2023, Broadband Forum
+
+     Redistribution and use in source and binary forms, with or
+     without modification, are permitted provided that the following
+     conditions are met:
+
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+
+     2. Redistributions in binary form must reproduce the above
+        copyright notice, this list of conditions and the following
+        disclaimer in the documentation and/or other materials
+        provided with the distribution.
+
+     3. Neither the name of the copyright holder nor the names of its
+        contributors may be used to endorse or promote products
+        derived from this software without specific prior written
+        permission.
+
+     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+     CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+     INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+     CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+     STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+     ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+     The above license is used as a license under copyright only.
+     Please reference the Forum IPR Policy for patent licensing terms
+     <https://www.broadband-forum.org/ipr-policy>.
+
+     Any moral rights which are necessary to exercise under the above
+     license grant are also deemed granted under this license.
+
+     This version of this YANG module is part of WT-505; see the WT
+     itself for full legal notices.";
+
+  revision 2026-03-27 {
+    description
+      "TBD
+       * Approval Date:    TBD.
+       * Publication Date: TBD.";
+    reference
+      "TBD";
+  }
+
+  feature preserve-pbit-dei-from-frame-to-metadata {
+    description
+      "Indicates support for preserving p-bits and DEI fields from the
+       frame into metadata.";
+  }
+
+  feature match-on-common-ip-header-fields {
+    description
+      "This feature indicates whether the system supports classifying
+       packets based on the IP header fields that are common for IPV4
+       and IPv6 packets with the purpose of giving the matching
+       packets a special QoS treatment.";
+  }
+
+  identity action-type {
+    description
+      "This base identity type defines action-types.";
+  }
+
+  identity pbit-marking {
+    base action-type;
+    description
+      "The action-type identity indicating the system shall generate
+       one or more values for the priority bits (p-bits).";
+  }
+
+  identity dei-marking {
+    base action-type;
+    description
+      "The action-type identity indicating the system shall generate
+       one or more values for the Drop Eligibility Indicator (DEI)
+       bit.";
+  }
+
+  identity scheduling-traffic-class {
+    base action-type;
+    description
+      "The action-type identity indicating a scheduling traffic
+       class.";
+  }
+
+  identity flow-color {
+    base action-type;
+    description
+      "The action-type identity indicating a flow class. This is a
+       classification that can be assigned to a frame and multiple
+       QoS decisions can be coupled to this action type.";
+  }
+
+  typedef qos-color {
+    type bbf-qos-t:qos-color;
+    status deprecated;
+    description
+      "Defines a frame color for QoS.";
+  }
+
+  typedef qos-policy-profile-ref {
+    type leafref {
+      path "/bbf-onus:onus/bbf-onu-qos-pol:qos-policy-profiles/bbf-onu-qos-pol:policy-profile/bbf-onu-qos-pol:name";
+    }
+    description
+      "The name of the referenced QoS policy profile.";
+  }
+
+  grouping in-pbit-list {
+    description
+      "Ingress Priority Bits (p-bits) configuration.";
+    leaf in-pbit-list {
+      type bbf-dot1qt:pbit-list;
+      description
+        "Filter containing value(s) of the p-bits to be matched with
+         the value of the corresponding frame field. The list of
+         values form an OR condition: in case the value of the frame
+         field matches with one of the values of the leaf then there
+         is a match. In case the leaf specifies a set of values and
+         none of them appear in the frame, then there is no match. In
+         case the leaf specifies a value for a frame field that is not
+         present, then no frames match the filter. For example, an
+         untagged frame does not contain p-bits, hence this frame will
+         not match a specified value of the p-bits. In case the leaf
+         is an empty list, or not configured, then no match is
+         required and all frames classify the filter, including
+         untagged frames.
+
+         An Ethernet frame can contain multiple VLAN tags or no VLAN
+         tag. The 'vlan-tag-match-type/vlan-tagged/tag' is a list and
+         the element with index 0 is used to match with the p-bits of
+         outermost VLAN tag of the frame, the element with index 1 is
+         used to match with the p-bits of the second VLAN tag of the
+         frame.";
+    }
+  }
+
+  grouping in-dei {
+    description
+      "Ingress Drop Eligible Indicator (DEI) configuration.";
+    leaf in-dei {
+      type uint8 {
+        range "0..1";
+      }
+      description
+        "Filter containing DEI bit value(s) to be matched with the
+         values of the corresponding frame fields. In case the leaf
+         specifies a value for a frame field that is not present, then
+         no frames match the filter. For example, an untagged frame
+         does not contain a DEI bit, hence this frame will not match a
+         specified DEI bit value. In case the leaf is not configured,
+         no match is required and all frames classify the filter,
+         including untagged frames.
+
+         An Ethernet frame can contain multiple VLAN tags or no VLAN
+         tag. The 'vlan-tag-match-type/vlan-tagged/tag' is a list and
+         the element with index 0 is used to match with the DEI bit of
+         the outermost VLAN tag of the frame, the element with index
+         1 is used to match with the DEI bit of the second VLAN tag of
+         the frame.";
+    }
+  }
+
+  grouping extended-filter {
+    description
+      "List of filters to be used as criteria for classifying
+       frames.";
+    container vlans {
+      presence "The presence of this container enables configuration of a
+       filter on VLAN tags.
+
+       If the container is not present, then the presence or absence
+       of VLAN tags in the frame is not a filter criterion and then,
+       as to this filter, 'all frames match'.";
+      description
+        "Match criteria associated with VLAN tags.";
+      choice vlan-match {
+        mandatory true;
+        description
+          "Match based on VLAN tag.";
+        case match-untagged {
+          leaf untagged {
+            type empty;
+            description
+              "Match all untagged traffic.";
+          }
+        }
+        case match-vlan-tagged {
+          list tag {
+            key "index";
+            min-elements 1;
+            max-elements 2;
+            description
+              "Provides values to evaluate against frame's their
+               corresponding VLAN tag fields. When multiple match
+               criteria are specified, then all of them must evaluate
+               positive to have a match. The outermost tag is
+               assigned index 0.";
+            leaf index {
+              type bbf-fpt:tag-index;
+              must 'count(../../tag[index = 0]) > 0' {
+                error-message
+                  "An inner tag can only be matched on when also matching on an outer tag.";
+                description
+                  "Only allow matching on an inner tag, if also
+                   matching on the outer tags at the same time.";
+              }
+              description
+                "The index into the tag stack with the outermost tag
+                 represented by index 0.";
+            }
+            uses in-pbit-list;
+            uses in-dei;
+          }
+        }
+      }
+    }
+    leaf-list ethernet-frame-type {
+      type bbf-dot1qt:ether-type-or-acronym;
+      description
+        "The value to be compared with the first Ethertype of an
+         untagged Ethernet frame; or for frames that contain one or
+         more VLAN tags it is the value to be compared with the
+         Ethertype that is defined by the context where this grouping
+         is used. It can be even the Ethertype that identifies a VLAN
+         tag.
+
+         If the leaf is not configured, then the Ethertype is not a
+         filter criterion and then, as to this filter,
+         'all frames match'.";
+    }
+    container ip-common {
+      if-feature "bbf-onu-qos-pol:match-on-common-ip-header-fields";
+      presence "The presence of this container enables configuration of a
+       filter on fields of the IP header common to both IPv4 and
+       IPv6. Configuration within this container enables filtering
+       for the corresponding packet field. Packet fields without
+       configuration are not subject to filtering.
+
+       If the container is not present, then fields that are common
+       for IPv4 and IPv6 headers are not a filter criterion and
+       then, as to this filter, 'all packets match'.";
+      description
+        "Rule set that matches for common IPv4 and IPv6 header
+         fields.";
+      leaf dscp-range {
+        type bbf-classif:dscp-range-or-any;
+        description
+          "String identifying the DSCP values and/or range.";
+      }
+    }
+    list pbit-marking-list {
+      key "index";
+      description
+        "The pbit marking list provides match criteria for classifying
+         frames with the intention to apply actions at matching
+         condition. The p-bits fields to be evaluated are part of a
+         frame's metadata as provided as output of another QoS policy.
+
+         The match criteria provides a list because a frame can
+         contain multiple VLAN tags and correspondingly can contain
+         multiple metadata p-bits fields.
+
+         There is a match if all the frame's metadata p-bits fields
+         have a match with one of the values of the corresponding
+         'pbit-value' in this list. If the list is not configured,
+         then the metadata p-bits fields are not a filter criterion
+         and then, as to this filter, 'all frames match'.";
+      leaf index {
+        type bbf-fpt:qos-pbit-marking-index;
+        description
+          "The index associated with a metadata value of the p-bits.";
+      }
+      leaf-list pbit-value {
+        type bbf-dot1qt:pbit;
+        min-elements 1;
+        description
+          "This leaf-list provides a set of possible values of the
+           p-bits as a criterion for classifying frames.
+
+           There is a match if the identified frame's metadata p-bits
+           is one of the values specified in the leaf-list.";
+      }
+    }
+    list dei-marking-list {
+      key "index";
+      description
+        "The DEI marking list provides match criteria for classifying
+         frames with the intention to apply actions at matching
+         condition. The DEI fields to be evaluated are part of a
+         frame's metadata as provided as output of another QoS policy.
+
+         The match criteria provides a list because a frame can
+         contain multiple VLAN tags and correspondingly can contain
+         multiple metadata DEI fields.
+
+         There is a match if all the frame's metadata DEI fields have
+         a match with the corresponding 'dei-values' in this list. If
+         the list is not configured, then the metadata DEI fields are
+         not a filter criterion and then, as to this filter, 'all
+         frames match'.";
+      leaf index {
+        type bbf-fpt:qos-dei-marking-index;
+        description
+          "The index associated with a metadata DEI value.";
+      }
+      leaf dei-value {
+        type bbf-dot1qt:dei;
+        mandatory true;
+        description
+          "A DEI value as a criterion for classifying frames.";
+      }
+    }
+    leaf-list flow-color {
+      type bbf-qos-t:qos-color;
+      description
+        "This leaf-list provides a set of flow colors as a filter
+         criterion for classifying frames with the intention to apply
+         actions at matching condition. The flow color to be evaluated
+         can be part of a frame's metadata as provided as output of
+         another QoS policy.
+
+         There is a match if the frame has a flow-color that is one
+         of the values specified in the leaf-list. If the leaf-list is
+         not configured, then the flow-color is not a filter criterion
+         and then, as to this filter, 'all frames match'.";
+    }
+  }
+
+  grouping pbit-marking {
+    description
+      "Nodes used to define a list of p-bits metadata.";
+    list pbit-marking-list {
+      key "index";
+      description
+        "Creates metadata which can be used to determine values of
+         the p-bits to write to a VLAN tag or as match criteria for
+         another classifier associated with another QoS policy with
+         which the frame is to be processed. Each entry uses a unique
+         numeric index associated with a value of the p-bits.";
+      leaf index {
+        type bbf-fpt:qos-pbit-marking-index;
+        description
+          "The index associated with a value of the p-bits.";
+      }
+      leaf pbit-value {
+        type bbf-dot1qt:pbit;
+        description
+          "A value of the p-bits to be inserted in the p-bits of a
+           frame's VLAN tag or as match criteria for another
+           classifier associated with another QoS policy with which
+           the frame is to be processed.";
+      }
+      leaf pbit-from-frame-tag {
+        if-feature "bbf-onu-qos-pol:preserve-pbit-dei-from-frame-to-metadata";
+        type bbf-fpt:tag-index;
+        must 'not(boolean(../pbit-value))' {
+          error-message
+            "The leaf 'pbit-from-frame-tag' cannot be configured when the leaf 'pbit-value' is configured.";
+          description
+            "Ensure that the leaf 'pbit-value' is not present when the
+             leaf 'pbit-from-frame-tag' is present, and vice versa.";
+        }
+        description
+          "Indicates that frames will get a metadata value of the
+           p-bits by copying a value of the p-bits from a frame's
+           VLAN tag. The VLAN tag from which to copy the value of the
+           p-bits is identified by the value of this leaf.";
+      }
+    }
+  }
+
+  grouping dei-marking {
+    description
+      "Nodes used to define a list of DEI metadata.";
+    list dei-marking-list {
+      key "index";
+      description
+        "Creates metadata which can be used to determine DEI values to
+         write to a VLAN tag or as match criteria for another
+         classifier associated with another QoS policy with which the
+         frame is to be processed. Each entry uses a unique numeric
+         index associated with a DEI value.";
+      leaf index {
+        type bbf-fpt:qos-dei-marking-index;
+        description
+          "The index associated with a DEI value.";
+      }
+      leaf dei-value {
+        type bbf-dot1qt:dei;
+        description
+          "A DEI value to be inserted in the DEI bit of a frame's VLAN
+           tag or as match criteria for another classifier associated
+           with another QoS policy with which the frame is to be
+           processed.";
+      }
+      leaf dei-from-frame-tag {
+        if-feature "bbf-onu-qos-pol:preserve-pbit-dei-from-frame-to-metadata";
+        type bbf-fpt:tag-index;
+        must 'not(boolean(../dei-value))' {
+          error-message
+            "The leaf 'dei-from-frame-tag' cannot be configured when the leaf 'dei-value' is configured.";
+          description
+            "Ensure that the leaf 'dei-value' is not present when the
+             leaf 'dei-from-frame-tag' is present, and vice versa.";
+        }
+        description
+          "Indicates that frames will get a metadata DEI value by
+           copying a DEI value from a frame's VLAN tag. The VLAN tag
+           from which to copy the DEI value is identified by the value
+           of this leaf.";
+      }
+    }
+  }
+
+  grouping classifier-entry-ref {
+    description
+      "A reference to a classifier entry.";
+    leaf name {
+      type leafref {
+        path "/bbf-onus:onus/bbf-onu-qos-pol:classifiers/bbf-onu-qos-pol:classifier-entry/bbf-onu-qos-pol:name";
+      }
+      description
+        "The name of the referenced classifier entry.";
+    }
+  }
+
+  grouping policy-ref {
+    description
+      "A reference to a QoS policy.";
+    leaf name {
+      type leafref {
+        path "/bbf-onus:onus/bbf-onu-qos-pol:policies/bbf-onu-qos-pol:policy/bbf-onu-qos-pol:name";
+      }
+      description
+        "The name of the referenced QoS policy.";
+    }
+  }
+
+  grouping qos-policy-profile-refs {
+    description
+      "Provides references to QoS policy profiles.";
+    leaf ingress-qos-policy-profile {
+      type qos-policy-profile-ref;
+      description
+        "A reference to a QoS policy profile. The profile is to be
+         applied to incoming frames.";
+    }
+    leaf egress-qos-policy-profile {
+      type qos-policy-profile-ref;
+      description
+        "A reference to a QoS policy profile. The profile is to be
+         applied to outgoing frames.";
+    }
+  }
+
+  augment "/bbf-onus:onus" {
+    description
+      "Augments the set of ONU profiles.";
+    container classifiers {
+      description
+        "Provides data nodes that allow to manage methods to classify
+         frames and assign actions in the context of QoS.";
+      list classifier-entry {
+        key "name";
+        description
+          "Classifier entry template.";
+        leaf name {
+          type bbf-yang:string-ascii64;
+          description
+            "Classifier name.";
+        }
+        leaf description {
+          type bbf-yang:string-ascii64-or-empty;
+          description
+            "Description of the class template.";
+        }
+        choice filter-method {
+          description
+            "Configuration of filter methods.";
+          case enhanced-classifier {
+            description
+              "The classifier criteria are directly configured here.
+
+               When filter criteria are used for multiple fields, then
+               all of them need a match in order to conclude there is
+               a match for this enhanced-filter entry, i.e. all the
+               match criteria specified in this filter have to be
+               combined with a logical AND.";
+            uses extended-filter;
+          }
+          case all-packets {
+            description
+              "The classifier applies to all frames that are in the
+               scope of the flow on which the classifier applies.";
+            leaf all-packets {
+              type empty;
+              description
+                "Identifies all frames.";
+            }
+          }
+        }
+        list classifier-action-entry-cfg {
+          key "action-type";
+          ordered-by user;
+          description
+            "Configuration of classifier associated actions.";
+          leaf action-type {
+            type identityref {
+              base action-type;
+            }
+            description
+              "This defines the action type.";
+          }
+          choice action-cfg-params {
+            description
+              "Choice of action types.";
+            case pbit-marking {
+              container pbit-marking-cfg {
+                when "../action-type='bbf-onu-qos-pol:pbit-marking'" {
+                  description
+                    "Only applicable when the action-type is
+                     'pbit-marking'.";
+                }
+                description
+                  "P-bits marking configuration container.";
+                uses pbit-marking;
+              }
+            }
+            case dei-marking {
+              container dei-marking-cfg {
+                when "../action-type='bbf-onu-qos-pol:dei-marking'" {
+                  description
+                    "Only applicable when the action-type is
+                     dei-marking.";
+                }
+                description
+                  "DEI marking configuration container.";
+                uses dei-marking;
+              }
+            }
+            case scheduling-traffic-class {
+              leaf scheduling-traffic-class {
+                when "../action-type= 'bbf-onu-qos-pol:scheduling-traffic-class'" {
+                  description
+                    "Only applicable when the action-type is
+                     scheduling-traffic-class.";
+                }
+                type bbf-qos-t:traffic-class-id;
+                description
+                  "Defines the traffic class for scheduling.";
+              }
+            }
+            case flow-color {
+              leaf flow-color {
+                when "../action-type='bbf-onu-qos-pol:flow-color'" {
+                  description
+                    "Only applicable when the action-type is
+                     'flow-color'.";
+                }
+                type bbf-qos-t:qos-color;
+                description
+                  "Defines the frame color for when color-aware
+                   classification/actions is needed in a proceeding
+                   QoS policy.";
+              }
+            }
+          }
+        }
+      }
+    }
+    container policies {
+      description
+        "Configuration associated with policies.";
+      list policy {
+        key "name";
+        description
+          "A QoS policy.";
+        leaf name {
+          type bbf-yang:string-ascii64;
+          description
+            "Name of the policy.";
+        }
+        leaf description {
+          type bbf-yang:string-ascii64-or-empty;
+          description
+            "Description of the policy.";
+        }
+        list classifiers {
+          key "name";
+          ordered-by user;
+          description
+            "Provides a lists of classifiers which are evaluated in
+             order as specified by the user. When a classifier is
+             matched, no other classifiers are evaluated.";
+          uses classifier-entry-ref;
+        }
+      }
+    }
+    container qos-policy-profiles {
+      description
+        "This container provides a framework for QoS policy profile
+         configuration.";
+      list policy-profile {
+        key "name";
+        description
+          "A QoS policy profile.";
+        leaf name {
+          type bbf-yang:string-ascii64;
+          description
+            "Name of the QoS policy profile.";
+        }
+        list policy-list {
+          key "name";
+          ordered-by user;
+          description
+            "Provides ordered lists of policies for the ingress and
+             for the egress direction.
+
+             The definition is that all policies are executed in the
+             order of the list. The output of one policy is used as
+             input for the next policy.";
+          uses policy-ref;
+        }
+      }
+    }
+  }
+}

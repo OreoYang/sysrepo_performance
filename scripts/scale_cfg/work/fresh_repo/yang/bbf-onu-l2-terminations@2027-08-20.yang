@@ -1,0 +1,262 @@
+module bbf-onu-l2-terminations {
+  yang-version 1.1;
+  namespace "urn:bbf:yang:bbf-onu-l2-terminations";
+  prefix bbf-onu-l2term;
+
+  import bbf-onus {
+    prefix bbf-onus;
+  }
+  import bbf-onu-management {
+    prefix bbf-onum;
+  }
+  import bbf-onu-interfaces {
+    prefix bbf-onu-if;
+  }
+  import bbf-onu-if-type {
+    prefix bbf-onuift;
+  }
+  import bbf-dot1q-types {
+    prefix bbf-dot1qt;
+  }
+  import bbf-frame-processing-types {
+    prefix bbf-fpt;
+  }
+  import bbf-frame-classification {
+    prefix bbf-classif;
+  }
+
+  organization
+    "Broadband Forum <https://www.broadband-forum.org>
+     Common YANG Work Area";
+  contact
+    "Comments or questions about this Broadband Forum YANG module
+     should be directed to <mailto:help@broadband-forum.org>.
+
+     Editor:      Joey Boyd, Adtran
+
+     Editor:      Robert Peschi, Nokia
+
+     PS Leader:   Joey Boyd, Adtran
+
+     WA Director: Marta Seda, Calix";
+  description
+    "This module contains a collection of YANG definitions for
+     supporting the Broadband Forum requirements on the management of
+     Optical Network Units (ONUs).
+
+     Specifically, this module augments an Optical Network Unit (ONU)
+     sub-interface with a reference to its lower layer interface.
+
+     This module is based on definitions provided in:
+     - module bbf-l2-terminations.yang, revision 2022-10-24, TR-383
+       Amendment 6
+
+     Copyright (c) 2024, Broadband Forum
+
+     Redistribution and use in source and binary forms, with or
+     without modification, are permitted provided that the following
+     conditions are met:
+
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+
+     2. Redistributions in binary form must reproduce the above
+        copyright notice, this list of conditions and the following
+        disclaimer in the documentation and/or other materials
+        provided with the distribution.
+
+     3. Neither the name of the copyright holder nor the names of its
+        contributors may be used to endorse or promote products
+        derived from this software without specific prior written
+        permission.
+
+     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+     CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+     INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+     CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+     STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+     ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+     The above license is used as a license under copyright only.
+     Please reference the Forum IPR Policy for patent licensing terms
+     <https://www.broadband-forum.org/ipr-policy>.
+
+     Any moral rights which are necessary to exercise under the above
+     license grant are also deemed granted under this license.
+
+     This version of this YANG module is part of WT-505; see the WT
+     itself for full legal notices.";
+
+  revision 2027-08-20 {
+    description
+      "TBD
+       * Approval Date:    TBD.
+       * Publication Date: TBD.";
+    reference
+      "TBD";
+  }
+
+  feature generate-pbit-from-marking-list {
+    description
+      "Indicates support for writing a configurable value of the
+       p-bits into a VLAN tag. This is done by copying a value
+       available in metadata into the frame. The metadata containing
+       such values is called a marking list.";
+  }
+
+  grouping l2-termination {
+    description
+      "Provides data nodes for configuring for Layer 2 terminations.";
+    container l2-termination {
+      presence "When present, provides the layer 2 termination its
+       configuration data.";
+      description
+        "Interface configuration specific to Layer 2 terminations.";
+      container ingress-rewrite {
+        description
+          "Ingress rewrite refers to the supported tag manipulations
+           before the frame is sent to a higher layer interface.";
+        leaf pop-tags {
+          type uint8 {
+            range "0..2";
+          }
+          description
+            "The number of tags to remove before the frame is
+             sent to a higher layer interface.";
+        }
+      }
+      container egress-rewrite {
+        description
+          "Egress rewrite refers to the supported tag manipulations
+           before the frame is sent to a forwarder.";
+        list push-tag {
+          key "index";
+          max-elements 2;
+          description
+            "The list of tags to push.
+
+             Note that there is no need to configure the value of the
+             Drop Eligible Indicator (DEI) as frames transmitted from
+             a Layer 2 termination will always have the DEI set to
+             zero.";
+          leaf index {
+            type bbf-classif:tag-index;
+            must '(count(../../push-tag[index = 0]) > 0)' {
+              error-message
+                "An inner tag can only be pushed if an outer tag is also specified.";
+              description
+                "Only allow a push of an inner tag if an outer tag is
+                 also being pushed.";
+            }
+            description
+              "The index into the tag stack.";
+          }
+          leaf tag-type {
+            type union {
+              type bbf-dot1qt:dot1q-tag-type;
+              type bbf-dot1qt:ether-type;
+              type bbf-dot1qt:ether-type-hex;
+            }
+            mandatory true;
+            description
+              "VLAN tag type.";
+          }
+          leaf vlan-id {
+            type union {
+              type bbf-dot1qt:vlan-id-or-0;
+            }
+            mandatory true;
+            description
+              "The VLAN ID or the value 0 (priority-tagged).";
+          }
+          choice write-pbit {
+            default "write-pbit-value";
+            description
+              "Defines how to write the p-bits.";
+            case write-pbit-value {
+              description
+                "Write a value of the p-bits into the tag.";
+              leaf pbit {
+                type bbf-dot1qt:pbit;
+                default "0";
+                description
+                  "Specified value of the p-bits to write into the
+                   tag.";
+              }
+            }
+            case generate-pbit-from-marking-list-or-0 {
+              if-feature "generate-pbit-from-marking-list";
+              description
+                "The p-bits field in the VLAN tag is taken from the
+                 frame's p-bit marking list. This is a piece of
+                 metadata, associated to a frame during its
+                 processing, and in which values are stored based on
+                 configured processing rules.
+
+                 If there are no p-bits in the p-bit marking list,
+                 then p-bits=000 is pushed in the VLAN tag of the
+                 frame.";
+              leaf pbit-marking-index {
+                type bbf-fpt:qos-pbit-marking-index;
+                description
+                  "This leaf provides the index in the p-bit marking
+                   list from which the value of the p-bits shall be
+                   taken to put in the VLAN tag.";
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-stand-alone-instance/bbf-onu-if:interfaces/bbf-onu-if:interface" {
+    when "derived-from-or-self(bbf-onu-if:type, 'bbf-onuift:l2-termination')" {
+      description
+        "Only applicable for Layer 2 terminations.";
+    }
+    description
+      "Intended for a stand-alone ONU instance (i.e., that does not
+       rely on any template).
+
+       Augment interface configuration for Layer 2 terminations.";
+    uses l2-termination {
+      refine "l2-termination/ingress-rewrite/pop-tags" {
+        default "0";
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template/bbf-onu-if:interfaces/bbf-onu-if:interface" {
+    when "derived-from-or-self(bbf-onu-if:type, 'bbf-onuift:l2-termination')" {
+      description
+        "Only applicable for Layer 2 terminations.";
+    }
+    description
+      "Intended for an ONU instance derived from template(s).
+
+       Augment interface configuration for Layer 2 terminations.";
+    uses l2-termination;
+  }
+  augment "/bbf-onus:onus/bbf-onum:template/bbf-onum:data/bbf-onu-if:interfaces/bbf-onu-if:interface" {
+    when "derived-from-or-self(bbf-onu-if:type, 'bbf-onuift:l2-termination')" {
+      description
+        "Only applicable for Layer 2 terminations.";
+    }
+    description
+      "Intended for an ONU template.
+
+       Augment interface configuration for Layer 2 terminations.";
+    uses l2-termination {
+      refine "l2-termination/ingress-rewrite/pop-tags" {
+        default "0";
+      }
+    }
+  }
+}

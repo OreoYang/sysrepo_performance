@@ -1,0 +1,26 @@
+<xpongemtcont xmlns="urn:bbf:yang:bbf-xpongemtcont">
+<traffic-descriptor-profiles>
+    <traffic-descriptor-profile>
+      <name>assured_10m</name>
+      <fixed-bandwidth>0</fixed-bandwidth>
+      <assured-bandwidth>10000000</assured-bandwidth>
+      <maximum-bandwidth>100000000</maximum-bandwidth>
+      <additional-bw-eligibility-indicator>non-assured-sharing</additional-bw-eligibility-indicator>
+    </traffic-descriptor-profile>
+    <traffic-descriptor-profile>
+      <name>be_100m</name>
+      <fixed-bandwidth>0</fixed-bandwidth>
+      <assured-bandwidth>0</assured-bandwidth>
+      <maximum-bandwidth>100000000</maximum-bandwidth>
+      <additional-bw-eligibility-indicator>best-effort-sharing</additional-bw-eligibility-indicator>
+    </traffic-descriptor-profile>
+    <traffic-descriptor-profile>
+      <name>be_200m</name>
+      <fixed-bandwidth>0</fixed-bandwidth>
+      <assured-bandwidth>0</assured-bandwidth>
+      <maximum-bandwidth>200000000</maximum-bandwidth>
+      <additional-bw-eligibility-indicator>best-effort-sharing</additional-bw-eligibility-indicator>
+    </traffic-descriptor-profile>
+  </traffic-descriptor-profiles>
+  
+</xpongemtcont>

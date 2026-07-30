@@ -1,0 +1,2297 @@
+<xpon xmlns="urn:bbf:yang:bbf-xpon">
+  <wavelength-profiles>
+    <wavelength-profile>
+      <name>wavelengthprofile.1</name>
+      <upstream-channel-id>0</upstream-channel-id>
+      <downstream-channel-id>0</downstream-channel-id>
+    </wavelength-profile>
+    <wavelength-profile>
+      <name>wavelengthprofile.10</name>
+      <upstream-channel-id>0</upstream-channel-id>
+      <downstream-channel-id>0</downstream-channel-id>
+    </wavelength-profile>
+    <wavelength-profile>
+      <name>wavelengthprofile.11</name>
+      <upstream-channel-id>0</upstream-channel-id>
+      <downstream-channel-id>0</downstream-channel-id>
+    </wavelength-profile>
+    <wavelength-profile>
+      <name>wavelengthprofile.12</name>
+      <upstream-channel-id>0</upstream-channel-id>
+      <downstream-channel-id>0</downstream-channel-id>
+    </wavelength-profile>
+    <wavelength-profile>
+      <name>wavelengthprofile.13</name>
+      <upstream-channel-id>0</upstream-channel-id>
+      <downstream-channel-id>0</downstream-channel-id>
+    </wavelength-profile>
+    <wavelength-profile>
+      <name>wavelengthprofile.14</name>
+      <upstream-channel-id>0</upstream-channel-id>
+      <downstream-channel-id>0</downstream-channel-id>
+    </wavelength-profile>
+    <wavelength-profile>
+      <name>wavelengthprofile.15</name>
+      <upstream-channel-id>0</upstream-channel-id>
+      <downstream-channel-id>0</downstream-channel-id>
+    </wavelength-profile>
+    <wavelength-profile>
+      <name>wavelengthprofile.16</name>
+      <upstream-channel-id>0</upstream-channel-id>
+      <downstream-channel-id>0</downstream-channel-id>
+    </wavelength-profile>
+    <wavelength-profile>
+      <name>wavelengthprofile.2</name>
+      <upstream-channel-id>0</upstream-channel-id>
+      <downstream-channel-id>0</downstream-channel-id>
+    </wavelength-profile>
+    <wavelength-profile>
+      <name>wavelengthprofile.3</name>
+      <upstream-channel-id>0</upstream-channel-id>
+      <downstream-channel-id>0</downstream-channel-id>
+    </wavelength-profile>
+    <wavelength-profile>
+      <name>wavelengthprofile.4</name>
+      <upstream-channel-id>0</upstream-channel-id>
+      <downstream-channel-id>0</downstream-channel-id>
+    </wavelength-profile>
+    <wavelength-profile>
+      <name>wavelengthprofile.5</name>
+      <upstream-channel-id>0</upstream-channel-id>
+      <downstream-channel-id>0</downstream-channel-id>
+    </wavelength-profile>
+    <wavelength-profile>
+      <name>wavelengthprofile.6</name>
+      <upstream-channel-id>0</upstream-channel-id>
+      <downstream-channel-id>0</downstream-channel-id>
+    </wavelength-profile>
+    <wavelength-profile>
+      <name>wavelengthprofile.7</name>
+      <upstream-channel-id>0</upstream-channel-id>
+      <downstream-channel-id>0</downstream-channel-id>
+    </wavelength-profile>
+    <wavelength-profile>
+      <name>wavelengthprofile.8</name>
+      <upstream-channel-id>0</upstream-channel-id>
+      <downstream-channel-id>0</downstream-channel-id>
+    </wavelength-profile>
+    <wavelength-profile>
+      <name>wavelengthprofile.9</name>
+      <upstream-channel-id>0</upstream-channel-id>
+      <downstream-channel-id>0</downstream-channel-id>
+    </wavelength-profile>
+  </wavelength-profiles>
+  <multicast-gemports>
+    <multicast-gemport>
+      <name>bgem.1</name>
+      <gemport-id>8190</gemport-id>
+      <interface>chpair.1</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>bgem.10</name>
+      <gemport-id>8190</gemport-id>
+      <interface>chpair.10</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>bgem.11</name>
+      <gemport-id>8190</gemport-id>
+      <interface>chpair.11</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>bgem.12</name>
+      <gemport-id>8190</gemport-id>
+      <interface>chpair.12</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>bgem.13</name>
+      <gemport-id>8190</gemport-id>
+      <interface>chpair.13</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>bgem.14</name>
+      <gemport-id>8190</gemport-id>
+      <interface>chpair.14</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>bgem.15</name>
+      <gemport-id>8190</gemport-id>
+      <interface>chpair.15</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>bgem.16</name>
+      <gemport-id>8190</gemport-id>
+      <interface>chpair.16</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>bgem.2</name>
+      <gemport-id>8190</gemport-id>
+      <interface>chpair.2</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>bgem.3</name>
+      <gemport-id>8190</gemport-id>
+      <interface>chpair.3</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>bgem.4</name>
+      <gemport-id>8190</gemport-id>
+      <interface>chpair.4</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>bgem.5</name>
+      <gemport-id>8190</gemport-id>
+      <interface>chpair.5</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>bgem.6</name>
+      <gemport-id>8190</gemport-id>
+      <interface>chpair.6</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>bgem.7</name>
+      <gemport-id>8190</gemport-id>
+      <interface>chpair.7</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>bgem.8</name>
+      <gemport-id>8190</gemport-id>
+      <interface>chpair.8</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>bgem.9</name>
+      <gemport-id>8190</gemport-id>
+      <interface>chpair.9</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>gpon.bgem.1</name>
+      <gemport-id>4095</gemport-id>
+      <interface>chpair.gpon.1</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>gpon.bgem.10</name>
+      <gemport-id>4095</gemport-id>
+      <interface>chpair.gpon.10</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>gpon.bgem.11</name>
+      <gemport-id>4095</gemport-id>
+      <interface>chpair.gpon.11</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>gpon.bgem.12</name>
+      <gemport-id>4095</gemport-id>
+      <interface>chpair.gpon.12</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>gpon.bgem.13</name>
+      <gemport-id>4095</gemport-id>
+      <interface>chpair.gpon.13</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>gpon.bgem.14</name>
+      <gemport-id>4095</gemport-id>
+      <interface>chpair.gpon.14</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>gpon.bgem.15</name>
+      <gemport-id>4095</gemport-id>
+      <interface>chpair.gpon.15</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>gpon.bgem.16</name>
+      <gemport-id>4095</gemport-id>
+      <interface>chpair.gpon.16</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>gpon.bgem.2</name>
+      <gemport-id>4095</gemport-id>
+      <interface>chpair.gpon.2</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>gpon.bgem.3</name>
+      <gemport-id>4095</gemport-id>
+      <interface>chpair.gpon.3</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>gpon.bgem.4</name>
+      <gemport-id>4095</gemport-id>
+      <interface>chpair.gpon.4</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>gpon.bgem.5</name>
+      <gemport-id>4095</gemport-id>
+      <interface>chpair.gpon.5</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>gpon.bgem.6</name>
+      <gemport-id>4095</gemport-id>
+      <interface>chpair.gpon.6</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>gpon.bgem.7</name>
+      <gemport-id>4095</gemport-id>
+      <interface>chpair.gpon.7</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>gpon.bgem.8</name>
+      <gemport-id>4095</gemport-id>
+      <interface>chpair.gpon.8</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+    <multicast-gemport>
+      <name>gpon.bgem.9</name>
+      <gemport-id>4095</gemport-id>
+      <interface>chpair.gpon.9</interface>
+      <traffic-class>0</traffic-class>
+      <is-broadcast>true</is-broadcast>
+    </multicast-gemport>
+  </multicast-gemports>
+</xpon>
+<interfaces xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces">
+  <interface>
+    <name>chgrp.1</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>pool.1</name>
+          <channel-termination-ref>pon.1</channel-termination-ref>
+          <alloc-id-values>1024-2815</alloc-id-values>
+          <gemport-values>1024-8959</gemport-values>
+          <onu-id-values>0-255</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.10</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>pool.10</name>
+          <channel-termination-ref>pon.10</channel-termination-ref>
+          <alloc-id-values>1024-2815</alloc-id-values>
+          <gemport-values>1024-8959</gemport-values>
+          <onu-id-values>0-255</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.11</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>pool.11</name>
+          <channel-termination-ref>pon.11</channel-termination-ref>
+          <alloc-id-values>1024-2815</alloc-id-values>
+          <gemport-values>1024-8959</gemport-values>
+          <onu-id-values>0-255</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.12</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>pool.12</name>
+          <channel-termination-ref>pon.12</channel-termination-ref>
+          <alloc-id-values>1024-2815</alloc-id-values>
+          <gemport-values>1024-8959</gemport-values>
+          <onu-id-values>0-255</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.13</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>pool.13</name>
+          <channel-termination-ref>pon.13</channel-termination-ref>
+          <alloc-id-values>1024-2815</alloc-id-values>
+          <gemport-values>1024-8959</gemport-values>
+          <onu-id-values>0-255</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.14</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>pool.14</name>
+          <channel-termination-ref>pon.14</channel-termination-ref>
+          <alloc-id-values>1024-2815</alloc-id-values>
+          <gemport-values>1024-8959</gemport-values>
+          <onu-id-values>0-255</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.15</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>pool.15</name>
+          <channel-termination-ref>pon.15</channel-termination-ref>
+          <alloc-id-values>1024-2815</alloc-id-values>
+          <gemport-values>1024-8959</gemport-values>
+          <onu-id-values>0-255</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.16</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>pool.16</name>
+          <channel-termination-ref>pon.16</channel-termination-ref>
+          <alloc-id-values>1024-2815</alloc-id-values>
+          <gemport-values>1024-8959</gemport-values>
+          <onu-id-values>0-255</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.2</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>pool.2</name>
+          <channel-termination-ref>pon.2</channel-termination-ref>
+          <alloc-id-values>1024-2815</alloc-id-values>
+          <gemport-values>1024-8959</gemport-values>
+          <onu-id-values>0-255</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.3</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>pool.3</name>
+          <channel-termination-ref>pon.3</channel-termination-ref>
+          <alloc-id-values>1024-2815</alloc-id-values>
+          <gemport-values>1024-8959</gemport-values>
+          <onu-id-values>0-255</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.4</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>pool.4</name>
+          <channel-termination-ref>pon.4</channel-termination-ref>
+          <alloc-id-values>1024-2815</alloc-id-values>
+          <gemport-values>1024-8959</gemport-values>
+          <onu-id-values>0-255</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.5</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>pool.5</name>
+          <channel-termination-ref>pon.5</channel-termination-ref>
+          <alloc-id-values>1024-2815</alloc-id-values>
+          <gemport-values>1024-8959</gemport-values>
+          <onu-id-values>0-255</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.6</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>pool.6</name>
+          <channel-termination-ref>pon.6</channel-termination-ref>
+          <alloc-id-values>1024-2815</alloc-id-values>
+          <gemport-values>1024-8959</gemport-values>
+          <onu-id-values>0-255</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.7</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>pool.7</name>
+          <channel-termination-ref>pon.7</channel-termination-ref>
+          <alloc-id-values>1024-2815</alloc-id-values>
+          <gemport-values>1024-8959</gemport-values>
+          <onu-id-values>0-255</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.8</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>pool.8</name>
+          <channel-termination-ref>pon.8</channel-termination-ref>
+          <alloc-id-values>1024-2815</alloc-id-values>
+          <gemport-values>1024-8959</gemport-values>
+          <onu-id-values>0-255</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.9</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>pool.9</name>
+          <channel-termination-ref>pon.9</channel-termination-ref>
+          <alloc-id-values>1024-2815</alloc-id-values>
+          <gemport-values>1024-8959</gemport-values>
+          <onu-id-values>0-255</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.gpon.1</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>gpool.1</name>
+          <channel-termination-ref>gpon.1</channel-termination-ref>
+          <alloc-id-values>256-1151</alloc-id-values>
+          <gemport-values>256-4094</gemport-values>
+          <onu-id-values>0-127</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.gpon.10</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>gpool.10</name>
+          <channel-termination-ref>gpon.10</channel-termination-ref>
+          <alloc-id-values>256-1151</alloc-id-values>
+          <gemport-values>256-4094</gemport-values>
+          <onu-id-values>0-127</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.gpon.11</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>gpool.11</name>
+          <channel-termination-ref>gpon.11</channel-termination-ref>
+          <alloc-id-values>256-1151</alloc-id-values>
+          <gemport-values>256-4094</gemport-values>
+          <onu-id-values>0-127</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.gpon.12</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>gpool.12</name>
+          <channel-termination-ref>gpon.12</channel-termination-ref>
+          <alloc-id-values>256-1151</alloc-id-values>
+          <gemport-values>256-4094</gemport-values>
+          <onu-id-values>0-127</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.gpon.13</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>gpool.13</name>
+          <channel-termination-ref>gpon.13</channel-termination-ref>
+          <alloc-id-values>256-1151</alloc-id-values>
+          <gemport-values>256-4094</gemport-values>
+          <onu-id-values>0-127</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.gpon.14</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>gpool.14</name>
+          <channel-termination-ref>gpon.14</channel-termination-ref>
+          <alloc-id-values>256-1151</alloc-id-values>
+          <gemport-values>256-4094</gemport-values>
+          <onu-id-values>0-127</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.gpon.15</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>gpool.15</name>
+          <channel-termination-ref>gpon.15</channel-termination-ref>
+          <alloc-id-values>256-1151</alloc-id-values>
+          <gemport-values>256-4094</gemport-values>
+          <onu-id-values>0-127</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.gpon.16</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>gpool.16</name>
+          <channel-termination-ref>gpon.16</channel-termination-ref>
+          <alloc-id-values>256-1151</alloc-id-values>
+          <gemport-values>256-4094</gemport-values>
+          <onu-id-values>0-127</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.gpon.2</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>gpool.2</name>
+          <channel-termination-ref>gpon.2</channel-termination-ref>
+          <alloc-id-values>256-1151</alloc-id-values>
+          <gemport-values>256-4094</gemport-values>
+          <onu-id-values>0-127</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.gpon.3</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>gpool.3</name>
+          <channel-termination-ref>gpon.3</channel-termination-ref>
+          <alloc-id-values>256-1151</alloc-id-values>
+          <gemport-values>256-4094</gemport-values>
+          <onu-id-values>0-127</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.gpon.4</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>gpool.4</name>
+          <channel-termination-ref>gpon.4</channel-termination-ref>
+          <alloc-id-values>256-1151</alloc-id-values>
+          <gemport-values>256-4094</gemport-values>
+          <onu-id-values>0-127</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.gpon.5</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>gpool.5</name>
+          <channel-termination-ref>gpon.5</channel-termination-ref>
+          <alloc-id-values>256-1151</alloc-id-values>
+          <gemport-values>256-4094</gemport-values>
+          <onu-id-values>0-127</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.gpon.6</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>gpool.6</name>
+          <channel-termination-ref>gpon.6</channel-termination-ref>
+          <alloc-id-values>256-1151</alloc-id-values>
+          <gemport-values>256-4094</gemport-values>
+          <onu-id-values>0-127</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.gpon.7</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>gpool.7</name>
+          <channel-termination-ref>gpon.7</channel-termination-ref>
+          <alloc-id-values>256-1151</alloc-id-values>
+          <gemport-values>256-4094</gemport-values>
+          <onu-id-values>0-127</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.gpon.8</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>gpool.8</name>
+          <channel-termination-ref>gpon.8</channel-termination-ref>
+          <alloc-id-values>256-1151</alloc-id-values>
+          <gemport-values>256-4094</gemport-values>
+          <onu-id-values>0-127</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chgrp.gpon.9</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</type>
+    <enabled>true</enabled>
+    <channel-group xmlns="urn:bbf:yang:bbf-xpon">
+      <polling-period>20</polling-period>
+      <raman-mitigation>raman-none</raman-mitigation>
+      <system-id>00000</system-id>
+      <pon-pools>
+        <pon-pool>
+          <name>gpool.9</name>
+          <channel-termination-ref>gpon.9</channel-termination-ref>
+          <alloc-id-values>256-1151</alloc-id-values>
+          <gemport-values>256-4094</gemport-values>
+          <onu-id-values>0-127</onu-id-values>
+        </pon-pool>
+      </pon-pools>
+    </channel-group>
+  </interface>
+  <interface>
+    <name>chpair.1</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.1</channel-group-ref>
+      <channel-partition-ref>chpart.1</channel-partition-ref>
+      <wavelength-prof-ref>wavelengthprofile.1</wavelength-prof-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.10</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.10</channel-group-ref>
+      <channel-partition-ref>chpart.10</channel-partition-ref>
+      <wavelength-prof-ref>wavelengthprofile.10</wavelength-prof-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.11</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.11</channel-group-ref>
+      <channel-partition-ref>chpart.11</channel-partition-ref>
+      <wavelength-prof-ref>wavelengthprofile.11</wavelength-prof-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.12</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.12</channel-group-ref>
+      <channel-partition-ref>chpart.12</channel-partition-ref>
+      <wavelength-prof-ref>wavelengthprofile.12</wavelength-prof-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.13</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.13</channel-group-ref>
+      <channel-partition-ref>chpart.13</channel-partition-ref>
+      <wavelength-prof-ref>wavelengthprofile.13</wavelength-prof-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.14</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.14</channel-group-ref>
+      <channel-partition-ref>chpart.14</channel-partition-ref>
+      <wavelength-prof-ref>wavelengthprofile.14</wavelength-prof-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.15</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.15</channel-group-ref>
+      <channel-partition-ref>chpart.15</channel-partition-ref>
+      <wavelength-prof-ref>wavelengthprofile.15</wavelength-prof-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.16</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.16</channel-group-ref>
+      <channel-partition-ref>chpart.16</channel-partition-ref>
+      <wavelength-prof-ref>wavelengthprofile.16</wavelength-prof-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.2</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.2</channel-group-ref>
+      <channel-partition-ref>chpart.2</channel-partition-ref>
+      <wavelength-prof-ref>wavelengthprofile.2</wavelength-prof-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.3</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.3</channel-group-ref>
+      <channel-partition-ref>chpart.3</channel-partition-ref>
+      <wavelength-prof-ref>wavelengthprofile.3</wavelength-prof-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.4</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.4</channel-group-ref>
+      <channel-partition-ref>chpart.4</channel-partition-ref>
+      <wavelength-prof-ref>wavelengthprofile.4</wavelength-prof-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.5</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.5</channel-group-ref>
+      <channel-partition-ref>chpart.5</channel-partition-ref>
+      <wavelength-prof-ref>wavelengthprofile.5</wavelength-prof-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.6</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.6</channel-group-ref>
+      <channel-partition-ref>chpart.6</channel-partition-ref>
+      <wavelength-prof-ref>wavelengthprofile.6</wavelength-prof-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.7</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.7</channel-group-ref>
+      <channel-partition-ref>chpart.7</channel-partition-ref>
+      <wavelength-prof-ref>wavelengthprofile.7</wavelength-prof-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.8</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.8</channel-group-ref>
+      <channel-partition-ref>chpart.8</channel-partition-ref>
+      <wavelength-prof-ref>wavelengthprofile.8</wavelength-prof-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.9</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.9</channel-group-ref>
+      <channel-partition-ref>chpart.9</channel-partition-ref>
+      <wavelength-prof-ref>wavelengthprofile.9</wavelength-prof-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.gpon.1</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.1</channel-group-ref>
+      <channel-partition-ref>chpart.gpon.1</channel-partition-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.gpon.10</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.10</channel-group-ref>
+      <channel-partition-ref>chpart.gpon.10</channel-partition-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.gpon.11</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.11</channel-group-ref>
+      <channel-partition-ref>chpart.gpon.11</channel-partition-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.gpon.12</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.12</channel-group-ref>
+      <channel-partition-ref>chpart.gpon.12</channel-partition-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.gpon.13</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.13</channel-group-ref>
+      <channel-partition-ref>chpart.gpon.13</channel-partition-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.gpon.14</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.14</channel-group-ref>
+      <channel-partition-ref>chpart.gpon.14</channel-partition-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.gpon.15</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.15</channel-group-ref>
+      <channel-partition-ref>chpart.gpon.15</channel-partition-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.gpon.16</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.16</channel-group-ref>
+      <channel-partition-ref>chpart.gpon.16</channel-partition-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.gpon.2</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.2</channel-group-ref>
+      <channel-partition-ref>chpart.gpon.2</channel-partition-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.gpon.3</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.3</channel-group-ref>
+      <channel-partition-ref>chpart.gpon.3</channel-partition-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.gpon.4</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.4</channel-group-ref>
+      <channel-partition-ref>chpart.gpon.4</channel-partition-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.gpon.5</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.5</channel-group-ref>
+      <channel-partition-ref>chpart.gpon.5</channel-partition-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.gpon.6</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.6</channel-group-ref>
+      <channel-partition-ref>chpart.gpon.6</channel-partition-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.gpon.7</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.7</channel-group-ref>
+      <channel-partition-ref>chpart.gpon.7</channel-partition-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.gpon.8</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.8</channel-group-ref>
+      <channel-partition-ref>chpart.gpon.8</channel-partition-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpair.gpon.9</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-pair</type>
+    <enabled>true</enabled>
+    <channel-pair xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.9</channel-group-ref>
+      <channel-partition-ref>chpart.gpon.9</channel-partition-ref>
+      <channel-pair-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-pair-type>
+    </channel-pair>
+  </interface>
+  <interface>
+    <name>chpart.1</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.1</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.10</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.10</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.11</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.11</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.12</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.12</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.13</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.13</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.14</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.14</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.15</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.15</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.16</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.16</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.2</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.2</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.3</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.3</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.4</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.4</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.5</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.5</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.6</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.6</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.7</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.7</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.8</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.8</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.9</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.9</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.gpon.1</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.1</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.gpon.10</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.10</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.gpon.11</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.11</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.gpon.12</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.12</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.gpon.13</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.13</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.gpon.14</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.14</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.gpon.15</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.15</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.gpon.16</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.16</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.gpon.2</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.2</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.gpon.3</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.3</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.gpon.4</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.4</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.gpon.5</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.5</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.gpon.6</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.6</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.gpon.7</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.7</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.gpon.8</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.8</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>chpart.gpon.9</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-partition</type>
+    <enabled>true</enabled>
+    <channel-partition xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-group-ref>chgrp.gpon.9</channel-group-ref>
+      <channel-partition-index>0</channel-partition-index>
+      <downstream-fec>false</downstream-fec>
+      <closest-onu-distance>0</closest-onu-distance>
+      <maximum-differential-xpon-distance>20</maximum-differential-xpon-distance>
+      <authentication-method>serial-number</authentication-method>
+    </channel-partition>
+  </interface>
+  <interface>
+    <name>gpon.1</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.gpon.1</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-termination-type>
+      <gpon-pon-id>00000000000000</gpon-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>gpon.10</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.gpon.10</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-termination-type>
+      <gpon-pon-id>00000000000000</gpon-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>gpon.11</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.gpon.11</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-termination-type>
+      <gpon-pon-id>00000000000000</gpon-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>gpon.12</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.gpon.12</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-termination-type>
+      <gpon-pon-id>00000000000000</gpon-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>gpon.13</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.gpon.13</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-termination-type>
+      <gpon-pon-id>00000000000000</gpon-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>gpon.14</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.gpon.14</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-termination-type>
+      <gpon-pon-id>00000000000000</gpon-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>gpon.15</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.gpon.15</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-termination-type>
+      <gpon-pon-id>00000000000000</gpon-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>gpon.16</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.gpon.16</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-termination-type>
+      <gpon-pon-id>00000000000000</gpon-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>gpon.2</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.gpon.2</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-termination-type>
+      <gpon-pon-id>00000000000000</gpon-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>gpon.3</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.gpon.3</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-termination-type>
+      <gpon-pon-id>00000000000000</gpon-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>gpon.4</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.gpon.4</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-termination-type>
+      <gpon-pon-id>00000000000000</gpon-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>gpon.5</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.gpon.5</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-termination-type>
+      <gpon-pon-id>00000000000000</gpon-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>gpon.6</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.gpon.6</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-termination-type>
+      <gpon-pon-id>00000000000000</gpon-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>gpon.7</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.gpon.7</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-termination-type>
+      <gpon-pon-id>00000000000000</gpon-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>gpon.8</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.gpon.8</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-termination-type>
+      <gpon-pon-id>00000000000000</gpon-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>gpon.9</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.gpon.9</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:gpon</channel-termination-type>
+      <gpon-pon-id>00000000000000</gpon-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>lag-1</name>
+    <type xmlns:ianaift="urn:ietf:params:xml:ns:yang:iana-if-type">ianaift:ieee8023adLag</type>
+    <enabled>true</enabled>
+    <interface-usage xmlns="urn:bbf:yang:bbf-interface-usage">
+      <interface-usage>network-port</interface-usage>
+    </interface-usage>
+  </interface>
+  <interface>
+    <name>lag-2</name>
+    <type xmlns:ianaift="urn:ietf:params:xml:ns:yang:iana-if-type">ianaift:ieee8023adLag</type>
+    <enabled>true</enabled>
+    <interface-usage xmlns="urn:bbf:yang:bbf-interface-usage">
+      <interface-usage>network-port</interface-usage>
+    </interface-usage>
+  </interface>
+  <interface>
+    <name>pon.1</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.1</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-termination-type>
+      <xgs-pon-id>0</xgs-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>pon.10</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.10</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-termination-type>
+      <xgs-pon-id>0</xgs-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>pon.11</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.11</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-termination-type>
+      <xgs-pon-id>0</xgs-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>pon.12</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.12</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-termination-type>
+      <xgs-pon-id>0</xgs-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>pon.13</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.13</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-termination-type>
+      <xgs-pon-id>0</xgs-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>pon.14</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.14</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-termination-type>
+      <xgs-pon-id>0</xgs-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>pon.15</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.15</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-termination-type>
+      <xgs-pon-id>0</xgs-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>pon.16</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.16</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-termination-type>
+      <xgs-pon-id>0</xgs-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>pon.2</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.2</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-termination-type>
+      <xgs-pon-id>0</xgs-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>pon.3</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.3</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-termination-type>
+      <xgs-pon-id>0</xgs-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>pon.4</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.4</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-termination-type>
+      <xgs-pon-id>0</xgs-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>pon.5</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.5</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-termination-type>
+      <xgs-pon-id>0</xgs-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>pon.6</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.6</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-termination-type>
+      <xgs-pon-id>0</xgs-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>pon.7</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.7</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-termination-type>
+      <xgs-pon-id>0</xgs-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>pon.8</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.8</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-termination-type>
+      <xgs-pon-id>0</xgs-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>pon.9</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-termination</type>
+    <enabled>true</enabled>
+    <channel-termination xmlns="urn:bbf:yang:bbf-xpon">
+      <channel-pair-ref>chpair.9</channel-pair-ref>
+      <channel-termination-type xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:xgs</channel-termination-type>
+      <xgs-pon-id>0</xgs-pon-id>
+      <location xmlns:bbf-xpon-types="urn:bbf:yang:bbf-xpon-types">bbf-xpon-types:inside-olt</location>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-with-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-not-present-without-v-ani</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-no-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-no-onu-id</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-failed-undefined</notifiable-onu-presence-states>
+      <notifiable-onu-presence-states xmlns="urn:bbf:yang:bbf-xpon-onu-state" xmlns:bbf-xpon-onu-types="urn:bbf:yang:bbf-xpon-onu-types">bbf-xpon-onu-types:onu-present-and-v-ani-known-and-o5-registered-with-alarms</notifiable-onu-presence-states>
+    </channel-termination>
+  </interface>
+  <interface>
+    <name>uplink-1</name>
+    <type xmlns:ianaift="urn:ietf:params:xml:ns:yang:iana-if-type">ianaift:ethernetCsmacd</type>
+    <enabled>true</enabled>
+    <interface-usage xmlns="urn:bbf:yang:bbf-interface-usage">
+      <interface-usage>network-port</interface-usage>
+    </interface-usage>
+  </interface>
+  <interface>
+    <name>uplink-2</name>
+    <type xmlns:ianaift="urn:ietf:params:xml:ns:yang:iana-if-type">ianaift:ethernetCsmacd</type>
+    <enabled>true</enabled>
+    <interface-usage xmlns="urn:bbf:yang:bbf-interface-usage">
+      <interface-usage>network-port</interface-usage>
+    </interface-usage>
+  </interface>
+  <interface>
+    <name>uplink-3</name>
+    <type xmlns:ianaift="urn:ietf:params:xml:ns:yang:iana-if-type">ianaift:ethernetCsmacd</type>
+    <enabled>true</enabled>
+    <interface-usage xmlns="urn:bbf:yang:bbf-interface-usage">
+      <interface-usage>network-port</interface-usage>
+    </interface-usage>
+  </interface>
+  <interface>
+    <name>uplink-4</name>
+    <type xmlns:ianaift="urn:ietf:params:xml:ns:yang:iana-if-type">ianaift:ethernetCsmacd</type>
+    <enabled>true</enabled>
+    <interface-usage xmlns="urn:bbf:yang:bbf-interface-usage">
+      <interface-usage>network-port</interface-usage>
+    </interface-usage>
+  </interface>
+</interfaces>
+

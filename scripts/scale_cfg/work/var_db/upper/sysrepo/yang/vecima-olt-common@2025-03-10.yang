@@ -1,0 +1,103 @@
+module vecima-olt-common {
+  yang-version 1.1;
+  namespace "urn:vecima:yang:vecima-olt-common";
+  prefix vcm-olt-cmn;
+
+  import ietf-inet-types {
+    prefix inet;
+    reference
+      "RFC 6991: Common YANG Data Types";
+  }
+
+  organization
+    "Vecima Networks Inc.";
+  contact
+    "https://www.vecima.com";
+  description
+    "This YANG module defines common user defined data types and
+     groupings used across multiple olt devices.";
+
+  revision 2025-03-10 {
+    description
+      "Support flexible support-info uploading mechanism";
+    reference
+      "";
+  }
+  revision 2022-06-17 {
+    description
+      "Initial version.";
+    reference
+      "";
+  }
+
+  typedef info-interval {
+    type enumeration {
+      enum "hourly" {
+        value 1;
+        description
+          "The hourly interval";
+      }
+      enum "daily" {
+        value 2;
+        description
+          "The daily interval";
+      }
+      enum "weekly" {
+        value 3;
+        description
+          "The weekly interval";
+      }
+      enum "monthly" {
+        value 4;
+        description
+          "The monthly interval";
+      }
+    }
+    description
+      "The interval info";
+  }
+
+  grouping support-info-group {
+    description
+      "The support info group";
+    container support-info-collection {
+      description
+        "support info collection interval";
+      leaf interval {
+        type info-interval;
+        default 'daily';
+        description
+          "support info collection interval";
+      }
+    }
+    action support-info {
+      description
+        "Collect support info from the node";
+    }
+    action support-info-upload {
+      description
+        "Upload support info from the node";
+
+      input {
+        leaf uri {
+          type inet:uri;
+          mandatory true;
+          description
+            "The uri to upload";
+        }
+        leaf username {
+          type string;
+          mandatory true;
+          description
+            "The username";
+        }
+        leaf password {
+          type string;
+          mandatory true;
+          description
+            "The password";
+        }
+      }
+    }
+  }
+}

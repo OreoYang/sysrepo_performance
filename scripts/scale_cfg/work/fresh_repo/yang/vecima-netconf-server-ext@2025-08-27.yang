@@ -1,0 +1,53 @@
+module vecima-netconf-server-ext {
+  yang-version 1.1;
+  namespace "urn:vecima:yang:vecima-netconf-server-ext";
+  prefix vcm-ns-ext;
+
+  organization
+    "Vecima Networks Inc.";
+  contact
+    "https://www.vecima.com";
+  description
+    "This module extends NETCONF server datastore information";
+
+  revision 2025-08-27 {
+    description
+      "Add running-provisioning-checksum.";
+    reference
+      "";
+  }
+  revision 2023-01-20 {
+    description
+      "Initial version.";
+    reference
+      "";
+  }
+
+  container datastore {
+    description
+      "Contains additional information about the datastore, e.g.
+       transaction identifier that represents last configuration
+       change";
+    leaf running-ds-oper-txid {
+      type string;
+      config false;
+      description
+        "Systeml level transaction identifier for last configuration
+         change as operational data ";
+    }
+    leaf running-config-txid {
+      type string;
+      description
+        "Transaction identifier for the running configuration on node
+         that represents last configuration change, set by node using
+         timestamp or hash";
+    }
+    leaf running-provisioning-checksum {
+      type string;
+      description
+        "A checksum value computed by a provisioning system, like vPONMgr,
+         to validate the integrity of the netconf configuration of a node
+         to determine if there are changes that need to be applied to the node";
+    }
+  }
+}

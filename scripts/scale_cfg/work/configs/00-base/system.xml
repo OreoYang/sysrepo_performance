@@ -1,0 +1,16 @@
+<system xmlns="urn:ietf:params:xml:ns:yang:ietf-system">
+  <hostname>lscale</hostname>
+  <subscriber-management xmlns="urn:bbf:yang:bbf-subscriber-profiles">
+    <access-node-id>lscale</access-node-id>
+  </subscriber-management>
+  <syslog-destination-server xmlns="urn:vecima:yang:vecima-ietf-system">
+    <syslog-destination-type>loki</syslog-destination-type>
+    <uri>http://xgslscale.vponmanager.qdlab:3100</uri>
+  </syslog-destination-server>
+  <cpu-rate-limit xmlns="urn:vecima:yang:vecima-ietf-system">
+    <global>
+      <pir>200000</pir>
+      <pbs>1000000</pbs>
+    </global>
+  </cpu-rate-limit>
+</system>

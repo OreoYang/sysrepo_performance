@@ -1,0 +1,34 @@
+<onus xmlns="urn:bbf:yang:bbf-onus">
+  <template xmlns="urn:bbf:yang:bbf-onu-management">
+    <name>default-onu-template</name>
+    <data>
+      <hardware xmlns="urn:bbf:yang:bbf-onu-hardware">
+        <component>
+          <name>transceiver</name>
+          <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+          <parent>xpon-nt</parent>
+          <parent-rel-pos>1</parent-rel-pos>
+        </component>
+        <component>
+          <name>transceiver-link</name>
+          <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+          <parent>transceiver</parent>
+          <parent-rel-pos>1</parent-rel-pos>
+        </component>
+        <component>
+          <name>xpon-nt</name>
+          <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:xpon-nt</class>
+        </component>
+      </hardware>
+      <interfaces xmlns="urn:bbf:yang:bbf-onu-interfaces">
+        <interface>
+          <name>ani</name>
+          <type xmlns:bbf-onuift="urn:bbf:yang:bbf-onu-if-type">bbf-onuift:ani</type>
+          <hardware-component xmlns="urn:bbf:yang:bbf-onu-interface-to-hardware">
+            <port-layer-if>transceiver-link</port-layer-if>
+          </hardware-component>
+        </interface>
+      </interfaces>
+    </data>
+  </template>
+</onus>

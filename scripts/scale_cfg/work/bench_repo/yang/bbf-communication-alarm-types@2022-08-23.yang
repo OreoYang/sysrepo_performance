@@ -1,0 +1,389 @@
+module bbf-communication-alarm-types {
+  yang-version 1.1;
+  namespace "urn:bbf:yang:bbf-communication-alarm-types";
+  prefix bbf-communication-alt;
+
+  import bbf-alarm-types {
+    prefix bbf-alt;
+  }
+
+  organization
+    "Broadband Forum <https://www.broadband-forum.org>
+     Common YANG Work Area";
+  contact
+    "";
+  description
+    "This module contains a collection of YANG definitions for
+     supporting the Broadband Forum requirements on communication
+     failure.
+
+     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+     CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+     INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+     CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+     STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+     ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+     The above license is used as a license under copyright only.
+     Please reference the Forum IPR Policy for patent licensing terms
+     <https://www.broadband-forum.org/ipr-policy>.
+
+     Any moral rights which are necessary to exercise under the above
+     license grant are also deemed granted under this license.
+
+     This version of this YANG module is part of TR-383a4; see
+     the TR itself for full legal notices.";
+
+  revision 2022-08-23 {
+    description
+      "Amendment 4.
+       * Approval Date:    TBD.
+       * Publication Date: TBD";
+    reference
+      "TR-383a4: Common YANG Modules
+                 <https://www.broadband-forum.org/technical/download/
+                          TR-383_Amendment-4.pdf>";
+  }
+
+  identity eth-alarm-type-id {
+    base bbf-alt:bbf-communication-alarm-type-id;
+    description
+      "Abstract alarm type for ethernet alarms";
+  }
+
+  identity loss-of-signal {
+    base eth-alarm-type-id;
+    description
+      "Loss of signal alarms for ethernet";
+  }
+
+  identity pon-alarm-type-id {
+    base bbf-alt:bbf-communication-alarm-type-id;
+    description
+      "Abstract alarm type for pon port alarms";
+  }
+
+  identity pon-loss-of-signal {
+    base pon-alarm-type-id;
+    description
+      "The OLT did not receive any expected transmissions in the
+       upstream (complete PON failure) for 4 consecutive frames.";
+    reference
+      "ITU-T G.984.3 11.1.1 for GPON,
+       ITU-T G.9807.1 C.14.2 for XGS-PON";
+  }
+
+  identity onu-alarm-type-id {
+    base bbf-alt:bbf-communication-alarm-type-id;
+    description
+      "Abstract alarm type for onu alarms";
+  }
+
+  identity onu-startup-failure {
+    base onu-alarm-type-id;
+    description
+      "Start-up failure (SUFi) detected while activating ONU.";
+    reference
+      "ITU-T G.984.3 for GPON, ITU-T G.9807.1 for XGS-PON";
+  }
+
+  identity onu-dying-gasp {
+    base onu-alarm-type-id;
+    description
+      "ONU is powering off imminently due to loss of power to the
+       ONU itself. This alarm may be sent in conjunction with the
+       powering alarm if the backup unit cannot supply power and
+       the ONU is shutting down.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity onu-deactivation-failure {
+    base onu-alarm-type-id;
+    description
+      "Deactivation failure (DFi) for ONU.";
+    reference
+      "ITU-T G.984.3 for GPON, ITU-T G.9807.1 for XGS-PON";
+  }
+
+  identity onu-drift-of-window {
+    base onu-alarm-type-id;
+    description
+      "ONU burst transmission drift exceeds drift-of-window (DOWi)
+       threshold.";
+    reference
+      "ITU-T G.984.3 for GPON, ITU-T G.9807.1 for XGS-PON";
+  }
+
+  identity onu-lan-los {
+    base onu-alarm-type-id;
+    description
+      "Ethernet link down.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity onu-transceiver-link-tx-bias-high {
+    base onu-alarm-type-id;
+    description
+      "Laser bias current above threshold determined.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity onu-transceiver-link-tx-power-high {
+    base onu-alarm-type-id;
+    description
+      "Transmit optical power above upper threshold.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity onu-transceiver-link-tx-power-low {
+    base onu-alarm-type-id;
+    description
+      "Transmit optical power below lower threshold.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity onu-transceiver-link-rx-power-high {
+    base onu-alarm-type-id;
+    description
+      "Received downstream optical power above threshold.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity onu-transceiver-link-rx-power-low {
+    base onu-alarm-type-id;
+    description
+      "Received downstream optical power below threshold.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity onu-transceiver-link-signal-fail {
+    base onu-alarm-type-id;
+    description
+      "Bit error-based signal fail. Industry practice normally expects the BER to improve by at least an order of magnitude before clearing the alarm.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity onu-transceiver-link-signal-degrade {
+    base onu-alarm-type-id;
+    description
+      "Bit error-based signal degrade. Industry practice normally expects the BER to improve by at least an order of magnitude before clearing the alarm.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity onu-failure {
+    base onu-alarm-type-id;
+    description
+      "Functional failure on an internal interface.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity onu-battery-charger-power-loss {
+    base onu-alarm-type-id;
+    description
+      "Loss of external power to battery backup unit.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity onu-battery-missing {
+    base onu-alarm-type-id;
+    description
+      "Battery is provisioned but missing.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity onu-battery-failure {
+    base onu-alarm-type-id;
+    description
+      "Battery is provisioned and present but cannot recharge.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity onu-battery-low {
+    base onu-alarm-type-id;
+    description
+      "Battery is provisioned and present but its voltage is too low.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity onu-voltage-low-warning {
+    base onu-alarm-type-id;
+    description
+      "No service shutdown at present, but the line power voltage is below its recommended minimum.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity onu-voltage-low {
+    base onu-alarm-type-id;
+    description
+      "Some services have been shut down to avoid power collapse.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity onu-board-presence-mismatch {
+    base onu-alarm-type-id;
+    description
+      "Configured circuit pack is not present. If this alarm is active, none of the mismatch alarms are declared.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity onu-board-property-mismatch {
+    base onu-alarm-type-id;
+    description
+      "Inserted circuit pack is wrong type.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity onu-board-improper-presence-mismatch {
+    base onu-alarm-type-id;
+    description
+      "Circuit pack has been removed without being de-provisioned or administratively locked.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity onu-board-id-mismatch {
+    base onu-alarm-type-id;
+    description
+      "Inserted circuit pack has the wrong equipment ID.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity board-protection-switch {
+    base onu-alarm-type-id;
+    description
+      "An autonomous equipment protection switch has occurred. This notification is reported by the protected cardholder.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity onu-omcc-link-error {
+    base onu-alarm-type-id;
+    description
+      "OLT sent OMCI message to ONU, and couldn't get respone AK message, even after retries with same transaction correlation identifier. OLT thus stops transmitting this message and declares an OMCC link state error.";
+    reference
+      "ITU-T G.988 Annex B";
+  }
+
+  identity onu-loss-of-signal {
+    base onu-alarm-type-id;
+    description
+      "OLT detected ONU missing consecutive number of scheduled bursts.
+       It is known as LOSi for GPON, and LOBi for XGS-PON in related standards";
+    reference
+      "ITU-T G.9807.1 C.14.2
+       ITU-T G.984.3 11.1.1";
+  }
+
+  identity onu-us-signal-fail {
+    base onu-alarm-type-id;
+    description
+      "Upstream BER of ONU becomes >= 10^-y. Y is configurable.
+       It is known as SFi in related standards";
+    reference
+      "ITU-T G.984.3 11.1.1";
+  }
+
+  identity onu-us-signal-degraded {
+    base onu-alarm-type-id;
+    description
+      "Upstream BER of ONU becomes >= 10^-x. X is configurable.
+       X is configurable and must be higher than Y (SFi threshold).
+       It is known as SDi in related standards.";
+    reference
+      "ITU-T G.984.3 11.1.1";
+  }
+
+  identity onu-transmission-interference-warning {
+    base onu-alarm-type-id;
+    description
+      "Drift of ONU transmission exceeds TIWi (transmission interference warning) threshold reached.
+       The ONU transmission drift exceeds the outer (TIW) threshold, and remains outside the
+       threshold after three consecutive attempts to correct it with a Ranging_Time PLOAM message.";
+    reference
+      "ITU-T G.9807.1 C.14.2
+       ITU-T G.984.3 11.1.1";
+  }
+
+  identity onu-online-with-warnings {
+    base onu-alarm-type-id;
+    description
+      "ONU allowed online with warnings";
+  }
+
+  identity onu-resource-exhausted {
+    base onu-alarm-type-id;
+    description
+      "Configured resources, tconts/gems/..., exceed the capacity of ONU";
+  }
+
+  identity onu-loss-of-frame {
+    base onu-alarm-type-id;
+    description
+      "4 consecutive invalid delimiters from ONUi are received.
+       It is known as LOFi in related standards";
+    reference
+      "ITU-T G.9807.1 C.14.2
+       ITU-T G.984.3 11.1.1";
+  }
+
+  identity onu-loss-of-ack {
+    base onu-alarm-type-id;
+    description
+      "The OLT does not receive an acknowledgement from ONUi after a set of
+       downstream messages that imply an upstream acknowledge.
+       It is known as LOAi in related standards";
+    reference
+      "ITU-T G.984.3 11.1.1";
+  }
+
+  identity onu-loss-of-ploam {
+    base onu-alarm-type-id;
+    description
+      "When, in response to three consecutive PLOAM allocations, the ONU transmits
+       the PLOAM field that has incorrect CRC or does not parse into a valid PLOAM message.
+       It is known as LOAMi in related standards";
+    reference
+      "ITU-T G.984.3 11.1.1";
+  }
+
+  identity onu-loss-of-key {
+    base onu-alarm-type-id;
+    description
+      "Key transmission from the ONU in response to Request_Key message fails three times.
+       It is known as LOKi in related standards";
+    reference
+      "ITU-T G.984.3 11.1.1";
+  }
+
+  identity onu-quarantined {
+    base onu-alarm-type-id;
+    description
+      "The ONU was quarantined due to suspected flapping or other issues.";
+  }
+}

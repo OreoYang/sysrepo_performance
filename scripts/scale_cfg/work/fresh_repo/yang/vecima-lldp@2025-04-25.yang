@@ -1,0 +1,151 @@
+module vecima-lldp {
+  yang-version 1.1;
+  namespace "urn:vecima:yang:vecima-lldp";
+  prefix vcm-lldp;
+
+  import ietf-routing {
+    prefix rt;
+  }
+  import ieee802-dot1ab-types {
+    prefix lldp-types;
+  }
+  import ieee802-dot1ab-lldp {
+    prefix lldp;
+  }
+  import vecima-telemetry {
+    prefix vcm-tlm;
+  }
+
+  organization
+    "Vecima Networks Inc.";
+  contact
+    "https://www.vecima.com";
+  description
+    "This module contains a collection of YANG definitions for
+     managing vecima specific network LLDP
+
+     Copyright (c) 2025 Vecima Networks Inc.
+     All rights reserved.";
+
+  revision 2025-04-25 {
+    description
+      "Initial revision.";
+    reference
+      "IEEE802.1AB-2016";
+  }
+
+  grouping management-address-info {
+    description
+      "Information about LLDP management address.";
+    leaf address-subtype {
+      type identityref {
+        base rt:address-family;
+      }
+      description
+        "Management address identifier encoding.";
+      reference
+        "8.5.9.3 of IEEE Std 802.1AB-2016";
+    }
+    leaf address {
+      type lldp-types:man-addr-type;
+      description
+        "Management address component associated with the remote
+         system.";
+      reference
+        "8.5.9.4 of IEEE Std 802.1AB-2016";
+    }
+    leaf if-subtype {
+      type lldp-types:man-addr-if-subtype;
+      description
+        "Interface numbering method used for defining the interface
+         number, associated with the remote system.";
+      reference
+        "8.5.9.5 of IEEE Std 802.1AB-2016";
+    }
+    leaf if-id {
+      type uint32;
+      description
+        "Interface number regarding the management address component
+         associated with the remote system.";
+      reference
+        "8.5.9.6 of IEEE Std 802.1AB-2016";
+    }
+  }
+
+  grouping org-defined-info {
+    description
+      "Information about LLDP orgnization defined custom tlvs.";
+    leaf info-identifier {
+      type uint32 {
+        range "0..16777215";
+      }
+      description
+        "The Organizationally Unique Identifier (OUI) or Company ID
+         (CID).";
+      reference
+        "8.6.1.3 of IEEE Std 802.1AB-2016";
+    }
+    leaf info-subtype {
+      type uint32 {
+        range "1..255";
+      }
+      description
+        "The subtype of the organizationally defined information
+         received from the remote system.";
+      reference
+        "8.6.1.4 of IEEE Std 802.1AB-2016";
+    }
+    leaf info-index {
+      type uint32 {
+        range "1..2147483647";
+      }
+      description
+        "Arbitrary local integer value.";
+    }
+    leaf local-info {
+      type binary {
+        length "0..507";
+      }
+      description
+        "The organizationally defined information of the local
+         system.";
+      reference
+        "8.6.1.5 of IEEE Std 802.1AB-2016";
+    }
+  }
+
+  augment "/lldp:lldp/lldp:local-system-data" {
+    description
+      "Information about LLDP TX direction managment IP and custom
+       TLVs";
+    leaf ttl {
+      type uint32;
+      description
+        "The TTL value for LLDP advertisements in seconds. This value
+         determines how long the LLDP data will be valid.";
+      reference
+        "8.5.4.1 of IEEE Std 802.1AB-2016";
+    }
+    list local-management-address {
+      key "address-subtype address";
+      config false;
+      description
+        "Management address information about local chassis
+         component.";
+      uses management-address-info;
+    }
+    list local-org-defined-info {
+      key "info-identifier info-subtype info-index";
+      config false;
+      description
+        "Information about the local unrecognized organizationally
+         defined information.";
+      uses org-defined-info;
+    }
+  }
+  augment "/lldp:lldp" {
+    description
+      "Allows telemetry streaming for LLDP to be controlled";
+    uses vcm-tlm:telemetry-control;
+  }
+}

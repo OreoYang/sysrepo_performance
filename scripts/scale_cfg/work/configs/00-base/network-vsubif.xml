@@ -1,0 +1,66 @@
+<interfaces xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces">
+  <interface>
+    <name>vsubif-lag-1-cvlan2000-untag</name>
+    <type xmlns:bbfift="urn:bbf:yang:bbf-if-type">bbfift:vlan-sub-interface</type>
+    <interface-usage xmlns="urn:bbf:yang:bbf-interface-usage">
+      <interface-usage>network-port</interface-usage>
+    </interface-usage>
+    <subif-lower-layer xmlns="urn:bbf:yang:bbf-sub-interfaces">
+      <interface>lag-1</interface>
+    </subif-lower-layer>
+    <inline-frame-processing xmlns="urn:bbf:yang:bbf-sub-interfaces">
+      <ingress-rule>
+        <rule>
+          <name>n1_r1_cvlan2000_untag</name>
+          <priority>1</priority>
+          <flexible-match>
+            <match-criteria xmlns="urn:bbf:yang:bbf-sub-interface-tagging">
+              <tag>
+                <index>0</index>
+                <dot1q-tag>
+                  <tag-type xmlns:bbf-dot1qt="urn:bbf:yang:bbf-dot1q-types">bbf-dot1qt:c-vlan</tag-type>
+                  <vlan-id>2000</vlan-id>
+                </dot1q-tag>
+              </tag>
+            </match-criteria>
+          </flexible-match>
+          <ingress-rewrite>
+            <pop-tags xmlns="urn:bbf:yang:bbf-sub-interface-tagging">1</pop-tags>
+          </ingress-rewrite>
+        </rule>
+      </ingress-rule>
+    </inline-frame-processing>
+  </interface>
+  <interface>
+    <name>vsubif-lag-1-cvlan2001-ovlan881</name>
+    <type xmlns:bbfift="urn:bbf:yang:bbf-if-type">bbfift:vlan-sub-interface</type>
+    <interface-usage xmlns="urn:bbf:yang:bbf-interface-usage">
+      <interface-usage>network-port</interface-usage>
+    </interface-usage>
+    <subif-lower-layer xmlns="urn:bbf:yang:bbf-sub-interfaces">
+      <interface>lag-1</interface>
+    </subif-lower-layer>
+    <inline-frame-processing xmlns="urn:bbf:yang:bbf-sub-interfaces">
+      <ingress-rule>
+        <rule>
+          <name>n1_r1_cvlan2001_ovlan881</name>
+          <priority>1</priority>
+          <flexible-match>
+            <match-criteria xmlns="urn:bbf:yang:bbf-sub-interface-tagging">
+              <tag>
+                <index>0</index>
+                <dot1q-tag>
+                  <tag-type xmlns:bbf-dot1qt="urn:bbf:yang:bbf-dot1q-types">bbf-dot1qt:c-vlan</tag-type>
+                  <vlan-id>2001</vlan-id>
+                </dot1q-tag>
+              </tag>
+            </match-criteria>
+          </flexible-match>
+          <ingress-rewrite>
+            <pop-tags xmlns="urn:bbf:yang:bbf-sub-interface-tagging">1</pop-tags>
+          </ingress-rewrite>
+        </rule>
+      </ingress-rule>
+    </inline-frame-processing>
+  </interface>
+</interfaces>

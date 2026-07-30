@@ -1,0 +1,178 @@
+module bbf-onu-interfaces-qos {
+  yang-version 1.1;
+  namespace "urn:bbf:yang:bbf-onu-interfaces-qos";
+  prefix bbf-onu-if-qos;
+
+  import bbf-onu-if-type {
+    prefix bbf-onuift;
+  }
+  import bbf-onus {
+    prefix bbf-onus;
+  }
+  import bbf-onu-management {
+    prefix bbf-onum;
+  }
+  import bbf-onu-interfaces {
+    prefix bbf-onu-if;
+  }
+  import bbf-onu-qos-policies {
+    prefix bbf-onu-qos-pol;
+  }
+
+  organization
+    "Broadband Forum <https://www.broadband-forum.org>
+     Common YANG Work Area";
+  contact
+    "Comments or questions about this Broadband Forum YANG module
+     should be directed to <mailto:help@broadband-forum.org>.
+
+     Editor:      Joey Boyd, Adtran
+
+     Editor:      Robert Peschi, Nokia
+
+     PS Leader:   Joey Boyd, Adtran
+
+     WA Director: Marta Seda, Calix";
+  description
+    "This module contains a collection of YANG definitions for
+     supporting the Broadband Forum requirements on the management of
+     Optical Network Units (ONUs).
+
+     Specifically, this module augments the Optical Network Unit (ONU)
+     interfaces with data nodes for Quality of Service (QoS).
+
+     This module is based on definitions provided in:
+     - bbf-qos-policies.yang, TR-383 Amendment 3.
+
+     Copyright (c) 2023, Broadband Forum
+
+     Redistribution and use in source and binary forms, with or
+     without modification, are permitted provided that the following
+     conditions are met:
+
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+
+     2. Redistributions in binary form must reproduce the above
+        copyright notice, this list of conditions and the following
+        disclaimer in the documentation and/or other materials
+        provided with the distribution.
+
+     3. Neither the name of the copyright holder nor the names of its
+        contributors may be used to endorse or promote products
+        derived from this software without specific prior written
+        permission.
+
+     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+     CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+     INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+     CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+     STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+     ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+     The above license is used as a license under copyright only.
+     Please reference the Forum IPR Policy for patent licensing terms
+     <https://www.broadband-forum.org/ipr-policy>.
+
+     Any moral rights which are necessary to exercise under the above
+     license grant are also deemed granted under this license.
+
+     This version of this YANG module is part of WT-505; see the WT
+     itself for full legal notices.";
+
+  revision 2025-08-25 {
+    description
+      "TBD
+       * Approval Date:    TBD.
+       * Publication Date: TBD.";
+    reference
+      "TBD";
+  }
+
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-stand-alone-instance/bbf-onu-if:interfaces/bbf-onu-if:interface" {
+    when "derived-from-or-self(bbf-onu-if:type, 'bbf-onuift:ethernetCsmacd') or derived-from-or-self(bbf-onu-if:type, 'bbf-onuift:ieee8023adLag') or derived-from-or-self(bbf-onu-if:type, 'bbf-onuift:ptm') or derived-from-or-self(bbf-onu-if:type, 'bbf-onuift:vlan-sub-interface') or derived-from-or-self(bbf-onu-if:type, 'bbf-onuift:l2-termination') or derived-from(bbf-onu-if:type, 'bbf-onuift:ethernet-like')" {
+      description
+        "Interfaces that can have QoS policy profiles assigned.";
+    }
+    description
+      "Intended for a stand-alone ONU instance (i.e., that does not
+       rely on any template).
+
+       Interfaces that can have QoS policy profiles assigned.
+
+       If several interfaces linked by a parent-child relationship in
+       the interface stack are configured with a QOS policy of the
+       same type (e.g. ingress-qos-policy), then all QOS policies must
+       be applied sequentially.
+
+       In the case of ingress, the QOS policy on the lower-level
+       interface(s) (e.g. ethernetCsmacd) must first be applied before
+       the one on the upper-level interface(s) (e.g.
+       vlan-sub-interface).
+
+       In the case of egress, the QOS policy on the upper-level
+       interface(s) (e.g. vlan-sub-interface) must first be applied
+       before the one on the lower-level interface(s) (e.g.
+       ethernetCsmacd).";
+    uses bbf-onu-qos-pol:qos-policy-profile-refs;
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template/bbf-onu-if:interfaces/bbf-onu-if:interface" {
+    when "derived-from-or-self(bbf-onu-if:type, 'bbf-onuift:ethernetCsmacd') or derived-from-or-self(bbf-onu-if:type, 'bbf-onuift:ieee8023adLag') or derived-from-or-self(bbf-onu-if:type, 'bbf-onuift:ptm') or derived-from-or-self(bbf-onu-if:type, 'bbf-onuift:vlan-sub-interface') or derived-from-or-self(bbf-onu-if:type, 'bbf-onuift:l2-termination') or derived-from(bbf-onu-if:type, 'bbf-onuift:ethernet-like')" {
+      description
+        "Interfaces that can have QoS policy profiles assigned.";
+    }
+    description
+      "Intended for an ONU instance derived from template(s).
+
+       Interfaces that can have QoS policy profiles assigned.
+
+       If several interfaces linked by a parent-child relationship in
+       the interface stack are configured with a QOS policy of the
+       same type (e.g. ingress-qos-policy), then all QOS policies must
+       be applied sequentially.
+
+       In the case of ingress, the QOS policy on the lower-level
+       interface(s) (e.g. ethernetCsmacd) must first be applied before
+       the one on the upper-level interface(s) (e.g.
+       vlan-sub-interface).
+
+       In the case of egress, the QOS policy on the upper-level
+       interface(s) (e.g. vlan-sub-interface) must first be applied
+       before the one on the lower-level interface(s) (e.g.
+       ethernetCsmacd).";
+    uses bbf-onu-qos-pol:qos-policy-profile-refs;
+  }
+  augment "/bbf-onus:onus/bbf-onum:template/bbf-onum:data/bbf-onu-if:interfaces/bbf-onu-if:interface" {
+    when "derived-from-or-self(bbf-onu-if:type, 'bbf-onuift:ethernetCsmacd') or derived-from-or-self(bbf-onu-if:type, 'bbf-onuift:ieee8023adLag') or derived-from-or-self(bbf-onu-if:type, 'bbf-onuift:ptm') or derived-from-or-self(bbf-onu-if:type, 'bbf-onuift:vlan-sub-interface') or derived-from-or-self(bbf-onu-if:type, 'bbf-onuift:l2-termination') or derived-from(bbf-onu-if:type, 'bbf-onuift:ethernet-like')" {
+      description
+        "Interfaces that can have QoS policy profiles assigned.";
+    }
+    description
+      "Intended for an ONU template.
+
+       Interfaces that can have QoS policy profiles assigned.
+
+       If several interfaces linked by a parent-child relationship in
+       the interface stack are configured with a QOS policy of the
+       same type (e.g. ingress-qos-policy), then all QOS policies must
+       be applied sequentially.
+
+       In the case of ingress, the QOS policy on the lower-level
+       interface(s) (e.g. ethernetCsmacd) must first be applied before
+       the one on the upper-level interface(s) (e.g.
+       vlan-sub-interface).
+
+       In the case of egress, the QOS policy on the upper-level
+       interface(s) (e.g. vlan-sub-interface) must first be applied
+       before the one on the lower-level interface(s) (e.g.
+       ethernetCsmacd).";
+    uses bbf-onu-qos-pol:qos-policy-profile-refs;
+  }
+}

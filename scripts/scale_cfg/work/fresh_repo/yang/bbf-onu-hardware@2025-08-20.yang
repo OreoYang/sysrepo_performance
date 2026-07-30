@@ -1,0 +1,508 @@
+module bbf-onu-hardware {
+  yang-version 1.1;
+  namespace "urn:bbf:yang:bbf-onu-hardware";
+  prefix bbf-onu-hw;
+
+  import bbf-hardware-common {
+    prefix bbf-hwc;
+  }
+  import bbf-onus {
+    prefix bbf-onus;
+  }
+  import bbf-onu-management {
+    prefix bbf-onum;
+  }
+  import iana-hardware {
+    prefix ianahw;
+  }
+  import bbf-yang-types {
+    prefix bbf-yang;
+  }
+
+  organization
+    "Broadband Forum <https://www.broadband-forum.org>
+     Common YANG Work Area";
+  contact
+    "Comments or questions about this Broadband Forum YANG module
+     should be directed to <mailto:help@broadband-forum.org>.
+
+     Editor:      Joey Boyd, Adtran
+
+     Editor:      Robert Peschi, Nokia
+
+     PS Leader:   Joey Boyd, Adtran
+
+     WA Director: Marta Seda, Calix";
+  description
+    "This module contains a collection of YANG definitions for
+     supporting the Broadband Forum requirements on the management of
+     Optical Network Units (ONUs).
+
+     Specifically, this module defines data nodes for managing
+     network hardware.
+
+     This module is based on definitions provided in:
+     - ietf-hardware.yang, revision 2018-03-13, RFC 8348;
+     - bbf-hardware.yang, TR-383 Amendment 5.
+
+     Copyright (c) 2023, Broadband Forum
+
+     Redistribution and use in source and binary forms, with or
+     without modification, are permitted provided that the following
+     conditions are met:
+
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+
+     2. Redistributions in binary form must reproduce the above
+        copyright notice, this list of conditions and the following
+        disclaimer in the documentation and/or other materials
+        provided with the distribution.
+
+     3. Neither the name of the copyright holder nor the names of its
+        contributors may be used to endorse or promote products
+        derived from this software without specific prior written
+        permission.
+
+     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+     CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+     INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+     CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+     STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+     ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+     The above license is used as a license under copyright only.
+     Please reference the Forum IPR Policy for patent licensing terms
+     <https://www.broadband-forum.org/ipr-policy>.
+
+     Any moral rights which are necessary to exercise under the above
+     license grant are also deemed granted under this license.
+
+     This version of this YANG module is part of WT-505; see the WT
+     itself for full legal notices.";
+
+  revision 2025-08-20 {
+    description
+      "TBD
+       * Approval Date:    TBD.
+       * Publication Date: TBD.";
+    reference
+      "TBD";
+  }
+
+  feature entity-mib {
+    description
+      "This feature indicates that the device implements the
+       ENTITY-MIB.";
+    reference
+      "RFC 6933: Entity MIB (Version 4)";
+  }
+
+  feature hardware-state {
+    description
+      "Indicates that ENTITY-STATE-MIB objects are supported.";
+    reference
+      "RFC 4268: Entity State MIB";
+  }
+
+  feature hardware-sensor {
+    description
+      "Indicates that ENTITY-SENSOR-MIB objects are supported.";
+    reference
+      "RFC 3433: Entity Sensor Management Information Base";
+  }
+
+  feature additional-hardware-configuration {
+    description
+      "Indicates support for additional hardware configuration
+       provided by this model.";
+  }
+
+  feature model-name-configuration {
+    if-feature "additional-hardware-configuration";
+    description
+      "Indicates support of the configuration of a hardware
+       component's model name.";
+  }
+
+  feature hardware-component-reset {
+    description
+      "Indicates support of the reset of a hardware component.";
+  }
+
+  identity reset-type {
+    description
+      "Type of reset requested of the component.";
+  }
+
+  identity hardware-reset {
+    base reset-type;
+    description
+      "Hardware reset.";
+  }
+
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-stand-alone-instance" {
+    description
+      "Intended for a stand-alone ONU instance.
+
+       Configuration data nodes related to hardware.";
+    uses bbf-hwc:hardware-config {
+      refine "hardware/component/class" {
+        mandatory true;
+      }
+      refine "hardware/component/state" {
+        if-feature "hardware-state";
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-stand-alone-instance/bbf-onu-hw:hardware/bbf-onu-hw:component" {
+    when "derived-from-or-self (bbf-onu-hw:class, 'ianahw:chassis') or derived-from-or-self (bbf-onu-hw:class, 'ianahw:module')" {
+      description
+        "Augment specific hardware components.";
+    }
+    description
+      "Augment the hardware component to allow configuration of an
+       expected model name.";
+    leaf expected-model-name {
+      if-feature "bbf-onu-hw:model-name-configuration";
+      type string;
+      description
+        "The expected model name of the hardware component once it
+         is physically present.";
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-stand-alone-instance/bbf-onu-hw:hardware" {
+    description
+      "Intended for a stand-alone ONU instance.
+
+       State data nodes related to hardware.";
+    uses bbf-hwc:hardware-config-false;
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-stand-alone-instance/bbf-onu-hw:hardware/bbf-onu-hw:component" {
+    description
+      "Intended for a stand-alone ONU instance.
+
+       State augments related to a hardware component.";
+    uses bbf-hwc:hardware-component-config-false {
+      refine "physical-index" {
+        if-feature "entity-mib";
+      }
+      refine "sensor-data" {
+        if-feature "hardware-sensor";
+      }
+    }
+    action reset {
+      if-feature "hardware-component-reset";
+      description
+        "Request a reset of the component.";
+
+      input {
+        leaf reset-type {
+          type identityref {
+            base reset-type;
+          }
+          description
+            "Type of reset requested of the component.";
+        }
+      }
+    }
+    notification component-reset {
+      description
+        "Indicates that the component was reset. The reset can
+         have been forced by the client using the action 'reset',
+         or it can be a autonomous reset triggered inside the
+         managed device.";
+      leaf reset-type {
+        type identityref {
+          base reset-type;
+        }
+        description
+          "Type of reset of the component that has been done, i.e.
+           what reset has been dome.";
+      }
+      leaf reason {
+        type bbf-yang:string-ascii64;
+        description
+          "The reason this reset was triggered.";
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-stand-alone-instance/bbf-onu-hw:hardware/bbf-onu-hw:component/bbf-onu-hw:state" {
+    description
+      "Intended for a stand-alone ONU instance.
+
+       State augments related to the 'state' container of a
+       hardware component.";
+    uses bbf-hwc:hardware-component-state-config-false;
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-stand-alone-instance" {
+    description
+      "Intended for a stand-alone ONU instance.
+
+       State augments related to hardware.";
+    notification hardware-state-change {
+      description
+        "A hardware-state-change notification is generated when the
+         value of /hardware/last-change changes in the operational
+         state.";
+      reference
+        "RFC 6933: Entity MIB (Version 4) - entConfigChange";
+    }
+    notification hardware-state-oper-enabled {
+      if-feature "hardware-state";
+      description
+        "A hardware-state-oper-enabled notification signifies that a
+         component has transitioned into the 'enabled' state.";
+      reference
+        "RFC 4268: Entity State MIB - entStateOperEnabled";
+      leaf name {
+        type leafref {
+          path "../../hardware/component/name";
+        }
+        description
+          "The name of the component that has transitioned into the
+           'enabled' state.";
+      }
+      leaf admin-state {
+        type leafref {
+          path "../../hardware/component[name = current()/../name]/state/admin-state";
+        }
+        description
+          "The administrative state for the component.";
+      }
+      leaf alarm-state {
+        type bbf-hwc:alarm-state;
+        description
+          "The alarm state for the component.";
+      }
+    }
+    notification hardware-state-oper-disabled {
+      if-feature "hardware-state";
+      description
+        "A hardware-state-oper-disabled notification signifies that a
+         component has transitioned into the 'disabled' state.";
+      reference
+        "RFC 4268: Entity State MIB - entStateOperDisabled";
+      leaf name {
+        type leafref {
+          path "../../hardware/component/name";
+        }
+        description
+          "The name of the component that has transitioned into the
+           'disabled' state.";
+      }
+      leaf admin-state {
+        type leafref {
+          path "../../hardware/component[name = current()/../name]/state/admin-state";
+        }
+        description
+          "The administrative state for the component.";
+      }
+      leaf alarm-state {
+        type bbf-hwc:alarm-state;
+        description
+          "The alarm state for the component.";
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template" {
+    description
+      "Intended for an ONU instance derived from template(s).
+
+       Configuration data nodes related to hardware.";
+    uses bbf-hwc:hardware-config {
+      refine "hardware/component/state" {
+        if-feature "hardware-state";
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template/bbf-onu-hw:hardware/bbf-onu-hw:component" {
+    when "derived-from-or-self (bbf-onu-hw:class, 'ianahw:chassis') or derived-from-or-self (bbf-onu-hw:class, 'ianahw:module')" {
+      description
+        "Augment specific hardware components.";
+    }
+    description
+      "Intended for an ONU instance derived from template(s).
+
+       Augment the hardware component to allow configuration of an
+       expected model name.";
+    leaf expected-model-name {
+      if-feature "bbf-onu-hw:model-name-configuration";
+      type string;
+      description
+        "The expected model name of the hardware component once it
+         is physically present.";
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template/bbf-onu-hw:hardware" {
+    description
+      "Intended for an ONU instance derived from template(s).
+
+       State data nodes related to hardware.";
+    uses bbf-hwc:hardware-config-false;
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template/bbf-onu-hw:hardware/bbf-onu-hw:component" {
+    description
+      "Intended for an ONU instance derived from template(s).
+
+       State augments related to a hardware component.";
+    uses bbf-hwc:hardware-component-config-false {
+      refine "physical-index" {
+        if-feature "entity-mib";
+      }
+      refine "sensor-data" {
+        if-feature "hardware-sensor";
+      }
+    }
+    action reset {
+      if-feature "hardware-component-reset";
+      description
+        "Request a reset of the component.";
+
+      input {
+        leaf reset-type {
+          type identityref {
+            base reset-type;
+          }
+          description
+            "Type of reset requested of the component.";
+        }
+      }
+    }
+    notification component-reset {
+      description
+        "Indicates that the component was reset. The reset can
+         have been forced by the client using the action 'reset',
+         or it can be a autonomous reset triggered inside the
+         managed device.";
+      leaf reset-type {
+        type identityref {
+          base reset-type;
+        }
+        description
+          "Type of reset of the component that has been done, i.e.
+           what reset has been dome.";
+      }
+      leaf reason {
+        type bbf-yang:string-ascii64;
+        description
+          "The reason this reset was triggered.";
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template/bbf-onu-hw:hardware/bbf-onu-hw:component/bbf-onu-hw:state" {
+    description
+      "Intended for an ONU instance derived from template(s).
+
+       State augments related to the 'state' container of a
+       hardware component.";
+    uses bbf-hwc:hardware-component-state-config-false;
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template" {
+    description
+      "Intended for an ONU instance derived from template(s).
+
+       State augments related to hardware.";
+    notification hardware-state-change {
+      description
+        "A hardware-state-change notification is generated when the
+         value of /hardware/last-change changes in the operational
+         state.";
+      reference
+        "RFC 6933: Entity MIB (Version 4) - entConfigChange";
+    }
+    notification hardware-state-oper-enabled {
+      if-feature "hardware-state";
+      description
+        "A hardware-state-oper-enabled notification signifies that a
+         component has transitioned into the 'enabled' state.";
+      reference
+        "RFC 4268: Entity State MIB - entStateOperEnabled";
+      leaf name {
+        type leafref {
+          path "../../hardware/component/name";
+        }
+        description
+          "The name of the component that has transitioned into the
+           'enabled' state.";
+      }
+      leaf admin-state {
+        type leafref {
+          path "../../hardware/component[name = current()/../name]/state/admin-state";
+        }
+        description
+          "The administrative state for the component.";
+      }
+      leaf alarm-state {
+        type bbf-hwc:alarm-state;
+        description
+          "The alarm state for the component.";
+      }
+    }
+    notification hardware-state-oper-disabled {
+      if-feature "hardware-state";
+      description
+        "A hardware-state-oper-disabled notification signifies that a
+         component has transitioned into the 'disabled' state.";
+      reference
+        "RFC 4268: Entity State MIB - entStateOperDisabled";
+      leaf name {
+        type leafref {
+          path "../../hardware/component/name";
+        }
+        description
+          "The name of the component that has transitioned into the
+           'disabled' state.";
+      }
+      leaf admin-state {
+        type leafref {
+          path "../../hardware/component[name = current()/../name]/state/admin-state";
+        }
+        description
+          "The administrative state for the component.";
+      }
+      leaf alarm-state {
+        type bbf-hwc:alarm-state;
+        description
+          "The alarm state for the component.";
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:template/bbf-onum:data" {
+    description
+      "Intended for an ONU template.
+
+       Configuration data nodes related to hardware.";
+    uses bbf-hwc:hardware-config {
+      refine "hardware/component/class" {
+        mandatory true;
+      }
+      refine "hardware/component/state" {
+        if-feature "hardware-state";
+      }
+      augment "hardware/component" {
+        when "derived-from-or-self (bbf-onu-hw:class, 'ianahw:chassis') or derived-from-or-self (bbf-onu-hw:class, 'ianahw:module')" {
+          description
+            "Augment specific hardware components.";
+        }
+        description
+          "Augment the hardware component to allow configuration of an
+           expected model name.";
+        leaf expected-model-name {
+          if-feature "bbf-onu-hw:model-name-configuration";
+          type string;
+          description
+            "The expected model name of the hardware component once it
+             is physically present.";
+        }
+      }
+    }
+  }
+}

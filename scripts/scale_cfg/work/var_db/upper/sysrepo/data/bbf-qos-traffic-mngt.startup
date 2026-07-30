@@ -1,0 +1,1 @@
+{"bbf-qos-traffic-mngt:tm-profiles":{"bbf-qos-shaping:shaper-profile":[{"name":"ds_cir_50m","two-token-bucket":{"pir":100000,"cir":50000,"vecima-qos-shaping:pbs":2048000}},{"name":"ds_cir_80m","two-token-bucket":{"pir":150000,"cir":80000,"vecima-qos-shaping:pbs":2048000}}]}}

@@ -1,0 +1,233 @@
+module vecima-device {
+  yang-version 1.1;
+  namespace "urn:vecima:yang:vecima-device";
+  prefix vcm-dvc;
+
+  import ietf-yang-types {
+    prefix yang;
+  }
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import vecima-device-types {
+    prefix vcm-dvct;
+  }
+
+  organization
+    "Vecima Networks Inc.";
+  contact
+    "https://www.vecima.com";
+  description
+    "This YANG module defines the nodes related to Vecima devices.
+     Specifically related to the device management like identity,
+     interfaces, software partitions and image versions etc.";
+
+  revision 2023-03-13 {
+    description
+      "Initial version.";
+    reference
+      "";
+  }
+
+  typedef mgmt-interface-type {
+    type enumeration {
+      enum "other" {
+        description
+          "None of the following.";
+      }
+      enum "oam" {
+        description
+          "Indicates that it is management/control plane interface.";
+      }
+      enum "virtual" {
+        description
+          "Indicates that it is virtual interface.";
+      }
+      enum "debug" {
+        description
+          "Indicates that it is a debug interface.";
+      }
+    }
+    description
+      "The device management interface type.";
+  }
+
+  typedef sw-partition-type {
+    type enumeration {
+      enum "active" {
+        description
+          "To indicate current active/running partition.";
+      }
+      enum "standby" {
+        description
+          "To indicate standby partition.";
+      }
+      enum "other" {
+        description
+          "None of the above. To indicate if there is third one like
+           golden partition with factory image.";
+      }
+    }
+    description
+      "The sw partition type";
+  }
+
+  grouping device-mgmt-interfaces-info {
+    description
+      "Data nodes relating to management/control plane information
+       needed to reach and communicate with the device.";
+    leaf name {
+      type string;
+      description
+        "The interface name.";
+    }
+    leaf type {
+      type mgmt-interface-type;
+      description
+        "The interface type.";
+    }
+    leaf ip-addr {
+      type inet:ipv4-address;
+      description
+        "The IPV6 address obtained from DHCP or statically assigned.";
+    }
+    leaf ipv6-addr {
+      type inet:ipv6-address;
+      description
+        "The IPV6 address obtained from DHCP or statically assigned.";
+    }
+    leaf mac-addr {
+      type yang:phys-address;
+      description
+        "The MAC address of the interface.";
+    }
+  }
+
+  grouping kafka-access-interfaces-info {
+    description
+      "Kafka Broker access interface information as well as other
+       configurable parameters needed to reach and communicate with
+       the device";
+    leaf address {
+      type inet:host;
+      description
+        "The main address for Kafka Broker Access.";
+    }
+    leaf backup-address {
+      type inet:host;
+      description
+        "The backup address for Kafka Broker Access.";
+    }
+    leaf remote-port {
+      type inet:port-number;
+      default "9094";
+      description
+        "The client will attempt to connect to the common port value
+         for 'kafka' (9094, tls enabled) if no value is specified.";
+    }
+    leaf publish-timer {
+      type uint32;
+      units "seconds";
+      default "60";
+      description
+        "The frequency with which the OLT publishes telemetry data.";
+    }
+    leaf notification-topic-name {
+      type string;
+      default "XGS-Alarms";
+      description
+        "The name of the topic used for alarms and notifcations.";
+    }
+  }
+
+  grouping device-identity-info {
+    description
+      "Data nodes relating to device identity information.";
+    leaf type {
+      type identityref {
+        base vcm-dvct:device-type;
+      }
+      description
+        "The device type.";
+    }
+    leaf model {
+      type identityref {
+        base vcm-dvct:device-model;
+      }
+      description
+        "The device model.";
+    }
+    leaf serial-num {
+      type string;
+      description
+        "The serial number of the device.";
+    }
+    leaf name {
+      type string;
+      description
+        "The name of the device assigned by the device manager.";
+    }
+    leaf hostname {
+      type inet:domain-name;
+      description
+        "The hostname of the device.
+         Could be same as name set by device manager.";
+    }
+  }
+
+  grouping device-sw-info {
+    description
+      "Data nodes relating to software partitions, images
+       and thier version information.";
+    leaf partition {
+      type string;
+      description
+        "The name/id of the partition from device perspective.";
+    }
+    leaf partition-type {
+      type sw-partition-type;
+      description
+        "The partition type. Whether active/standby/other.";
+    }
+    leaf image-name {
+      type string;
+      description
+        "The name of the software image.";
+    }
+    leaf image-version {
+      type string;
+      description
+        "The software image version.";
+    }
+  }
+
+  container device {
+    description
+      "Nodes related to device management and indentity information.";
+    container kafka-interface {
+      description
+        "Kafka interface information";
+      uses kafka-access-interfaces-info;
+    }
+    container identity {
+      config false;
+      description
+        "The device identity";
+      uses device-identity-info;
+    }
+    list mgmt-interfaces {
+      key "name";
+      config false;
+      description
+        "The mgmt interfaces";
+      uses device-mgmt-interfaces-info;
+    }
+    list swmgmt-info {
+      key "partition";
+      config false;
+      description
+        "The swmgmt info";
+      uses device-sw-info;
+    }
+  }
+}

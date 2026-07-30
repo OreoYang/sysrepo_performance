@@ -1,0 +1,3 @@
+scripts/scale_cfg/work/
+scripts/scale_cfg/results/*.log
+scripts/scale_cfg/.local/

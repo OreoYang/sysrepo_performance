@@ -1,0 +1,79 @@
+module vecima-qos-shaping {
+  yang-version 1.1;
+  namespace "urn:vecima:yang:vecima-qos-shaping";
+  prefix vcm-qos-shap;
+
+  import bbf-qos-traffic-mngt {
+    prefix bbf-qos-tm;
+  }
+  import bbf-qos-shaping {
+    prefix bbf-qos-shap;
+  }
+  import vecima-qos-traffic-mngt {
+    prefix vcm-qos-tm;
+  }
+
+  organization
+    "Vecima Networks Inc.";
+  contact
+    "https://www.vecima.com";
+  description
+    "Vecima extensions for QoS shaping, including per-queue shaper
+     profile references on tm-queue-profile.
+
+     Copyright (c) 2025 Vecima Networks Inc.
+     All rights reserved.";
+
+  revision 2026-07-17 {
+    description
+      "Adding Committed Burst Size to two-token shaper.";
+    reference
+      "";
+  }
+  revision 2026-06-09 {
+    description
+      "Add per-queue shaper-name on tm-queue-profile queues.";
+    reference
+      "";
+  }
+  revision 2025-05-21 {
+    description
+      "Initial version: adding Peak Burst Size to two-token shaper
+       profile.";
+    reference
+      "";
+  }
+
+  augment "/bbf-qos-tm:tm-profiles/bbf-qos-shap:shaper-profile/bbf-qos-shap:shaper-type/bbf-qos-shap:two-token-bucket/bbf-qos-shap:two-token-bucket" {
+    description
+      "Augment the two-token shaper profile with Peak Burst Size.";
+    leaf pbs {
+      type uint32;
+      units "bytes";
+      description
+        "The Peak Burst Size (PBS), in bytes.";
+    }
+    leaf cbs {
+      type uint32;
+      units "bytes";
+      description
+        "The Committed Burst Size (PBS), in bytes.";
+    }
+  }
+  augment "/bbf-qos-tm:tm-profiles/vcm-qos-tm:tm-queue-profile/vcm-qos-tm:children-type/vcm-qos-tm:queues/vcm-qos-tm:queue" {
+    description
+      "Augment tm-queue-profile queues with a shaper profile
+       reference.";
+    leaf shaper-name {
+      type leafref {
+        path "/bbf-qos-tm:tm-profiles/bbf-qos-shap:shaper-profile/bbf-qos-shap:name";
+      }
+      must '(not(boolean(current()/../vcm-qos-tm:dual-rate-scheduling)) and boolean(/bbf-qos-tm:tm-profiles/bbf-qos-shap:shaper-profile[bbf-qos-shap:name=current()]/bbf-qos-shap:single-token-bucket)) or (boolean(current()/../vcm-qos-tm:dual-rate-scheduling) and boolean(/bbf-qos-tm:tm-profiles/bbf-qos-shap:shaper-profile[bbf-qos-shap:name=current()]/bbf-qos-shap:two-token-bucket))' {
+        error-message
+          "The referenced shaper shall be two-token-bucket for a dual-rate-scheduling queue or shall be a single-token-bucket shaper.";
+      }
+      description
+        "A reference to a shaper profile applied to this queue.";
+    }
+  }
+}

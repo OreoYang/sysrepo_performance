@@ -1,0 +1,53 @@
+module vecima-voip-media {
+  yang-version 1.1;
+  namespace "urn:vecima:yang:vecima-voip-media";
+  prefix vcm-voip-media;
+
+  import bbf-voip-media {
+    prefix bbf-vmedia;
+  }
+
+  organization
+    "Vecima Networks Inc.";
+  contact
+    "https://www.vecima.com";
+  description
+    "This module provides a Vecima deviation
+     and augmentation from bbf-voip-media module.";
+
+  revision 2026-01-09 {
+    description
+      "Initial revision.";
+    reference
+      "";
+  }
+
+  augment "/bbf-vmedia:media/bbf-vmedia:forwarders/bbf-vmedia:forwarder/bbf-vmedia:media-profile/bbf-vmedia:fax" {
+    description
+      "Augment the fax container to add fax-mode leaf.";
+    leaf fax-mode {
+      type enumeration {
+        enum "passthrough" {
+          value 0;
+          description
+            "V152 Fax passthrough mode.";
+        }
+        enum "t38" {
+          value 1;
+          description
+            "T.38 fax relay mode.";
+        }
+      }
+      description
+        "The fax mode: 0 for passthrough, 1 for T.38.";
+    }
+  }
+
+  deviation "/bbf-vmedia:media/bbf-vmedia:forwarders/bbf-vmedia:forwarder/bbf-vmedia:media-stream-ip-interface" {
+    description
+      "Remove the media-stream-ip-interface leaf from the forwarder
+       to make voip-gateway more general and not to configure it
+       for every ONU.";
+    deviate not-supported;
+  }
+}

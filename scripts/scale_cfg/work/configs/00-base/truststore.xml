@@ -1,0 +1,15 @@
+<truststore xmlns="urn:ietf:params:xml:ns:yang:ietf-truststore">
+  <certificate-bags>
+    <certificate-bag>
+      <name>ca-certs</name>
+      <certificate>
+        <name>eac-cert</name>
+        <cert-data>FAKE</cert-data>
+      </certificate>
+      <certificate>
+        <name>root-cert</name>
+        <cert-data>FAKE</cert-data>
+      </certificate>
+    </certificate-bag>
+  </certificate-bags>
+</truststore>

@@ -1,0 +1,166 @@
+module vecima-l2-forwarding {
+  yang-version 1.1;
+  namespace "urn:vecima:yang:vecima-l2-forwarding";
+  prefix vcm-l2-fwd;
+
+  import bbf-l2-forwarding {
+    prefix bbf-l2-fwd;
+  }
+  import vecima-telemetry {
+    prefix vcm-tlm;
+  }
+
+  organization
+    "Vecima Networks Inc.";
+  contact
+    "https://www.vecima.com";
+  description
+    "This module contains a collection of YANG definitions for
+     supporting the vecima specific requirements on layer 2 forwarding
+     as applicable to access network equipment. Such as, this module
+     is specific to access network equipment.
+
+     Copyright (c) 2024 Vecima Networks Inc.
+     All rights reserved.";
+
+  revision 2025-05-12 {
+    description
+      "Add support for telemetry control for L2 forwarding.";
+    reference
+      "Vecima specific requirements";
+  }
+  revision 2025-04-22 {
+    description
+      "Redefine ARP Yang based on requirements";
+    reference
+      "BBF TR-101 and vecima specific requirements";
+  }
+  revision 2025-01-15 {
+    description
+      "Aadd support for ICMPv6 Secure Fowarding";
+    reference
+      "BBF TR-177, IPv6 in the context of TR-101";
+  }
+  revision 2024-11-23 {
+    description
+      "Initial revision, add support for ARP forwarding security";
+    reference
+      "BBF TR-101, Migration to Ethernet-Based Broadband
+       Aggregation";
+  }
+
+  grouping arp-security-parameters {
+    description
+      "ARP Security related configuration group";
+    container l2-arp-relay {
+      description
+        "Control ARP security for IP spoofing prevention.";
+      leaf arp-security-forwarding {
+        type enumeration {
+          enum "disabled" {
+            description
+              "The ARP relay functionality is disabled";
+          }
+          enum "single-user-forwarding" {
+            description
+              "A downstream ARP broadcast packet is forwarded to
+               only one port of the forwarder. Identifying the port
+               for which the packet is intended is based on the frame
+               content. The ARP packet is discarded if the address is
+               not assigned to any access interface.";
+          }
+          enum "single-user-with-fallback-to-layer2" {
+            description
+              "Downstream broadcast ARP messages are first forwarded
+               as defined for the enum 'single-user-forwarding',
+               i.e. they are forwarded to only one port of the
+               forwarder which is identified by the ARP message
+               content. If no port is identified in this way,
+               then the message will be forwarded based on the
+               forwarding rules configured for the forwarder, i.e.
+               based on the (flooding) forwarding rules of the
+               forwarder.";
+          }
+        }
+        default "disabled";
+        description
+          "Controls the forwarding of downstream arp broadcast
+           packets. If not configured, then normal forwarding rules
+           apply.";
+        reference
+          "TR-178i2 - R155 and TR-101i2 - R135";
+      }
+    }
+  }
+
+  grouping icmpv6-security-parameters {
+    description
+      "ICMPv6 Security related configuration group";
+    container icmpv6-security-parameters {
+      description
+        "IPv6 Neighbor Discovery related controls.";
+      leaf icmpv6-secure-forwarding {
+        type enumeration {
+          enum "disabled" {
+            description
+              "Normal L2 forwarding";
+          }
+          enum "single-user-forwarding" {
+            description
+              "Neighbor Discovery packets are forwarded based on
+               requirements section in TR-177 Section 5.6.2. Downstream
+               multicast Neighbor Discovery packets are forwarded to
+               only one port of the forwarder. Identifying the port for
+               which the packet is intended is based on the frame
+               content. The Downstream Neighbor Discovery packet is
+               discarded if the address is not assigned to any access
+               interface. Upstream Neighbor Discovery packets which
+               are not discarded, have their frame content validated
+               against expected link-layer addressing ";
+          }
+          enum "single-user-with-fallback-to-layer2" {
+            description
+              "Downstream multicast Neighbor Discovery packets are
+               first forwarded as defined for the enum
+               'single-user-forwarding', i.e. they are forwarded to
+               only one port of the forwarder which is identified by
+               the Neighbor Discovery packet content. If no port is
+               identified in this way, then the packet will be
+               forwarded based on the forwarding rules configured
+               for the forwarder, i.e. based on the (flooding)
+               forwarding rules of the forwarder. Upstream Neighbor
+               Discovery packets which are not discarded, have
+               their frame content validated against expected
+               link-layer addressing.";
+          }
+        }
+        default "disabled";
+        description
+          "Controls the forwarding of ICMPv6 packets.";
+        reference
+          "TR-177 Section 5.6.2";
+      }
+    }
+  }
+
+  augment "/bbf-l2-fwd:forwarding/bbf-l2-fwd:forwarders/bbf-l2-fwd:forwarder" {
+    description
+      "Additions for downstream ARP forwarding control.";
+    uses arp-security-parameters;
+  }
+  augment "/bbf-l2-fwd:forwarding/bbf-l2-fwd:forwarders/bbf-l2-fwd:forwarder" {
+    description
+      "Additions for icmpv6 forwarding control.";
+    uses icmpv6-security-parameters;
+  }
+  augment "/bbf-l2-fwd:forwarding/bbf-l2-fwd:forwarding-databases/bbf-l2-fwd:forwarding-database" {
+    description
+      "Telemetry control for l2 forwarding database.";
+    uses vcm-tlm:telemetry-control;
+  }
+  augment "/bbf-l2-fwd:forwarding/bbf-l2-fwd:forwarders/bbf-l2-fwd:forwarder" {
+    description
+      "Telemetry control for l2 forwarding forwarder.";
+    uses vcm-tlm:telemetry-control;
+  }
+}

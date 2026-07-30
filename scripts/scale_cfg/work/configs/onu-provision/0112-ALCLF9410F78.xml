@@ -1,0 +1,23 @@
+<hardware xmlns="urn:ietf:params:xml:ns:yang:ietf-hardware"/>
+<interfaces xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces">
+  <interface>
+    <name>ALCLF9410F78-vani</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:v-ani</type>
+    <v-ani xmlns="urn:bbf:yang:bbf-xponvani">
+      <channel-partition>chpart.gpon.14</channel-partition>
+      <expected-serial-number>ALCLF9410F78</expected-serial-number>
+      <preferred-channel-pair>chpair.gpon.14</preferred-channel-pair>
+    </v-ani>
+  </interface>
+</interfaces>
+<onus xmlns="urn:bbf:yang:bbf-onus">
+  <onu xmlns="urn:bbf:yang:bbf-onu-management">
+    <name>ALCLF9410F78-vani</name>
+    <meta-data>
+      <instance-origin>instance-from-template</instance-origin>
+      <template-references>
+        <template>Prod_GPON_SFU_BVL3A8JNAAG010SA</template>
+      </template-references>
+    </meta-data>
+  </onu>
+</onus>

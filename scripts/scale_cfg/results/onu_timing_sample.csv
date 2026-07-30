@@ -1,0 +1,15 @@
+checkpoint,phase,onu_index,ms
+0,provision,1,120
+0,service,1,115
+100,provision,101,147
+100,service,101,245
+300,provision,301,381
+300,service,301,756
+500,provision,501,908
+500,service,501,1266
+700,provision,701,1427
+700,service,701,1955
+1000,provision,1001,1904
+1000,service,1001,2667
+1021,provision,1022,3101
+1015,service,1016,3042

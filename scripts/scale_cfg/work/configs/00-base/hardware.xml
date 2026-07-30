@@ -1,0 +1,422 @@
+<hardware xmlns="urn:ietf:params:xml:ns:yang:ietf-hardware">
+  <component>
+    <name>chassis</name>
+    <class xmlns:ianahw="urn:ietf:params:xml:ns:yang:iana-hardware">ianahw:chassis</class>
+  </component>
+  <component>
+    <name>cpu</name>
+    <class xmlns:ianahw="urn:ietf:params:xml:ns:yang:iana-hardware">ianahw:cpu</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>chassis</parent>
+  </component>
+  <component>
+    <name>psu-slot-01</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:slot</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>chassis</parent>
+  </component>
+  <component>
+    <name>psu-slot-02</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:slot</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>chassis</parent>
+  </component>
+  <component>
+    <name>psu01</name>
+    <class xmlns:ianahw="urn:ietf:params:xml:ns:yang:iana-hardware">ianahw:power-supply</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>psu-slot-01</parent>
+  </component>
+  <component>
+    <name>psu02</name>
+    <class xmlns:ianahw="urn:ietf:params:xml:ns:yang:iana-hardware">ianahw:power-supply</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>psu-slot-02</parent>
+  </component>
+  <component>
+    <name>board-1/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:board</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>chassis</parent>
+    <alias>NNIBoard</alias>
+  </component>
+  <component>
+    <name>board-1/2</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:board</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>chassis</parent>
+    <alias>PONBoard</alias>
+  </component>
+  <component>
+    <name>sfp-1/1/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>board-1/1</parent>
+  </component>
+  <component>
+    <name>sfp-1/1/2</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>board-1/1</parent>
+  </component>
+  <component>
+    <name>sfp-1/1/3</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+    <parent-rel-pos>3</parent-rel-pos>
+    <parent>board-1/1</parent>
+  </component>
+  <component>
+    <name>sfp-1/1/4</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+    <parent-rel-pos>4</parent-rel-pos>
+    <parent>board-1/1</parent>
+  </component>
+  <component>
+    <name>sfp-1/2/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>board-1/2</parent>
+  </component>
+  <component>
+    <name>sfp-1/2/2</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>board-1/2</parent>
+  </component>
+  <component>
+    <name>sfp-1/2/3</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+    <parent-rel-pos>3</parent-rel-pos>
+    <parent>board-1/2</parent>
+  </component>
+  <component>
+    <name>sfp-1/2/4</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+    <parent-rel-pos>4</parent-rel-pos>
+    <parent>board-1/2</parent>
+  </component>
+  <component>
+    <name>sfp-1/2/5</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+    <parent-rel-pos>5</parent-rel-pos>
+    <parent>board-1/2</parent>
+  </component>
+  <component>
+    <name>sfp-1/2/6</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+    <parent-rel-pos>6</parent-rel-pos>
+    <parent>board-1/2</parent>
+  </component>
+  <component>
+    <name>sfp-1/2/7</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+    <parent-rel-pos>7</parent-rel-pos>
+    <parent>board-1/2</parent>
+  </component>
+  <component>
+    <name>sfp-1/2/8</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+    <parent-rel-pos>8</parent-rel-pos>
+    <parent>board-1/2</parent>
+  </component>
+  <component>
+    <name>sfp-1/2/9</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+    <parent-rel-pos>9</parent-rel-pos>
+    <parent>board-1/2</parent>
+  </component>
+  <component>
+    <name>sfp-1/2/10</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+    <parent-rel-pos>10</parent-rel-pos>
+    <parent>board-1/2</parent>
+  </component>
+  <component>
+    <name>sfp-1/2/11</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+    <parent-rel-pos>11</parent-rel-pos>
+    <parent>board-1/2</parent>
+  </component>
+  <component>
+    <name>sfp-1/2/12</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+    <parent-rel-pos>12</parent-rel-pos>
+    <parent>board-1/2</parent>
+  </component>
+  <component>
+    <name>sfp-1/2/13</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+    <parent-rel-pos>13</parent-rel-pos>
+    <parent>board-1/2</parent>
+  </component>
+  <component>
+    <name>sfp-1/2/14</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+    <parent-rel-pos>14</parent-rel-pos>
+    <parent>board-1/2</parent>
+  </component>
+  <component>
+    <name>sfp-1/2/15</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+    <parent-rel-pos>15</parent-rel-pos>
+    <parent>board-1/2</parent>
+  </component>
+  <component>
+    <name>sfp-1/2/16</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+    <parent-rel-pos>16</parent-rel-pos>
+    <parent>board-1/2</parent>
+  </component>
+  <component>
+    <name>eth-1/1/1/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>sfp-1/1/1</parent>
+  </component>
+  <component>
+    <name>eth-1/1/1/2</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>sfp-1/1/1</parent>
+  </component>
+  <component>
+    <name>eth-1/1/1/3</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>3</parent-rel-pos>
+    <parent>sfp-1/1/1</parent>
+  </component>
+  <component>
+    <name>eth-1/1/1/4</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>4</parent-rel-pos>
+    <parent>sfp-1/1/1</parent>
+  </component>
+  <component>
+    <name>eth-1/1/2/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>sfp-1/1/2</parent>
+  </component>
+  <component>
+    <name>eth-1/1/2/2</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>sfp-1/1/2</parent>
+  </component>
+  <component>
+    <name>eth-1/1/2/3</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>3</parent-rel-pos>
+    <parent>sfp-1/1/2</parent>
+  </component>
+  <component>
+    <name>eth-1/1/2/4</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>4</parent-rel-pos>
+    <parent>sfp-1/1/2</parent>
+  </component>
+  <component>
+    <name>eth-1/1/3/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>sfp-1/1/3</parent>
+  </component>
+  <component>
+    <name>eth-1/1/4/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>sfp-1/1/4</parent>
+  </component>
+  <component>
+    <name>pon-1/2/1/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>sfp-1/2/1</parent>
+  </component>
+    <component>
+    <name>pon-1/2/1/2</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>sfp-1/2/1</parent>
+  </component>
+  <component>
+    <name>pon-1/2/2/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>sfp-1/2/2</parent>
+  </component>
+  <component>
+    <name>pon-1/2/2/2</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>sfp-1/2/2</parent>
+  </component>
+  <component>
+    <name>pon-1/2/3/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>sfp-1/2/3</parent>
+  </component>
+  <component>
+    <name>pon-1/2/3/2</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>sfp-1/2/3</parent>
+  </component>
+  <component>
+    <name>pon-1/2/4/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>sfp-1/2/4</parent>
+  </component>
+  <component>
+    <name>pon-1/2/4/2</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>sfp-1/2/4</parent>
+  </component>
+  <component>
+    <name>pon-1/2/5/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>sfp-1/2/5</parent>
+  </component>
+  <component>
+    <name>pon-1/2/5/2</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>sfp-1/2/5</parent>
+  </component>
+  <component>
+    <name>pon-1/2/6/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>sfp-1/2/6</parent>
+  </component>
+  <component>
+    <name>pon-1/2/6/2</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>sfp-1/2/6</parent>
+  </component>
+  <component>
+    <name>pon-1/2/7/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>sfp-1/2/7</parent>
+  </component>
+  <component>
+    <name>pon-1/2/7/2</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>sfp-1/2/7</parent>
+  </component>
+  <component>
+    <name>pon-1/2/8/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>sfp-1/2/8</parent>
+  </component>
+  <component>
+    <name>pon-1/2/8/2</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>sfp-1/2/8</parent>
+  </component>
+  <component>
+    <name>pon-1/2/9/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>sfp-1/2/9</parent>
+  </component>
+  <component>
+    <name>pon-1/2/9/2</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>sfp-1/2/9</parent>
+  </component>
+  <component>
+    <name>pon-1/2/10/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>sfp-1/2/10</parent>
+  </component>
+  <component>
+    <name>pon-1/2/10/2</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>sfp-1/2/10</parent>
+  </component>
+  <component>
+    <name>pon-1/2/11/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>sfp-1/2/11</parent>
+  </component>
+  <component>
+    <name>pon-1/2/11/2</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>sfp-1/2/11</parent>
+  </component>
+  <component>
+    <name>pon-1/2/12/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>sfp-1/2/12</parent>
+  </component>
+  <component>
+    <name>pon-1/2/12/2</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>sfp-1/2/12</parent>
+  </component>
+  <component>
+    <name>pon-1/2/13/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>sfp-1/2/13</parent>
+  </component>
+  <component>
+    <name>pon-1/2/13/2</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>sfp-1/2/13</parent>
+  </component>
+  <component>
+    <name>pon-1/2/14/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>sfp-1/2/14</parent>
+  </component>
+  <component>
+    <name>pon-1/2/14/2</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>sfp-1/2/14</parent>
+  </component>
+  <component>
+    <name>pon-1/2/15/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>sfp-1/2/15</parent>
+  </component>
+  <component>
+    <name>pon-1/2/15/2</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>sfp-1/2/15</parent>
+  </component>
+  <component>
+    <name>pon-1/2/16/1</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>1</parent-rel-pos>
+    <parent>sfp-1/2/16</parent>
+  </component>
+  <component>
+    <name>pon-1/2/16/2</name>
+    <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+    <parent-rel-pos>2</parent-rel-pos>
+    <parent>sfp-1/2/16</parent>
+  </component>
+</hardware>

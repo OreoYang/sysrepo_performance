@@ -1,0 +1,23 @@
+<hardware xmlns="urn:ietf:params:xml:ns:yang:ietf-hardware"/>
+<interfaces xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces">
+  <interface>
+    <name>ALCLFBC80EE4-vani</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:v-ani</type>
+    <v-ani xmlns="urn:bbf:yang:bbf-xponvani">
+      <channel-partition>chpart.gpon.11</channel-partition>
+      <expected-serial-number>ALCLFBC80EE4</expected-serial-number>
+      <preferred-channel-pair>chpair.gpon.11</preferred-channel-pair>
+    </v-ani>
+  </interface>
+</interfaces>
+<onus xmlns="urn:bbf:yang:bbf-onus">
+  <onu xmlns="urn:bbf:yang:bbf-onu-management">
+    <name>ALCLFBC80EE4-vani</name>
+    <meta-data>
+      <instance-origin>instance-from-template</instance-origin>
+      <template-references>
+        <template>Prod_GPON_HGU_NOCLEICODEG240WJ</template>
+      </template-references>
+    </meta-data>
+  </onu>
+</onus>

@@ -1,0 +1,1 @@
+{"vecima-device:device":{"kafka-interface":{"address":"xgslscale.vponmanager.qdlab","remote-port":10096,"publish-timer":120,"notification-topic-name":"XGS-Alarms","@notification-topic-name":{"ietf-netconf-with-defaults:default":true}}}}

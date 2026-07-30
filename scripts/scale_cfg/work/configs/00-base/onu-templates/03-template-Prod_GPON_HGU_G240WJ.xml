@@ -1,0 +1,86 @@
+<onus xmlns="urn:bbf:yang:bbf-onus">
+  <template xmlns="urn:bbf:yang:bbf-onu-management">
+    <name>Prod_GPON_HGU_G240WJ</name>
+    <data>
+      <hardware xmlns="urn:bbf:yang:bbf-onu-hardware">
+        <component>
+          <name>transceiver</name>
+          <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver</class>
+          <parent>xpon-nt</parent>
+          <parent-rel-pos>1</parent-rel-pos>
+        </component>
+        <component>
+          <name>transceiver-link</name>
+          <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:transceiver-link</class>
+          <parent>transceiver</parent>
+          <parent-rel-pos>1</parent-rel-pos>
+        </component>
+        <component>
+          <name>veip1</name>
+          <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:rj45</class>
+          <parent>xpon-nt</parent>
+          <parent-rel-pos>1</parent-rel-pos>
+        </component>
+        <component>
+          <name>xpon-nt</name>
+          <class xmlns:bbf-hwt="urn:bbf:yang:bbf-hardware-types">bbf-hwt:xpon-nt</class>
+        </component>
+      </hardware>
+      <interfaces xmlns="urn:bbf:yang:bbf-onu-interfaces">
+        <interface>
+          <name>ani</name>
+          <type xmlns:bbf-onuift="urn:bbf:yang:bbf-onu-if-type">bbf-onuift:ani</type>
+          <hardware-component xmlns="urn:bbf:yang:bbf-onu-interface-to-hardware">
+            <port-layer-if>transceiver-link</port-layer-if>
+          </hardware-component>
+        </interface>
+        <interface>
+          <name>iphost1</name>
+          <enabled>true</enabled>
+          <type xmlns:bbf-onuift="urn:bbf:yang:bbf-onu-if-type">bbf-onuift:ipForward</type>
+          <ipv4 xmlns="urn:bbf:yang:bbf-onu-ip">
+            <enabled>true</enabled>
+          </ipv4>
+          <ipif-lower-layer xmlns="urn:bbf:yang:bbf-onu-ip-lower-layer">
+            <interface>vuni.vsi.cvlan2001.ovlan881</interface>
+          </ipif-lower-layer>
+        </interface>
+        <interface>
+          <name>veip1</name>
+          <enabled>true</enabled>
+          <type xmlns:bbf-onuift="urn:bbf:yang:bbf-onu-if-type">bbf-onuift:onu-v-vrefpoint</type>
+          <hardware-component xmlns="urn:bbf:yang:bbf-onu-interface-to-hardware">
+            <port-layer-if>veip1</port-layer-if>
+          </hardware-component>
+        </interface>
+        <interface>
+          <name>veip1.vsi.cvlan2001.ovlan881</name>
+          <type xmlns:bbf-onuift="urn:bbf:yang:bbf-onu-if-type">bbf-onuift:vlan-sub-interface</type>
+          <ingress-qos-policy-profile xmlns="urn:bbf:yang:bbf-onu-interfaces-qos">pp-all-to-tc0</ingress-qos-policy-profile>
+          <vsi-profile xmlns="urn:bbf:yang:bbf-onu-interfaces-vsi-profile">
+            <vsi-profile>Prod_GPON_HGU_G240WJ__vsi-prfl-cvlan2001.ovlan881</vsi-profile>
+          </vsi-profile>
+          <subif-lower-layer xmlns="urn:bbf:yang:bbf-onu-sub-interfaces">
+            <interface>veip1</interface>
+          </subif-lower-layer>
+        </interface>
+        <interface>
+          <name>vuni</name>
+          <enabled>true</enabled>
+          <type xmlns:bbf-onuift="urn:bbf:yang:bbf-onu-if-type">bbf-onuift:onu-v-enet</type>
+        </interface>
+        <interface>
+          <name>vuni.vsi.cvlan2001.ovlan881</name>
+          <type xmlns:bbf-onuift="urn:bbf:yang:bbf-onu-if-type">bbf-onuift:vlan-sub-interface</type>
+          <ingress-qos-policy-profile xmlns="urn:bbf:yang:bbf-onu-interfaces-qos">pp-all-to-tc0</ingress-qos-policy-profile>
+          <vsi-profile xmlns="urn:bbf:yang:bbf-onu-interfaces-vsi-profile">
+            <vsi-profile>Prod_GPON_HGU_G240WJ__vsi-prfl-cvlan2001.ovlan881</vsi-profile>
+          </vsi-profile>
+          <subif-lower-layer xmlns="urn:bbf:yang:bbf-onu-sub-interfaces">
+            <interface>vuni</interface>
+          </subif-lower-layer>
+        </interface>
+      </interfaces>
+    </data>
+  </template>
+</onus>

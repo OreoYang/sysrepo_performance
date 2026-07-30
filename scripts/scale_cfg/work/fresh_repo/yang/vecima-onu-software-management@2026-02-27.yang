@@ -1,0 +1,483 @@
+module vecima-onu-software-management {
+  yang-version 1.1;
+  namespace "urn:vecima:yang:vecima-onu-software-management";
+  prefix vcm-onu-swm;
+
+  import bbf-onus {
+    prefix bbf-onus;
+  }
+  import bbf-onu-management {
+    prefix bbf-onum;
+  }
+  import bbf-onu-hardware {
+    prefix bbf-onu-hw;
+  }
+  import bbf-software-management {
+    prefix bbf-swm;
+  }
+  import bbf-yang-types {
+    prefix bbf-yang;
+  }
+  import ietf-yang-types {
+    prefix yang;
+  }
+  import bbf-xpon {
+    prefix bbf-xpon;
+  }
+  import bbf-hardware-types {
+    prefix bbf-hwt;
+  }
+
+  organization
+    "Vecima Networks Inc.";
+  contact
+    "https://www.vecima.com";
+  description
+    "This module augments the ONU hardware component model defined
+     in bbf-onu-hardware with software management capabilities
+     equivalent to those provided by bbf-software-management for
+     ietf-hardware components.
+
+     It adds software download, abort-download, activate, commit,
+     and delete actions, along with corresponding notifications,
+     to ONU hardware components within the onus/onu data model.
+
+     This applies to both stand-alone ONU instances and ONU
+     instances derived from templates.";
+
+  revision 2026-02-27 {
+    description
+      "Initial revision: Add software management actions and
+       notifications for ONU hardware components under the
+       onus/onu data model.";
+    reference
+      "Vecima specific requirements";
+  }
+
+  grouping onu-software-management {
+    description
+      "Software management data nodes, actions, and notifications
+       for an ONU hardware component. This mirrors the structure
+       defined in bbf-software-management augmenting ietf-hardware
+       but is scoped to the onus/onu hardware component paths.";
+    container software {
+      presence "The ONU component supports management of at least one
+       software.";
+      config false;
+      description
+        "ONU hardware component data nodes, actions, and
+         notifications associated with software.";
+      list software {
+        key "name";
+        min-elements 1;
+        description
+          "A software that is manageable on this ONU component.";
+        leaf name {
+          type bbf-yang:string-ascii64;
+          description
+            "The name associated with this software.";
+        }
+        leaf-list capability {
+          type identityref {
+            base bbf-swm:capability;
+          }
+          description
+            "A capability supported by the server for this
+             software.";
+        }
+        container revisions {
+          must "count(revision[is-active = 'true']) <= 1" {
+            error-message
+              "Only one active revision is allowed.";
+            description
+              "Ensure that there is only one active revision.";
+          }
+          must "count(revision[is-committed = 'true']) <= 1" {
+            error-message
+              "Only one committed revision is allowed.";
+            description
+              "Ensure that there is only one committed
+               revision.";
+          }
+          description
+            "Information and actions applicable to all revisions
+             of the given software.";
+          leaf maximum-number-of-revisions {
+            type uint16 {
+              range "1..max";
+            }
+            description
+              "The maximum number of revisions supported.";
+          }
+          container download {
+            when "derived-from(../../capability, 'bbf-swm:download') and count(../revision[state='downloading'])=0" {
+              description
+                "Only applicable if downloading is supported
+                 and no download is in progress.";
+            }
+            description
+              "Provides containment for the action 'download'.";
+            action download {
+              if-feature "bbf-swm:software-management-actions";
+              description
+                "Download the specified software revision to
+                 this ONU component.";
+
+              input {
+                container source {
+                  description
+                    "The source of the download.";
+                  uses bbf-swm:source-of-a-download {
+                    refine "source" {
+                      mandatory true;
+                    }
+                  }
+                  uses bbf-swm:verification-of-a-download;
+                }
+                container target {
+                  description
+                    "The target of the download.";
+                  choice target {
+                    mandatory true;
+                    description
+                      "The target entry in the revision list.";
+                    case selected-by-system {
+                      if-feature "bbf-swm:download-target-selection-by-system";
+                      container selected-by-system {
+                        description
+                          "System-selected target for download.";
+                        leaf operation {
+                          type enumeration {
+                            enum "create-or-replace" {
+                              description
+                                "Preferably create, otherwise
+                                 replace.";
+                            }
+                            enum "replace-or-create" {
+                              description
+                                "Preferably replace, otherwise
+                                 create.";
+                            }
+                            enum "replace" {
+                              description
+                                "Replace an existing entry.";
+                            }
+                          }
+                          mandatory true;
+                          description
+                            "The operation to be performed.";
+                        }
+                        container replace {
+                          description
+                            "Selection criteria for replacement.";
+                          leaf not-available-only {
+                            type boolean;
+                            default "true";
+                            description
+                              "If true, only replace entries with
+                               state 'not-available'.";
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                list additional-onus-to-upgrade {
+                  key "pon-ni";
+                  max-elements 32;
+                  description
+                    "Additional ONUs to upgrade during software
+                     download. Multiple entries can be specified
+                     to target different PON network interfaces
+                     with their respective ONU ID ranges.";
+                  reference
+                    "BBF TR-383: Common YANG Modules
+                     ITU-T G.988: ONU management and control
+                     interface";
+                  leaf pon-ni {
+                    type uint8 {
+                      range "0..31";
+                    }
+                    description
+                      "The PON network interface identifier.
+                       Valid range is 0-31.";
+                  }
+                  leaf onu-id-range {
+                    type bbf-xpon:onu-id-values;
+                    mandatory true;
+                    description
+                      "ONU IDs in range format for the specified
+                       PON interface. Uses the standard BBF
+                       onu-id-values format which supports single
+                       values, ranges, and comma-separated
+                       combinations. Valid ONU-ID range is 0-1020
+                       for XGS-PON and 0-253 for GPON.
+                       Examples: '1,3-60,90-100' or
+                       '1,7,10-200'.";
+                  }
+                }
+              }
+              output {
+                container target {
+                  presence "A target entry was successfully selected.";
+                  description
+                    "The selected target for the download.";
+                  leaf id {
+                    type uint8;
+                    mandatory true;
+                    description
+                      "The unique id of the selected target
+                       revision entry.";
+                  }
+                  container replaces {
+                    presence "Indicates that an existing entry referenced by
+                     '../id' in the list 'revision' has been
+                     replaced by this action.";
+                    description
+                      "Reports the metadata for the previous entry in
+                       the list 'revision' that is now being replaced
+                       by the revision being downloaded.";
+                    uses bbf-swm:revision-metadata;
+                  }
+                }
+              }
+            }
+          }
+          list revision {
+            key "id";
+            description
+              "A revision available on the ONU component.";
+            leaf id {
+              type uint8;
+              description
+                "A unique identifier for the software revision.";
+            }
+            leaf state {
+              type enumeration {
+                enum "downloading" {
+                  description
+                    "The revision is currently being downloaded.";
+                }
+                enum "not-available" {
+                  description
+                    "The revision could not be successfully
+                     downloaded or verified.";
+                }
+                enum "available" {
+                  description
+                    "The revision has been successfully downloaded
+                     and verified but is neither active nor
+                     committed.";
+                }
+                enum "in-use" {
+                  description
+                    "The revision is active or committed or
+                     both.";
+                }
+              }
+              mandatory true;
+              description
+                "The current operational state of the revision.";
+            }
+            leaf last-changed {
+              type yang:date-and-time;
+              mandatory true;
+              description
+                "The time of the last state change.";
+            }
+            leaf download-completed {
+              when "derived-from(../../../capability, 'bbf-swm:download') and ../state != 'downloading'" {
+                description
+                  "Only when download capability is supported
+                   and not currently downloading.";
+              }
+              type yang:date-and-time;
+              description
+                "When the download activity completed.";
+            }
+            uses bbf-swm:revision-metadata;
+            leaf is-valid {
+              when "boolean(../../../capability='bbf-swm:validate')" {
+                description
+                  "Only if validate capability is supported.";
+              }
+              type boolean;
+              mandatory true;
+              description
+                "Whether the revision is valid.";
+            }
+            leaf is-active {
+              when "boolean(../../../capability='bbf-swm:activate')" {
+                description
+                  "Only if activate capability is supported.";
+              }
+              type boolean;
+              mandatory true;
+              description
+                "Whether the revision is active.";
+            }
+            leaf is-committed {
+              when "boolean(../../../capability='bbf-swm:commit')" {
+                description
+                  "Only if commit capability is supported.";
+              }
+              type boolean;
+              mandatory true;
+              description
+                "Whether the revision is committed.";
+            }
+            container abort-download {
+              when "derived-from(../../../capability, 'bbf-swm:download') and ../state='downloading'" {
+                description
+                  "Only when a download is in progress.";
+              }
+              description
+                "Provides containment for abort-download.";
+              action abort-download {
+                if-feature "bbf-swm:software-management-actions";
+                description
+                  "Abort the download process.";
+              }
+              notification download-revision-aborted {
+                description
+                  "The download was successfully aborted.";
+              }
+              notification abort-failed {
+                description
+                  "The abort of an ongoing download failed.";
+                container error {
+                  description
+                    "Error details.";
+                  uses bbf-swm:error;
+                }
+              }
+            }
+            container activate {
+              when "boolean(../../../capability='bbf-swm:activate') and (../state='available' or ../state='in-use')" {
+                description
+                  "Only if activate is supported and the
+                   revision can be activated.";
+              }
+              description
+                "Actions and notifications for activation.";
+              leaf last-activated {
+                type yang:date-and-time;
+                description
+                  "When this revision was last activated.";
+              }
+              action activate {
+                if-feature "bbf-swm:software-management-actions";
+                description
+                  "Activate this revision.";
+              }
+              notification revision-activated {
+                description
+                  "The revision was successfully activated.";
+              }
+              notification activate-failed {
+                description
+                  "Activation of the revision failed.";
+                container error {
+                  description
+                    "Error details.";
+                  uses bbf-swm:error;
+                }
+              }
+            }
+            container commit {
+              when "boolean(../../../capability='bbf-swm:commit') and (../state='available' or ../state='in-use')" {
+                description
+                  "Only if commit is supported and the
+                   revision can be committed.";
+              }
+              description
+                "Actions and notifications for commit.";
+              leaf last-committed {
+                type yang:date-and-time;
+                description
+                  "When this revision was last committed.";
+              }
+              action commit {
+                if-feature "bbf-swm:software-management-actions";
+                description
+                  "Commit this revision.";
+              }
+              notification revision-committed {
+                description
+                  "The revision was successfully committed.";
+              }
+              notification commit-failed {
+                description
+                  "Commit of the revision failed.";
+                container error {
+                  description
+                    "Error details.";
+                  uses bbf-swm:error;
+                }
+              }
+            }
+            container delete {
+              when "boolean(../../../capability='bbf-swm:delete') and (../state != 'in-use')" {
+                description
+                  "Only if delete is supported and revision
+                   is not in-use.";
+              }
+              description
+                "Action for deleting a revision.";
+              action delete {
+                if-feature "bbf-swm:software-management-actions";
+                description
+                  "Delete this revision.";
+              }
+              notification delete-failed {
+                description
+                  "Deletion of the revision failed.";
+                container error {
+                  description
+                    "Error details.";
+                  uses bbf-swm:error;
+                }
+              }
+            }
+            notification revision-downloaded {
+              description
+                "The revision was successfully downloaded.";
+            }
+            notification download-revision-failed {
+              description
+                "The revision failed to download.";
+              container error {
+                description
+                  "Error details.";
+                uses bbf-swm:error;
+              }
+            }
+          }
+          notification revision-deleted {
+            description
+              "A software revision was deleted from the list
+               of available revisions.";
+            leaf id {
+              type uint8;
+              mandatory true;
+              description
+                "The unique identifier of the deleted revision.";
+            }
+            uses bbf-swm:revision-metadata;
+          }
+        }
+      }
+    }
+  }
+
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template/bbf-onu-hw:hardware/bbf-onu-hw:component" {
+    when "derived-from-or-self(bbf-onu-hw:class, 'bbf-hwt:xpon-nt')" {
+      description
+        "Only applicable to xPON network termination components.";
+    }
+    description
+      "Augment the template-derived ONU instance hardware
+       component with software management capabilities.";
+    uses onu-software-management;
+  }
+}

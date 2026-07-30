@@ -1,0 +1,116 @@
+module vecima-onu-hardware {
+  yang-version 1.1;
+  namespace "urn:vecima:yang:vecima-onu-hardware";
+  prefix vcm-onu-hw;
+
+  import bbf-onus {
+    prefix bbf-onus;
+  }
+  import bbf-onu-management {
+    prefix bbf-onum;
+  }
+  import bbf-onu-hardware {
+    prefix bbf-onu-hw;
+  }
+  import bbf-hardware-types {
+    prefix bbf-hwt;
+  }
+
+  organization
+    "Vecima Networks Inc.";
+  contact
+    "https://www.vecima.com";
+  description
+    "This module augments the ONU hardware component model defined
+     in bbf-onu-hardware with ONU capability data.
+
+     It adds a capability container with ONU Managed Entity
+     attributes to ONU hardware components within the onus/onu
+     data model.
+
+     This applies to both stand-alone ONU instances and ONU
+     instances derived from templates.";
+
+  revision 2026-03-11 {
+    description
+      "Initial revision: Add ONU capability data for hardware
+       components.";
+    reference
+      "ITU-T G.988: ONU management and control interface
+       Vecima specific requirements";
+  }
+
+  grouping onu-hardware-capability {
+    description
+      "ONU hardware capability data nodes. This provides port
+       count and resource information derived from ONU Managed
+       Entity attributes.";
+    container capability {
+      config false;
+      description
+        "ONU capability from ME(Managed Entity) attributes.";
+      leaf num-of-ethernet-base-t {
+        type uint8;
+        description
+          "The number of ethernet BASE-T LAN port.";
+        reference
+          "ITU-T G.988 Circuit pack - Number of ports";
+      }
+      leaf num-of-10g-ethernet {
+        type uint8;
+        description
+          "The number of 10G ethernet LAN port.";
+        reference
+          "ITU-T G.988 Circuit pack - Number of ports";
+      }
+      leaf num-of-veip {
+        type uint8;
+        description
+          "The number of Virtual Ethernet interface point.";
+        reference
+          "ITU-T G.988 Circuit pack - Number of ports";
+      }
+      leaf num-of-pots {
+        type uint8;
+        description
+          "The number of Plain old telephony service port.";
+        reference
+          "ITU-T G.988 Circuit pack - Number of ports";
+      }
+      leaf num-of-ip-host-config-data {
+        type uint8;
+        description
+          "The number of IP Host Config Data managed entity instances
+           reported in the OMCI MIB upload.";
+        reference
+          "ITU-T G.988 IP host config data";
+      }
+      leaf num-of-tcont {
+        type uint32;
+        description
+          "The number of Transmission Container.";
+        reference
+          "ITU-T G.988 ANI-G - Total T-CONT number";
+      }
+      leaf num-of-gem {
+        type uint16;
+        description
+          "The number of Gigabit-capable passive optical network
+           Encapsulation Method port.";
+        reference
+          "ITU-T G.988 ONU2-G - Total GEM port-ID number";
+      }
+    }
+  }
+
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template/bbf-onu-hw:hardware/bbf-onu-hw:component" {
+    when "derived-from-or-self(bbf-onu-hw:class, 'bbf-hwt:xpon-nt')" {
+      description
+        "Only applicable to xPON network termination components.";
+    }
+    description
+      "Augment the template-derived ONU instance hardware
+       component with capability data.";
+    uses onu-hardware-capability;
+  }
+}

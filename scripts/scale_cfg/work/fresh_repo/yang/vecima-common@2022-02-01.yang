@@ -1,0 +1,126 @@
+module vecima-common {
+  yang-version 1.1;
+  namespace "urn:vecima:yang:vecima-common";
+  prefix vcm-cmn;
+
+  organization
+    "Vecima Networks Inc.";
+  contact
+    "https://www.vecima.com";
+  description
+    "This YANG module defines common user defined data types and
+     groupings used across multiple devices like controller, remote
+     or shelf olts.";
+
+  revision 2022-02-01 {
+    description
+      "Initial version.";
+    reference
+      "";
+  }
+
+  typedef log-severity {
+    type enumeration {
+      enum "emergency" {
+        value 0;
+        description
+          "emergency severity";
+      }
+      enum "alert" {
+        value 1;
+        description
+          "alert severity";
+      }
+      enum "critical" {
+        value 2;
+        description
+          "critical severity";
+      }
+      enum "error" {
+        value 3;
+        description
+          "error severity";
+      }
+      enum "warning" {
+        value 4;
+        description
+          "warning severity";
+      }
+      enum "note" {
+        value 5;
+        description
+          "note severity";
+      }
+      enum "info" {
+        value 6;
+        description
+          "info severity";
+      }
+      enum "debug" {
+        value 7;
+        description
+          "debug severity";
+      }
+      enum "debug2" {
+        value 8;
+        description
+          "debug2 severity";
+      }
+      enum "debug3" {
+        value 9;
+        description
+          "debug3 severity";
+      }
+    }
+    description
+      "The log severity definitions";
+  }
+
+  typedef log-output {
+    type bits {
+      bit stdout {
+        position 0;
+        description
+          "to stdout";
+      }
+      bit logsrv {
+        position 1;
+        description
+          "to logsvr";
+      }
+      bit syslog {
+        position 3;
+        description
+          "to syslog";
+      }
+      bit developer {
+        position 4;
+        description
+          "to developer";
+      }
+      bit msgid {
+        position 5;
+        description
+          "to msgid";
+      }
+    }
+    description
+      "The log output definitions";
+  }
+
+  grouping action-result {
+    description
+      "Common result data from actions.";
+    leaf result {
+      type boolean;
+      description
+        "The boolean value for result";
+    }
+    leaf info {
+      type string;
+      description
+        "If present, contains additional information about the
+         result.";
+    }
+  }
+}

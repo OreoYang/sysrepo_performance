@@ -1,0 +1,286 @@
+module bbf-onu-interfaces {
+  yang-version 1.1;
+  namespace "urn:bbf:yang:bbf-onu-interfaces";
+  prefix bbf-onu-if;
+
+  import bbf-onu-if-type {
+    prefix bbf-onuift;
+  }
+  import bbf-interfaces-common {
+    prefix bbf-ifc;
+  }
+  import bbf-interfaces-statistics-common {
+    prefix bbf-if-statc;
+  }
+  import bbf-onus {
+    prefix bbf-onus;
+  }
+  import bbf-onu-management {
+    prefix bbf-onum;
+  }
+
+  organization
+    "Broadband Forum <https://www.broadband-forum.org>
+     Common YANG Work Area";
+  contact
+    "Comments or questions about this Broadband Forum YANG module
+     should be directed to <mailto:help@broadband-forum.org>.
+
+     Editor:      Joey Boyd, Adtran
+
+     Editor:      Robert Peschi, Nokia
+
+     PS Leader:   Joey Boyd, Adtran
+
+     WA Director: Marta Seda, Calix";
+  description
+    "This module contains a collection of YANG definitions for
+     supporting the Broadband Forum requirements on the management of
+     Optical Network Units (ONUs).
+
+     Specifically, this module defines data nodes for managing
+     network interfaces.
+
+     This module is based on definitions provided in:
+     - ietf-interfaces.yang, revision 2014-05-08, RFC 7223.
+
+     Copyright (c) 2023, Broadband Forum
+
+     Redistribution and use in source and binary forms, with or
+     without modification, are permitted provided that the following
+     conditions are met:
+
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+
+     2. Redistributions in binary form must reproduce the above
+        copyright notice, this list of conditions and the following
+        disclaimer in the documentation and/or other materials
+        provided with the distribution.
+
+     3. Neither the name of the copyright holder nor the names of its
+        contributors may be used to endorse or promote products
+        derived from this software without specific prior written
+        permission.
+
+     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+     CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+     INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+     CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+     STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+     ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+     The above license is used as a license under copyright only.
+     Please reference the Forum IPR Policy for patent licensing terms
+     <https://www.broadband-forum.org/ipr-policy>.
+
+     Any moral rights which are necessary to exercise under the above
+     license grant are also deemed granted under this license.
+
+     This version of this YANG module is part of WT-505; see the WT
+     itself for full legal notices.";
+
+  revision 2025-08-20 {
+    description
+      "TBD
+       * Approval Date:    TBD.
+       * Publication Date: TBD.";
+    reference
+      "TBD";
+  }
+
+  feature if-mib {
+    description
+      "This feature indicates that the device implements
+       the IF-MIB.";
+    reference
+      "RFC 2863";
+  }
+
+  feature arbitrary-names {
+    description
+      "This feature indicates that the device allows user-controlled
+       interfaces to be named arbitrarily.";
+  }
+
+  feature pre-provisioning {
+    description
+      "This feature indicates that the device supports
+       pre-provisioning of interface configuration, i.e., it is
+       possible to configure an interface whose physical interface
+       hardware is not present on the device.";
+  }
+
+  feature interface-statistics-accumulation {
+    description
+      "Indicates support for managing the accumulation of statistics
+       per interface.";
+  }
+
+  feature total-pkts {
+    description
+      "Indicates support for reporting the total transmitted and
+       received frames on an interface.";
+  }
+
+  grouping interface-type {
+    description
+      "Interface type data node.";
+    leaf type {
+      type identityref {
+        base bbf-onuift:interface-type;
+      }
+      description
+        "The type of the interface.
+
+         When an interface entry is created, a server MAY
+         initialize the type leaf with a valid value, e.g., if it
+         is possible to derive the type from the name of the
+         interface.
+
+         If a client tries to set the type of an interface to a
+         value that can never be used by the system, e.g., if the
+         type is not supported or if the type does not match the
+         name of the interface, the server MUST reject the
+         request. A NETCONF server MUST reply with an rpc-error
+         with the error-tag 'invalid-value' in this case.";
+      reference
+        "RFC 2863 - ifType";
+    }
+  }
+
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-stand-alone-instance" {
+    description
+      "Intended for a stand-alone ONU instance (i.e., that does not
+       rely on any template).
+
+       Configuration and state data nodes related to interfaces.";
+    uses bbf-ifc:interfaces-config {
+      refine "interfaces/interface/link-up-down-trap-enable" {
+        if-feature "bbf-onu-if:if-mib";
+      }
+      augment "interfaces/interface" {
+        description
+          "Augments the interface with configuration data nodes.";
+        uses interface-type;
+        uses bbf-if-statc:statistics-config {
+          refine "statistics-accumulation" {
+            if-feature "bbf-onu-if:interface-statistics-accumulation";
+          }
+        }
+      }
+    }
+    uses bbf-ifc:interfaces-state {
+      refine "interfaces-state/interface/admin-status" {
+        if-feature "bbf-onu-if:if-mib";
+      }
+      refine "interfaces-state/interface/if-index" {
+        if-feature "bbf-onu-if:if-mib";
+      }
+      augment "interfaces-state/interface" {
+        description
+          "Augments the interface's state date with extra data
+           nodes.";
+        uses interface-type;
+        uses bbf-if-statc:reset-statistics;
+      }
+      augment "interfaces-state/interface/statistics" {
+        description
+          "Augments the interface's statistics with extra data
+           nodes.";
+        uses bbf-if-statc:statistics-state {
+          refine "accumulating" {
+            if-feature "bbf-onu-if:interface-statistics-accumulation";
+          }
+          refine "in-pkts" {
+            if-feature "bbf-onu-if:total-pkts";
+          }
+          refine "out-pkts" {
+            if-feature "bbf-onu-if:total-pkts";
+          }
+        }
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template" {
+    description
+      "Intended for an ONU instance derived from template(s).
+
+       Configuration and state data nodes related to interfaces.";
+    uses bbf-ifc:interfaces-config {
+      refine "interfaces/interface/link-up-down-trap-enable" {
+        if-feature "bbf-onu-if:if-mib";
+      }
+      augment "interfaces/interface" {
+        description
+          "Augments the interface with configuration data nodes.";
+        uses interface-type;
+        uses bbf-if-statc:statistics-config {
+          refine "statistics-accumulation" {
+            if-feature "bbf-onu-if:interface-statistics-accumulation";
+          }
+        }
+      }
+    }
+    uses bbf-ifc:interfaces-state {
+      refine "interfaces-state/interface/admin-status" {
+        if-feature "bbf-onu-if:if-mib";
+      }
+      refine "interfaces-state/interface/if-index" {
+        if-feature "bbf-onu-if:if-mib";
+      }
+      augment "interfaces-state/interface" {
+        description
+          "Augments the interface's state date with extra data
+           nodes.";
+        uses interface-type;
+        uses bbf-if-statc:reset-statistics;
+      }
+      augment "interfaces-state/interface/statistics" {
+        description
+          "Augments the interface's statistics with extra data
+           nodes.";
+        uses bbf-if-statc:statistics-state {
+          refine "accumulating" {
+            if-feature "bbf-onu-if:interface-statistics-accumulation";
+          }
+          refine "in-pkts" {
+            if-feature "bbf-onu-if:total-pkts";
+          }
+          refine "out-pkts" {
+            if-feature "bbf-onu-if:total-pkts";
+          }
+        }
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:template/bbf-onum:data" {
+    description
+      "Intended for an ONU template.
+
+       Augments an ONU template with configuration data nodes
+       related to interfaces.";
+    uses bbf-ifc:interfaces-config {
+      refine "interfaces/interface/link-up-down-trap-enable" {
+        if-feature "bbf-onu-if:if-mib";
+      }
+      augment "interfaces/interface" {
+        description
+          "Augments the interface with configuration data nodes.";
+        uses interface-type;
+        uses bbf-if-statc:statistics-config {
+          refine "statistics-accumulation" {
+            if-feature "bbf-onu-if:interface-statistics-accumulation";
+          }
+        }
+      }
+    }
+  }
+}

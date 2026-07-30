@@ -1,0 +1,307 @@
+module bbf-onu-ip {
+  yang-version 1.1;
+  namespace "urn:bbf:yang:bbf-onu-ip";
+  prefix bbf-onu-ip;
+
+  import bbf-onus {
+    prefix bbf-onus;
+  }
+  import bbf-onu-management {
+    prefix bbf-onum;
+  }
+  import bbf-onu-interfaces {
+    prefix bbf-onu-if;
+  }
+  import bbf-ip-common {
+    prefix bbf-ipc;
+  }
+  import ietf-inet-types {
+    prefix inet;
+  }
+
+  organization
+    "Broadband Forum <https://www.broadband-forum.org>
+     Common YANG Work Area";
+  contact
+    "Comments or questions about this Broadband Forum YANG module
+     should be directed to <mailto:help@broadband-forum.org>.
+
+     Editor:      Joey Boyd, Adtran
+
+     Editor:      Robert Peschi, Nokia
+
+     PS Leader:   Joey Boyd, Adtran
+
+     WA Director: Marta Seda, Calix";
+  description
+    "This module contains a collection of YANG definitions for
+     supporting the Broadband Forum requirements on the management of
+     Optical Network Units (ONUs).
+
+     Specifically,this module contains a collection of YANG
+     definitions for managing IP implementations.
+
+     This module is based on definitions provided in:
+     - module ietf-ip.yang, revision 2018-02-22, RFC 8344.
+
+     Copyright (c) 2024, Broadband Forum
+
+     Redistribution and use in source and binary forms, with or
+     without modification, are permitted provided that the following
+     conditions are met:
+
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+
+     2. Redistributions in binary form must reproduce the above
+        copyright notice, this list of conditions and the following
+        disclaimer in the documentation and/or other materials
+        provided with the distribution.
+
+     3. Neither the name of the copyright holder nor the names of its
+        contributors may be used to endorse or promote products
+        derived from this software without specific prior written
+        permission.
+
+     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+     CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+     INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+     CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+     STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+     ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+     The above license is used as a license under copyright only.
+     Please reference the Forum IPR Policy for patent licensing terms
+     <https://www.broadband-forum.org/ipr-policy>.
+
+     Any moral rights which are necessary to exercise under the above
+     license grant are also deemed granted under this license.
+
+     This version of this YANG module is part of WT-505; see the WT
+     itself for full legal notices.";
+
+  revision 2025-08-20 {
+    description
+      "TBD
+       * Approval Date:    TBD.
+       * Publication Date: TBD.";
+    reference
+      "TBD";
+  }
+
+  feature ipv6-privacy-autoconf {
+    description
+      "Indicates support for privacy extensions for stateless address
+       autoconfiguration in IPv6.";
+    reference
+      "RFC 4941: Privacy Extensions for Stateless Address
+                 Autoconfiguration in IPv6";
+  }
+
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-stand-alone-instance/bbf-onu-if:interfaces/bbf-onu-if:interface" {
+    description
+      "Intended for a stand-alone ONU instance (i.e., that does not
+       rely on any template).
+
+       Augment the configuration data of the interface that is enabled
+       for IP packet processing with IPv4, respectively IPv6 specific
+       data.
+
+       Note that enabling an interface- for IPv4, respectively
+       IPv6 packet processing is achieved by configuring the 'ipv4',
+       respectively the 'ipv6' container.";
+    uses bbf-ipc:ipv4-common {
+      refine "ipv4/enabled" {
+        default "true";
+      }
+    }
+    uses bbf-ipc:ipv6-common {
+      refine "ipv6/enabled" {
+        default "true";
+      }
+      refine "ipv6/dup-addr-detect-transmits" {
+        default "1";
+      }
+      refine "ipv6/autoconf/create-global-addresses" {
+        default "true";
+      }
+      refine "ipv6/autoconf/create-temporary-addresses" {
+        if-feature "ipv6-privacy-autoconf";
+        default "false";
+      }
+      refine "ipv6/autoconf/temporary-valid-lifetime" {
+        if-feature "ipv6-privacy-autoconf";
+        default "604800";
+      }
+      refine "ipv6/autoconf/temporary-preferred-lifetime" {
+        if-feature "ipv6-privacy-autoconf";
+        default "86400";
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-stand-alone-instance/bbf-onu-if:interfaces-state/bbf-onu-if:interface" {
+    description
+      "Intended for a stand-alone ONU instance (i.e., that does not
+       rely on any template).
+
+       Augment the state data of the interface that is enabled for IP
+       packet processing with IPv4, respectively IPv6 specific state
+       data.";
+    uses bbf-ipc:ipv4-g988-state {
+      augment "ipv4/address" {
+        description
+          "Augment the IPv4 address data with the IPv4 address of a
+           gateway.";
+        leaf gateway-address {
+          type inet:ipv4-address;
+          description
+            "IPv4 address of the gateway.";
+        }
+      }
+    }
+    uses bbf-ipc:ipv6-g988-state {
+      refine "ipv6/address/prefix-length" {
+        mandatory true;
+      }
+      augment "ipv6/address" {
+        description
+          "Augment the IPv6 address data with the IPv6 address of a
+           gateway.";
+        leaf gateway-address {
+          type inet:ipv6-address;
+          description
+            "IPv6 address of the gateway.";
+        }
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template/bbf-onu-if:interfaces/bbf-onu-if:interface" {
+    description
+      "Intended for an ONU instance derived from template(s).
+
+       Augment the configuration data of the interface that is enabled
+       for IP packet processing with IPv4, respectively IPv6 specific
+       data.
+
+       Note that enabling an interface- for IPv4, respectively IPv6
+       packet processing is achieved by configuring the 'ipv4',
+       respectively the 'ipv6' container.";
+    uses bbf-ipc:ipv4 {
+      augment "ipv4/address" {
+        description
+          "Augment the IPv4 address data with the IPv4 address of a
+           gateway.";
+        leaf gateway-address {
+          type inet:ipv4-address;
+          mandatory true;
+          description
+            "IPv4 address of the gateway.";
+        }
+      }
+    }
+    uses bbf-ipc:ipv6 {
+      refine "ipv6/autoconf/create-temporary-addresses" {
+        if-feature "ipv6-privacy-autoconf";
+      }
+      refine "ipv6/autoconf/temporary-valid-lifetime" {
+        if-feature "ipv6-privacy-autoconf";
+      }
+      refine "ipv6/autoconf/temporary-preferred-lifetime" {
+        if-feature "ipv6-privacy-autoconf";
+      }
+      augment "ipv6/address" {
+        description
+          "Augment the IPv6 address data with the IPv6 address of a
+           gateway.";
+        leaf gateway-address {
+          type inet:ipv6-address;
+          mandatory true;
+          description
+            "IPv6 address of the gateway.";
+        }
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template/bbf-onu-if:interfaces-state/bbf-onu-if:interface" {
+    description
+      "Intended for ONU instance derived from template(s).
+
+       Augment the state data of the interface that is enabled for IP
+       packet processing with IPv4, respectively IPv6 specific state
+       data.";
+    uses bbf-ipc:ipv4-g988-state {
+      augment "ipv4/address" {
+        description
+          "Augment the IPv4 address data with the IPv4 address of a
+           gateway.";
+        leaf gateway-address {
+          type inet:ipv4-address;
+          description
+            "IPv4 address of the gateway.";
+        }
+      }
+    }
+    uses bbf-ipc:ipv6-g988-state {
+      refine "ipv6/address/prefix-length" {
+        mandatory true;
+      }
+      augment "ipv6/address" {
+        description
+          "Augment the IPv6 address data with the IPv6 address of a
+           gateway.";
+        leaf gateway-address {
+          type inet:ipv6-address;
+          description
+            "IPv6 address of the gateway.";
+        }
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:template/bbf-onum:data/bbf-onu-if:interfaces/bbf-onu-if:interface" {
+    description
+      "Intended for an ONU template.
+
+       Augment the configuration data of the interface that is enabled
+       for IP packet processing with IPv4, respectively IPv6 specific
+       data.
+
+       Note that enabling an interface- for IPv4, respectively IPv6
+       packet processing is achieved by configuring the 'ipv4',
+       respectively the 'ipv6' container.";
+    uses bbf-ipc:ipv4-common {
+      refine "ipv4/enabled" {
+        default "true";
+      }
+    }
+    uses bbf-ipc:ipv6-common {
+      refine "ipv6/enabled" {
+        default "true";
+      }
+      refine "ipv6/dup-addr-detect-transmits" {
+        default "1";
+      }
+      refine "ipv6/autoconf/create-global-addresses" {
+        default "true";
+      }
+      refine "ipv6/autoconf/create-temporary-addresses" {
+        if-feature "ipv6-privacy-autoconf";
+        default "false";
+      }
+      refine "ipv6/autoconf/temporary-valid-lifetime" {
+        if-feature "ipv6-privacy-autoconf";
+        default "604800";
+      }
+      refine "ipv6/autoconf/temporary-preferred-lifetime" {
+        if-feature "ipv6-privacy-autoconf";
+        default "86400";
+      }
+    }
+  }
+}

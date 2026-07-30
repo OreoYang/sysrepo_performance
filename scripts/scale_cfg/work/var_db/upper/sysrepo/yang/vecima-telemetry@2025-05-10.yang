@@ -1,0 +1,39 @@
+module vecima-telemetry {
+  yang-version 1.1;
+  namespace "urn:vecima:yang:vecima-telemetry";
+  prefix vcm-tlm;
+
+  organization
+    "Vecima Networks Inc.";
+  contact
+    "https://www.vecima.com";
+  description
+    "This module contains a collection of YANG definitions for
+     managing vecima specific network interfaces.
+
+     Copyright (c) 2024 Vecima Networks Inc.
+     All rights reserved.";
+
+  revision 2025-05-10 {
+    description
+      "Initial revision.";
+    reference
+      "";
+  }
+
+  grouping telemetry-control {
+    description
+      "Telemetry control parameters group";
+    container telemetry {
+      description
+        "Telemetry control parameters";
+      leaf enabled {
+        type boolean;
+        default "false";
+        description
+          "When set to true, then the state for this object will
+           be included in the telemetry stream.";
+      }
+    }
+  }
+}

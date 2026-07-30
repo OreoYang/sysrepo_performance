@@ -1,0 +1,63 @@
+<edit-config>
+    <target>
+        <running/>
+    </target>
+    <test-option>test-then-set</test-option>
+    <error-option>rollback-on-error</error-option>
+    <config xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+        <forwarding xmlns="urn:bbf:yang:bbf-l2-forwarding">
+          <forwarders>
+            <forwarder>
+              <name>fwd_nto1_cvlan2000_untag</name>
+
+              <mac-learning>
+                <forwarding-database>sp-e7c044d8ea</forwarding-database>
+              </mac-learning>
+              <icmpv6-security-parameters xmlns="urn:vecima:yang:vecima-l2-forwarding">
+                <icmpv6-secure-forwarding>single-user-forwarding</icmpv6-secure-forwarding>
+              </icmpv6-security-parameters>
+              <l2-arp-relay xmlns="urn:vecima:yang:vecima-l2-forwarding">
+                <arp-security-forwarding>single-user-forwarding</arp-security-forwarding>
+              </l2-arp-relay>
+              <ports>
+                <port>
+                  <name>fwd-port-nw-lag-1-cvlan2000-untag</name>
+                  <sub-interface>vsubif-lag-1-cvlan2000-untag</sub-interface>
+                </port>
+              </ports>
+            </forwarder>
+            <forwarder>
+              <name>fwd_nto1_cvlan2001_ovlan881</name>
+
+              <mac-learning>
+                <forwarding-database>sp-c9368ba519</forwarding-database>
+              </mac-learning>
+              <icmpv6-security-parameters xmlns="urn:vecima:yang:vecima-l2-forwarding">
+                <icmpv6-secure-forwarding>single-user-forwarding</icmpv6-secure-forwarding>
+              </icmpv6-security-parameters>
+              <l2-arp-relay xmlns="urn:vecima:yang:vecima-l2-forwarding">
+                <arp-security-forwarding>single-user-forwarding</arp-security-forwarding>
+              </l2-arp-relay>
+              <ports>
+                <port>
+                  <name>fwd-port-nw-lag-1-cvlan2001-ovlan881</name>
+                  <sub-interface>vsubif-lag-1-cvlan2001-ovlan881</sub-interface>
+                </port>
+              </ports>
+            </forwarder>
+          </forwarders>
+          <forwarding-databases>
+            <forwarding-database>
+              <name>sp-c9368ba519</name>
+              <max-number-mac-addresses>1024</max-number-mac-addresses>
+              <aging-timer>300</aging-timer>
+            </forwarding-database>
+            <forwarding-database>
+              <name>sp-e7c044d8ea</name>
+              <max-number-mac-addresses>1024</max-number-mac-addresses>
+              <aging-timer>300</aging-timer>
+            </forwarding-database>
+          </forwarding-databases>
+        </forwarding>
+    </config>
+</edit-config>

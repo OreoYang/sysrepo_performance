@@ -1,0 +1,67 @@
+=== Mode S D2b: split export + incremental import ===
+started: 2026-07-30T13:09:32+08:00
+Step A: split export.xml
+{
+  "onu_total": 1022,
+  "provision_files": 1022,
+  "service_files": 1016,
+  "base_files": 34,
+  "onu_template_files": 20,
+  "rpc_base_files": 34,
+  "rpc_provision_files": 1022,
+  "rpc_service_files": 1016
+}
+configs written under /home/oreo/works/repo/build-xpon/workspace/sources/netconf-polt/scripts/scale_cfg/work/configs
+RPC review files: /home/oreo/works/repo/build-xpon/workspace/sources/netconf-polt/scripts/scale_cfg/work/configs/rpc/ (see rpc/README.txt)
+Step B1: install YANG on fresh repo
+Step B2: import base configs (not timed, merge via --edit)
+  base: hardware.xml
+  base: qos-stack.xml
+  base: platform-stack.xml
+  base: network-vsubif.xml
+  base: xpongemtcont-base.xml
+  base: onu-templates/00-onu-template-shared.xml
+  base: onu-templates/01-template-Prod_GPON_HGU_G140WH.xml
+  base: onu-templates/02-template-Prod_GPON_HGU_G240WG.xml
+  base: onu-templates/03-template-Prod_GPON_HGU_G240WJ.xml
+  base: onu-templates/04-template-Prod_GPON_HGU_G2425GA.xml
+  base: onu-templates/05-template-Prod_GPON_HGU_NOCLEICODEG140WH.xml
+  base: onu-templates/06-template-Prod_GPON_HGU_NOCLEICODEG1425GA.xml
+  base: onu-templates/07-template-Prod_GPON_HGU_NOCLEICODEG240WG.xml
+  base: onu-templates/08-template-Prod_GPON_HGU_NOCLEICODEG240WJ.xml
+  base: onu-templates/09-template-Prod_GPON_HGU_NOCLEICODEG2425GA.xml
+  base: onu-templates/10-template-Prod_GPON_SFU_BVL3A8JNAAG010SA.xml
+  base: onu-templates/11-template-Prod_XGS_SFU_BRCM55040B.xml
+  base: onu-templates/12-template-Prod_XGS_SFU_BVMG510BRAXS110GA.xml
+  base: onu-templates/13-template-Prod_XGS_SFU_BVMGY10BRAXS010XQ.xml
+  base: onu-templates/14-template-Prod_XGS_SFU_NOVA-2200.xml
+  base: onu-templates/15-template-Prod_XGS_SFU_NOVA-2202.xml
+  base: onu-templates/16-template-Prod_XGS_SFU_NOVA-2204.xml
+  base: onu-templates/17-template-Prod_XGS_SFU_PM7516-R0.xml
+  base: onu-templates/18-template-Prod_XGS_SFU_XGS2200C10.xml
+  base: onu-templates/19-template-default-onu-template.xml
+  base: forwarding-shell.xml
+  base: keystore.xml
+  base: truststore.xml
+  base: system.xml
+  base: device.xml
+  base: datastore.xml
+  base: subsys.xml
+  base: netconf-server.xml
+  base: lldp.xml
+Step B2.5: preflight — verify chpart/chpair/templates in running before ONU provision
+preflight: 24 unique chpart, 24 chpair, 19 templates from create files
+ok: all channel-partition refs present in running/ietf-interfaces
+ok: all channel-pair refs present in running/ietf-interfaces
+ok: all template refs present in running/bbf-onus
+running ietf-interfaces: 136 interfaces exported
+running bbf-onus: 19 templates exported
+preflight: base ready for ONU provision
+Step B3: timed ONU provision imports
+Step B4: timed ONU service imports
+provision: ok=1022 fail=0 time=340.992s
+service: ok=1016 fail=0 time=1906.212s
+incremental total: 2247.204s status=ok
+results: /home/oreo/works/repo/build-xpon/workspace/sources/netconf-polt/scripts/scale_cfg/results/mode_s_d2b.csv
+configs: /home/oreo/works/repo/build-xpon/workspace/sources/netconf-polt/scripts/scale_cfg/work/configs
+finished: 2026-07-30T13:47:41+08:00

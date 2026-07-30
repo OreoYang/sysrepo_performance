@@ -1,0 +1,1182 @@
+module vecima-onu-interfaces {
+  yang-version 1.1;
+  namespace "urn:vecima:yang:vecima-onu-interfaces";
+  prefix vcm-onu-if;
+
+  import ietf-yang-types {
+    prefix yang;
+  }
+  import bbf-onus {
+    prefix bbf-onus;
+  }
+  import bbf-onu-management {
+    prefix bbf-onum;
+  }
+  import bbf-onu-interfaces {
+    prefix bbf-onu-if;
+  }
+  import bbf-onu-xpon-interfaces {
+    prefix bbf-onu-xponif;
+  }
+  import bbf-onu-if-type {
+    prefix bbf-onuift;
+  }
+  import iana-if-type {
+    prefix ianaift;
+  }
+  import bbf-if-type {
+    prefix bbfift;
+  }
+
+  organization
+    "Vecima Networks Inc.";
+  contact
+    "https://www.vecima.com";
+  description
+    "Augments ONU interface data (bbf-onu-interfaces, bbf-onu-xpon-interfaces)
+     with Vecima ANI/UNI/VLAN performance statistics and ANI pm-enable.
+
+     Groupings ani-oper-data-stats, onu-ethernet-oper-data-stats,
+     uni-ethernet-oper-data-stats, onu-vlan-oper-data-stats, and
+     vecima-ani-config-data are duplicated from vecima-interfaces; keep
+     them identical when editing either module.";
+
+  revision 2026-03-24 {
+    description
+      "Initial revision: ONU-side interface PM and ANI config augments.";
+    reference
+      "Vecima EXS-1610; aligned with vecima-interfaces.yang";
+  }
+
+  grouping ani-oper-data-stats {
+    description
+      "ANI (Access Network Interface) operation data stats
+       group";
+    container statistics {
+      presence "Enable ANI side operation data stats";
+      config false;
+      description
+        "A collection of interface-related statistics objects.";
+      leaf discontinuity-time {
+        type yang:date-and-time;
+        mandatory true;
+        description
+          "The time on the most recent occasion at which any one or
+           more of this interface's counters suffered a
+           discontinuity.  If no such discontinuities have occurred
+           since the last re-initialization of the local management
+           subsystem, then this node contains the time the local
+           management subsystem re-initialized itself.";
+      }
+      leaf fec-codewords-corrected {
+        type yang:counter64;
+        description
+          "Count of FEC codewords that contained errors and could
+           be corrected by the FEC function.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.9 Forward error correction PM history data
+           and 9.2.22 Enhanced FEC PM history data.";
+      }
+      leaf fec-codewords-uncorrected {
+        type yang:counter64;
+        description
+          "Count of FEC codewords that contained errors and could not
+           be corrected by the FEC function.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.9 Forward error correction PM history data
+           and 9.2.22 Enhanced FEC PM history data.";
+      }
+      leaf fec-codewords {
+        type yang:counter64;
+        description
+          "Count of total received FEC codewords.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.9 Forward error correction PM history data
+           and 9.2.22 Enhanced FEC PM history data.";
+      }
+      leaf fec-corrected-units {
+        type yang:counter64;
+        description
+          "FEC corrected units (units are bits in GPON. In other
+           system modes, units are Bytes)";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.9 Forward error correction PM history data
+           and 9.2.22 Enhanced FEC PM history data.";
+      }
+      leaf fec-seconds {
+        type yang:counter64;
+        description
+          "Counts seconds during which there was an FEC anomaly.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.9 Forward error correction PM history data
+           and 9.2.22 Enhanced FEC PM history data.";
+      }
+      leaf tc-psbd-hec-errors {
+        type yang:counter64;
+        description
+          "Counts HEC errors in any of the fields of the downstream
+           physical sync block.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.15 XG-PON TC PM history data and
+           9.2.23 Enhanced TC PM history data.";
+      }
+      leaf tc-xgtc-hec-errors {
+        type yang:counter64;
+        description
+          "Counts HEC errors detected in the XGTC header.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.15 XG-PON TC PM history data and
+           9.2.23 Enhanced TC PM history data.";
+      }
+      leaf tc-unknown-profile-count {
+        type yang:counter64;
+        description
+          "Counts the number of grants received whose specified
+           profile was not known to the ONU.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.15 XG-PON TC PM history data and
+           9.2.23 Enhanced TC PM history data.";
+      }
+      leaf tc-tx-gem {
+        type yang:counter64;
+        description
+          "Counts the number of non-idle XGEM frames transmitted.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.15 XG-PON TC PM history data and
+           9.2.23 Enhanced TC PM history data.";
+      }
+      leaf tc-fragment-gem {
+        type yang:counter64;
+        description
+          "Counts the number of XGEM frames that represent
+           fragmented SDUs";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.15 XG-PON TC PM history data and
+           9.2.23 Enhanced TC PM history data.";
+      }
+      leaf tc-xgem-hec-lost-words {
+        type yang:counter64;
+        description
+          "Number of 4-byte words lost because of an XGEM frame
+           HEC error.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.15 XG-PON TC PM history data and
+           9.2.23 Enhanced TC PM history data.";
+      }
+      leaf tc-xgem-key-errors {
+        type yang:counter64;
+        description
+          "XGEM key error.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.15 XG-PON TC PM history data and
+           9.2.23 Enhanced TC PM history data.";
+      }
+      leaf tc-xgem-hec-errors {
+        type yang:counter64;
+        description
+          "Counts the number of instances of an XGEM frame
+           HEC error.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.15 XG-PON TC PM history data and
+           9.2.23 Enhanced TC PM history data.";
+      }
+      leaf tc-tx-bytes {
+        type yang:counter64;
+        description
+          "Counts the number of transmitted bytes in non-idle
+           XGEM frames.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.15 XG-PON TC PM history data and
+           9.2.23 Enhanced TC PM history data.";
+      }
+      leaf tc-rx-bytes {
+        type yang:counter64;
+        description
+          "Counts the number of received bytes in non-idle
+           XGEM frames.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.15 XG-PON TC PM history data and
+           9.2.23 Enhanced TC PM history data.";
+      }
+      leaf tc-lods-errors {
+        type yang:counter64;
+        description
+          "Loss of downstream synchronization (LODS) event count.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.15 XG-PON TC PM history data and
+           9.2.23 Enhanced TC PM history data.";
+      }
+      leaf tc-lods-events-restored {
+        type yang:counter64;
+        description
+          "Counts the number of LODS cleared events.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.15 XG-PON TC PM history data and
+           9.2.23 Enhanced TC PM history data.";
+      }
+      leaf tc-lods-reactivate {
+        type yang:counter64;
+        description
+          "Counts the number of LODS events resulting in ONU
+           reactivation without synchronization being reacquired.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.15 XG-PON TC PM history data and
+           9.2.23 Enhanced TC PM history data.";
+      }
+      leaf tc-rx-ploams-error {
+        type yang:counter64;
+        description
+          "Counter of received PLOAM messages with MIC errors.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.16 XG-PON DS management PM history data.";
+      }
+      leaf tc-rx-ploams-non-idle {
+        type yang:counter64;
+        description
+          "PLOAM messages received, either directed to this ONU
+           or broadcast to all ONUs.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.16 XG-PON DS management PM history data.";
+      }
+      leaf tc-profile-msg-rx {
+        type yang:counter64;
+        description
+          "Counts the number of profile messages received, either
+           directed to this ONU or broadcast to all ONUs.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.16 XG-PON DS management PM history data.";
+      }
+      leaf tc-ranging-time-msg-rx {
+        type yang:counter64;
+        description
+          "Counts the number of ranging_time messages received,
+           either directed to this ONU or broadcast to all ONUs.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.16 XG-PON DS management PM history data.";
+      }
+      leaf tc-deactivate-onu-msg-rx {
+        type yang:counter64;
+        description
+          "Counts the number of deactivate_ONU-ID messages received,
+           either directed to this ONU or broadcast to all ONUs.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.16 XG-PON DS management PM history data.";
+      }
+      leaf tc-disable-serial-msg-rx {
+        type yang:counter64;
+        description
+          "Counts the number of disable_serial_number messages
+           received";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.16 XG-PON DS management PM history data.";
+      }
+      leaf tc-req-registration-msg-rx {
+        type yang:counter64;
+        description
+          "Counts the number of request_registration messages
+           received.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.16 XG-PON DS management PM history data.";
+      }
+      leaf tc-assign-allocid-msg-rx {
+        type yang:counter64;
+        description
+          "Counts the number of assign_alloc-ID messages received.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.16 XG-PON DS management PM history data.";
+      }
+      leaf tc-key-control-msg-rx {
+        type yang:counter64;
+        description
+          "Counts the number of key_control messages received,
+           either directed to this ONU or broadcast to all ONUs.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.16 XG-PON DS management PM history data.";
+      }
+      leaf tc-sleep-msg-rx {
+        type yang:counter64;
+        description
+          "Counts the number of sleep_allow messages received,
+           either directed to this ONU or broadcast to all ONUs.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.16 XG-PON DS management PM history data.";
+      }
+      leaf tc-rx-omci {
+        type yang:counter64;
+        description
+          "Counts the number of OMCI messages received in the
+           baseline message format.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.16 XG-PON DS management PM history data.";
+      }
+      leaf tc-rx-omci-extended {
+        type yang:counter64;
+        description
+          "Counts the number of OMCI messages received in the
+           extended message format.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.16 XG-PON DS management PM history data.";
+      }
+      leaf tc-assign-onuid-msg-rx {
+        type yang:counter64;
+        description
+          "Counts the number of assign_ONU-ID messages
+           received since the last re-boot.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.16 XG-PON DS management PM history data.";
+      }
+      leaf tc-rx-omci-mic {
+        type yang:counter64;
+        description
+          "Counts MIC errors detected in OMCI messages directed
+           to this ONU.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.16 XG-PON DS management PM history data.";
+      }
+      leaf tc-ploams-tx {
+        type yang:counter64;
+        description
+          "Counts PLOAM messages transmitted upstream,
+           excluding acknowledge messages.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.17 XG-PON US management PM history data.";
+      }
+      leaf tc-serial-num-onu-tx {
+        type yang:counter64;
+        description
+          "Counts Serial_number_ONU PLOAM messages
+           transmitted.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.17 XG-PON US management PM history data.";
+      }
+      leaf tc-registration-msg-tx {
+        type yang:counter64;
+        description
+          "Counts Registration PLOAM messages transmitted.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.17 XG-PON US management PM history data.";
+      }
+      leaf tc-key-report-msg-tx {
+        type yang:counter64;
+        description
+          "Counts key_report PLOAM messages transmitted.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.17 XG-PON US management PM history data.";
+      }
+      leaf tc-ack-msg-tx {
+        type yang:counter64;
+        description
+          "Counts acknowledge PLOAM messages transmitted.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.17 XG-PON US management PM history data.";
+      }
+      leaf tc-sleep-req-tx {
+        type yang:counter64;
+        description
+          "Counts sleep_request PLOAM messages transmitted.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.2.17 XG-PON US management PM history data.";
+      }
+    }
+  }
+
+  grouping onu-ethernet-oper-data-stats {
+    description
+      "ONU UNI (PPTP Ethernet) operation data stats group";
+    container statistics {
+      presence "Enable ONU UNI (PPTP Ethernet) side operation
+       data statistics counters";
+      config false;
+      description
+        "A collection of interface-related statistics objects.";
+      leaf discontinuity-time {
+        type yang:date-and-time;
+        mandatory true;
+        description
+          "The time on the most recent occasion at which any one or
+           more of this interface's counters suffered a
+           discontinuity.  If no such discontinuities have occurred
+           since the last re-initialization of the local management
+           subsystem, then this node contains the time the local
+           management subsystem re-initialized itself.";
+      }
+      leaf fcs-errors {
+        type yang:counter64;
+        description
+          "Counts upstream frames received on a particular
+           interface that were an integral number of octets in
+           length (between 64 octets and 1518 octets, inclusive)
+           but failed the FCS check (a.k.a CRC errored frames).";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.5.2 Ethernet PM history data and
+           9.3.32 Ethernet frame extended PM.";
+      }
+      leaf excessive-collisions {
+        type yang:counter64;
+        description
+          "Counts frames whose transmission failed due to
+           excessive collisions.";
+        reference
+          "ITU-T G.9807.1 clause C.14.1 and ITU-T G.988 (11/2017)";
+      }
+      leaf late-collisions {
+        type yang:counter64;
+        description
+          "Counts the number of times that a collision was
+           detected later than 512 bit times into the transmission
+           of a packet.";
+        reference
+          "ITU-T G.9807.1 clause C.14.1 and ITU-T G.988 (11/2017)";
+      }
+      leaf frames-too-long {
+        type yang:counter64;
+        description
+          "Counts received frames that exceeded the maximum permitted
+           frame size.";
+        reference
+          "ITU-T G.9807.1 clause C.14.1 and ITU-T G.988 (11/2017)";
+      }
+      leaf buffers-overflow-rx {
+        type yang:counter64;
+        description
+          "Counts the number of times that the receive buffer
+           overflowed.";
+        reference
+          "ITU-T G.9807.1 clause C.14.1 and ITU-T G.988 (11/2017)";
+      }
+      leaf buffers-overflow-tx {
+        type yang:counter64;
+        description
+          "Counts the number of times that the transmit buffer
+           overflowed.";
+        reference
+          "ITU-T G.9807.1 clause C.14.1 and ITU-T G.988 (11/2017)";
+      }
+      leaf single-collision-frames {
+        type yang:counter64;
+        description
+          "Counts successfully transmitted frames whose transmission
+           was delayed by exactly one collision.";
+        reference
+          "ITU-T G.9807.1 clause C.14.1 and ITU-T G.988 (11/2017)";
+      }
+      leaf multi-collisions-frames {
+        type yang:counter64;
+        description
+          "Counts successfully transmitted frames whose transmission
+           was delayed by more than one collision.";
+        reference
+          "ITU-T G.9807.1 clause C.14.1 and ITU-T G.988 (11/2017)";
+      }
+      leaf sqe-counts {
+        type yang:counter64;
+        description
+          "Counts the number of times that the SQE test error message
+           was generated by the PLS sublayer.";
+        reference
+          "ITU-T G.9807.1 clause C.14.1 and ITU-T G.988 (11/2017)";
+      }
+      leaf deferred-tx {
+        type yang:counter64;
+        description
+          "Counts frames whose first transmission attempt was delayed
+           because the medium was busy. The count does not include
+           frames involved in collisions.";
+        reference
+          "ITU-T G.9807.1 clause C.14.1 and ITU-T G.988 (11/2017)";
+      }
+      leaf mac-tx-errors {
+        type yang:counter64;
+        description
+          "Counts frames whose transmission failed due to an internal
+           MAC sublayer transmit error.";
+        reference
+          "ITU-T G.9807.1 clause C.14.1 and ITU-T G.988 (11/2017)";
+      }
+      leaf carrier-sense-errors {
+        type yang:counter64;
+        description
+          "Counts the number of times that carrier sense was lost or
+           never asserted when attempting to transmit a frame.";
+        reference
+          "ITU-T G.9807.1 clause C.14.1 and ITU-T G.988 (11/2017)";
+      }
+      leaf alignment-errors {
+        type yang:counter64;
+        description
+          "Counts received frames that were not an integral number
+           of octets in length and did not pass the FCS check.";
+        reference
+          "ITU-T G.9807.1 clause C.14.1 and ITU-T G.988 (11/2017)";
+      }
+      leaf mac-rx-errors {
+        type yang:counter64;
+        description
+          "Counts frames whose reception failed due to an internal
+           MAC sublayer receive error.";
+        reference
+          "ITU-T G.9807.1 clause C.14.1 and ITU-T G.988 (11/2017)";
+      }
+      leaf pppoe-filtered-frames {
+        type yang:counter64;
+        description
+          "Counts the number of frames discarded due to
+           PPPoE filtering.";
+        reference
+          "ITU-T G.9807.1 clause C.14.1 and ITU-T G.988 (11/2017)";
+      }
+      leaf drop-events {
+        type yang:counter64;
+        description
+          "Total number of events in which packets were dropped due to
+           a lack of resources. This is not necessarily the number of
+           packets dropped; it is the number of times this event was
+           detected.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.5.4 Ethernet PM history data 3 and
+           9.3.32 Ethernet frame extended PM.";
+      }
+      leaf rx-octets {
+        type yang:counter64;
+        description
+          "Total number of octets received from the CPE, including
+           those in bad packets, excluding framing bytes, but
+           including FCS.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.5.4 Ethernet PM history data 3 and
+           9.3.32 Ethernet frame extended PM.";
+      }
+      leaf rx-pkts {
+        type yang:counter64;
+        description
+          "Total number of packets received, including bad packets,
+           broadcast packets and multicast packets.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.5.4 Ethernet PM history data 3 and
+           9.3.32 Ethernet frame extended PM.";
+      }
+      leaf broadcast-pkts {
+        type yang:counter64;
+        description
+          "Total number of received good packets directed to the
+           broadcast address. This does not include multicast
+           packets.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.5.4 Ethernet PM history data 3 and
+           9.3.32 Ethernet frame extended PM.";
+      }
+      leaf multicast-pkts {
+        type yang:counter64;
+        description
+          "Total number of received good packets directed to a
+           multicast address. This does not include broadcast
+           packets.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.5.4 Ethernet PM history data 3 and
+           9.3.32 Ethernet frame extended PM.";
+      }
+      leaf undersize-pkts {
+        type yang:counter64;
+        description
+          "The total number of packets received that were less than
+           64 octets long, but were otherwise well formed (excluding
+           framing bits, but including FCS).";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.5.4 Ethernet PM history data 3 and
+           9.3.32 Ethernet frame extended PM.";
+      }
+      leaf fragment-pkts {
+        type yang:counter64;
+        description
+          "Total number of packets received that were less than
+           64 octets long, excluding framing bits but including
+           FCS octets, and had either a bad FCS with an integral
+           number of octets (FCS error) or a bad FCS with a
+           non-integral number of octets (alignment error).
+           It is entirely normal for this attribute to increment.
+           This is because it counts both runts (which are normal
+           occurrences due to collisions) and noise hits.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.5.4 Ethernet PM history data 3 and
+           9.3.32 Ethernet frame extended PM.";
+      }
+      leaf oversize-pkts {
+        type yang:counter64;
+        description
+          "Jabbers: The total number of packets received that were
+           longer than 1518 octets, excluding framing bits but
+           including FCS octets, and had either a bad FCS with an
+           integral number of octets (FCS error) or a bad FCS with a
+           non-integral number of octets (alignment error).";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.5.4 Ethernet PM history data 3 and
+           9.3.32 Ethernet frame extended PM.";
+      }
+      leaf pkts-64-bytes {
+        type yang:counter64;
+        description
+          "Total number of received packets (including bad packets)
+           that were 64 octets long, excluding framing bits but
+           including FCS.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.5.4 Ethernet PM history data 3 and
+           9.3.32 Ethernet frame extended PM.";
+      }
+      leaf pkts-65to127-bytes {
+        type yang:counter64;
+        description
+          "Total number of received packets (including bad packets)
+           that were 65..127 octets long, excluding framing bits but
+           including FCS.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.5.4 Ethernet PM history data 3 and
+           9.3.32 Ethernet frame extended PM.";
+      }
+      leaf pkts-128to255-bytes {
+        type yang:counter64;
+        description
+          "Total number of packets (including bad packets) received
+           that were 128..255 octets long, excluding framing bits
+           but including FCS.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.5.4 Ethernet PM history data 3 and
+           9.3.32 Ethernet frame extended PM.";
+      }
+      leaf pkts-256to511-bytes {
+        type yang:counter64;
+        description
+          "Total number of packets (including bad packets) received
+           that were 256..511 octets long, excluding framing bits but
+           including FCS.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.5.4 Ethernet PM history data 3 and
+           9.3.32 Ethernet frame extended PM.";
+      }
+      leaf pkts-512to1023-bytes {
+        type yang:counter64;
+        description
+          "Total number of packets (including bad packets) received
+           that were 512..1023 octets long, excluding framing bits but
+           including FCS.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.5.4 Ethernet PM history data 3 and
+           9.3.32 Ethernet frame extended PM.";
+      }
+      leaf pkts-1024to1518-bytes {
+        type yang:counter64;
+        description
+          "Total number of packets (including bad packets) received
+           that were 1024..1518 octets long, excluding framing bits
+           but including FCS.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.5.4 Ethernet PM history data 3 and
+           9.3.32 Ethernet frame extended PM.";
+      }
+    }
+  }
+
+  grouping uni-ethernet-oper-data-stats {
+    description
+      "ONU UNI (PPTP Ethernet) operation data stats group";
+    container pptp-ether-uni {
+      presence "ONU UNI (PPTP Ethernet) side operation
+       data statistics counters";
+      config false;
+      description
+        "A collection of interface-related statistics objects.";
+      uses onu-ethernet-oper-data-stats;
+    }
+  }
+
+  grouping onu-vlan-oper-data-stats {
+    description
+      "ANI (Access Network Interface)/ONU operation data
+       statistics.";
+    container statistics {
+      presence "Enable ANI side operation data stats";
+      config false;
+      description
+        "A collection of interface-related statistics objects.";
+      leaf discontinuity-time {
+        type yang:date-and-time;
+        mandatory true;
+        description
+          "The time on the most recent occasion at which any one or
+           more of this interface's counters suffered a
+           discontinuity.  If no such discontinuities have occurred
+           since the last re-initialization of the local management
+           subsystem, then this node contains the time the local
+           management subsystem re-initialized itself.";
+      }
+      leaf out-pkts {
+        type yang:counter64;
+        description
+          "Frames transmitted successfully on this port/interface.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.9 MAC bridge port performance monitoring
+           history data.";
+      }
+      leaf delay-exceeded-discarded-pkts {
+        type yang:counter64;
+        description
+          "Frames discarded on this port/interface because
+           transmission was delayed.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.9 MAC bridge port performance monitoring
+           history data.";
+      }
+      leaf mtu-exceeded-discarded-pkts {
+        type yang:counter64;
+        description
+          "Frames discarded on this port/interface because the MTU
+           was exceeded.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.9 MAC bridge port performance monitoring
+           history data.";
+      }
+      leaf in-pkts {
+        type yang:counter64;
+        description
+          "Frames received on this port/interface.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.9 MAC bridge port performance monitoring
+           history data.";
+      }
+      leaf in-error-discarded-pkts {
+        type yang:counter64;
+        description
+          "Frames received on this port/interface that were discarded
+           due to errors.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.9 MAC bridge port performance monitoring
+           history data.";
+      }
+      leaf us-drop-events {
+        type yang:counter64;
+        description
+          "Upstream: Total number of events in which packets were
+           dropped due to a lack of resources. This is not necessarily
+           the number of packets dropped; it is the number of times
+           detected.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.30 Ethernet frame performance monitoring
+           history data upstream.";
+      }
+      leaf us-rx-octets {
+        type yang:counter64;
+        description
+          "Upstream: Total number of octets received,
+           including those in bad packets, excluding framing bytes,
+           but including FCS.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.30 Ethernet frame performance monitoring
+           history data upstream.";
+      }
+      leaf us-rx-pkts {
+        type yang:counter64;
+        description
+          "Upstream: Total number of packets received, including
+           bad packets, broadcast packets and multicast packets.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.30 Ethernet frame performance monitoring
+           history data upstream.";
+      }
+      leaf us-broadcast-pkts {
+        type yang:counter64;
+        description
+          "Upstream: Total number of received good packets
+           directed to the broadcast address. This does not include
+           multicast packets.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.30 Ethernet frame performance monitoring
+           history data upstream.";
+      }
+      leaf us-multicast-pkts {
+        type yang:counter64;
+        description
+          "Upstream: Total number of received good packets
+           directed to a multicast address. This does not include
+           broadcast packets.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.30 Ethernet frame performance monitoring
+           history data upstream.";
+      }
+      leaf us-crc-error-pkts {
+        type yang:counter64;
+        description
+          "The total number of upstream packets received that had
+           a length (excluding framing bits, but including FCS octets)
+           of between 64 octets and 1518 octets, inclusive, but had
+           either a bad FCS with an integral number of octets
+           (FCS error) or a bad FCS with a non-integral number
+           of octets (alignment error).";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.30 Ethernet frame performance monitoring
+           history data upstream.";
+      }
+      leaf us-undersize-pkts {
+        type yang:counter64;
+        description
+          "Upstream: The total number of packets received that were
+           less than 64 octets long, but were otherwise well formed
+           (excluding framing bits, but including FCS).";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.30 Ethernet frame performance monitoring
+           history data upstream.";
+      }
+      leaf us-oversize-pkts {
+        type yang:counter64;
+        description
+          "Upstream: The total number of frames received that were
+           longer than 1518 octets (excluding framing bits, but
+           including FCS octets) and were otherwise well formed.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.30 Ethernet frame performance monitoring
+           history data upstream.";
+      }
+      leaf us-64-octets-pkts {
+        type yang:counter64;
+        description
+          "Upstream: Total number of received packets (including
+           bad packets) that were 64 octets long, excluding framing
+           bits but including FCS.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.30 Ethernet frame performance monitoring
+           history data upstream.";
+      }
+      leaf us-65to127-octets-pkts {
+        type yang:counter64;
+        description
+          "Upstream: Total number of received packets (including
+           bad packets) that were 65..127 octets long, excluding
+           framing bits but including FCS.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.30 Ethernet frame performance monitoring
+           history data upstream.";
+      }
+      leaf us-128to255-octets-pkts {
+        type yang:counter64;
+        description
+          "Upstream: Total number of packets (including bad
+           packets) received that were 128..255 octets long, excluding
+           framing bits but including FCS.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.30 Ethernet frame performance monitoring
+           history data upstream.";
+      }
+      leaf us-256to511-octets-pkts {
+        type yang:counter64;
+        description
+          "Upstream: Total number of packets (including bad
+           packets) received that were 256..511 octets long, excluding
+           framing bits but including FCS.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.30 Ethernet frame performance monitoring
+           history data upstream.";
+      }
+      leaf us-512to1023-octets-pkts {
+        type yang:counter64;
+        description
+          "Upstream: Total number of packets (including bad
+           packets) received that were 512..1023 octets long, excluding
+           framing bits but including FCS.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.30 Ethernet frame performance monitoring
+           history data upstream.";
+      }
+      leaf us-1024to1518-octets-pkts {
+        type yang:counter64;
+        description
+          "Upstream: Total number of packets (including bad
+           packets) received that were 1024..1518 octets long,
+           excluding framing bits but including FCS.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.30 Ethernet frame performance monitoring
+           history data upstream.";
+      }
+      leaf ds-drop-events {
+        type yang:counter64;
+        description
+          "Downstream: Total number of events in which packets were
+           dropped due to a lack of resources. This is not necessarily
+           the number of packets dropped; it is the number of times
+           detected.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.31 Ethernet frame performance monitoring
+           history data downstream.";
+      }
+      leaf ds-rx-octets {
+        type yang:counter64;
+        description
+          "Downstream: Total number of octets received,
+           including those in bad packets, excluding framing bytes,
+           but including FCS.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.31 Ethernet frame performance monitoring
+           history data downstream.";
+      }
+      leaf ds-rx-pkts {
+        type yang:counter64;
+        description
+          "Downstream: Total number of packets received, including
+           bad packets, broadcast packets and multicast packets.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.31 Ethernet frame performance monitoring
+           history data downstream.";
+      }
+      leaf ds-broadcast-pkts {
+        type yang:counter64;
+        description
+          "Downstream: Total number of received good packets
+           directed to the broadcast address. This does not include
+           multicast packets.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.31 Ethernet frame performance monitoring
+           history data downstream.";
+      }
+      leaf ds-multicast-pkts {
+        type yang:counter64;
+        description
+          "Downstream: Total number of received good packets
+           directed to a multicast address. This does not include
+           broadcast packets.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.31 Ethernet frame performance monitoring
+           history data downstream.";
+      }
+      leaf ds-crc-error-pkts {
+        type yang:counter64;
+        description
+          "The total number of upstream packets received that had
+           a length (excluding framing bits, but including FCS octets)
+           of between 64 octets and 1518 octets, inclusive, but had
+           either a bad FCS with an integral number of octets
+           (FCS error) or a bad FCS with a non-integral number
+           of octets (alignment error).";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.31 Ethernet frame performance monitoring
+           history data downstream.";
+      }
+      leaf ds-undersize-pkts {
+        type yang:counter64;
+        description
+          "Downstream: The total number of packets received that were
+           less than 64 octets long, but were otherwise well formed
+           (excluding framing bits, but including FCS).";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.31 Ethernet frame performance monitoring
+           history data downstream.";
+      }
+      leaf ds-oversize-pkts {
+        type yang:counter64;
+        description
+          "Downstream: The total number of frames received that were
+           longer than 1518 octets (excluding framing bits, but
+           including FCS octets) and were otherwise well formed.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.31 Ethernet frame performance monitoring
+           history data downstream.";
+      }
+      leaf ds-64-octets-pkts {
+        type yang:counter64;
+        description
+          "Downstream: Total number of received packets (including
+           bad packets) that were 64 octets long, excluding framing
+           bits but including FCS.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.31 Ethernet frame performance monitoring
+           history data downstream.";
+      }
+      leaf ds-65to127-octets-pkts {
+        type yang:counter64;
+        description
+          "Downstream: Total number of received packets (including
+           bad packets) that were 65..127 octets long, excluding
+           framing bits but including FCS.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.31 Ethernet frame performance monitoring
+           history data downstream.";
+      }
+      leaf ds-128to255-octets-pkts {
+        type yang:counter64;
+        description
+          "Downstream: Total number of packets (including bad
+           packets) received that were 128..255 octets long, excluding
+           framing bits but including FCS.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.31 Ethernet frame performance monitoring
+           history data downstream.";
+      }
+      leaf ds-256to511-octets-pkts {
+        type yang:counter64;
+        description
+          "Downstream: Total number of packets (including bad
+           packets) received that were 256..511 octets long, excluding
+           framing bits but including FCS.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.31 Ethernet frame performance monitoring
+           history data downstream.";
+      }
+      leaf ds-512to1023-octets-pkts {
+        type yang:counter64;
+        description
+          "Downstream: Total number of packets (including bad
+           packets) received that were 512..1023 octets long, excluding
+           framing bits but including FCS.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.31 Ethernet frame performance monitoring
+           history data downstream.";
+      }
+      leaf ds-1024to1518-octets-pkts {
+        type yang:counter64;
+        description
+          "Downstream: Total number of packets (including bad
+           packets) received that were 1024..1518 octets long,
+           excluding framing bits but including FCS.";
+        reference
+          "ITU-T G.988 (2022) Amd. 1 (03/2024):
+           clause 9.3.31 Ethernet frame performance monitoring
+           history data downstream.";
+      }
+    }
+  }
+
+  grouping vecima-ani-config-data {
+    description
+      "Configuration data intended for the management of Optical
+       Network Unit (ONU) physical device.";
+    leaf pm-enable {
+      type boolean;
+      description
+        "Use by the OLT to enable/disable the PM polling for this
+         specific Optical Network Unit (ONU).";
+      reference
+        "Streaming Telemetry PRAD for EX1610 OLT and OLT Manager";
+    }
+  }
+
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template/bbf-onu-if:interfaces-state/bbf-onu-if:interface/bbf-onu-xponif:ani" {
+    when "derived-from-or-self(../bbf-onu-if:type,'bbf-onuift:ani')";
+    description
+      "ANI statistics on ONU interface state (instance from template).";
+    uses ani-oper-data-stats;
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template/bbf-onu-if:interfaces/bbf-onu-if:interface/bbf-onu-xponif:ani" {
+    when "derived-from-or-self(../bbf-onu-if:type,'bbf-onuift:ani')";
+    description
+      "Vecima ANI configuration on ONU interface (from template).";
+    uses vecima-ani-config-data;
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template/bbf-onu-if:interfaces-state/bbf-onu-if:interface" {
+    when "derived-from-or-self(bbf-onu-if:type, 'ianaift:ethernetCsmacd')";
+    description
+      "UNI Ethernet statistics on ONU interface state (from template).
+       ONU model has no bbf-interface-usage; refine when if product
+       needs to exclude non-UNI Ethernet types.";
+    uses uni-ethernet-oper-data-stats;
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template/bbf-onu-if:interfaces-state/bbf-onu-if:interface" {
+    when "derived-from-or-self(bbf-onu-if:type, 'bbfift:vlan-sub-interface')";
+    description
+      "ONU VLAN sub-interface statistics (instance from template).";
+    container ani-vlansubif {
+      presence "Enable ANI/ONU side VLAN sub-interface statistics";
+      config false;
+      description
+        "VLAN sub-interface counters from the Optical Network Unit's
+         (ONU) perspective.";
+      uses onu-vlan-oper-data-stats;
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:template/bbf-onum:data/bbf-onu-if:interfaces/bbf-onu-if:interface/bbf-onu-xponif:ani" {
+    when "derived-from-or-self(../bbf-onu-if:type,'bbf-onuift:ani')";
+    description
+      "Vecima ANI configuration on ONU template interface.";
+    uses vecima-ani-config-data;
+  }
+}

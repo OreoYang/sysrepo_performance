@@ -1,0 +1,1 @@
+{"bbf-voip-sip:sip":{"profiles":{"dial-plan-profiles":{},"registration-profiles":{},"service-code-commands-profiles":{},"supplementary-services-profiles":{},"transport-profiles":{},"sip-protocol-profiles":{},"voip-service-profiles":{}},"sip-servers":{},"sip-server-pools":{},"user-terminations":{},"user-agents":{},"voip-access-servers":{},"voip-gateways":{}}}

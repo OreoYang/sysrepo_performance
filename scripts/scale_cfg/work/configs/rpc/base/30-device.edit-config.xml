@@ -1,0 +1,16 @@
+<edit-config>
+    <target>
+        <running/>
+    </target>
+    <test-option>test-then-set</test-option>
+    <error-option>rollback-on-error</error-option>
+    <config xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+        <device xmlns="urn:vecima:yang:vecima-device">
+          <kafka-interface>
+            <address>xgslscale.vponmanager.qdlab</address>
+            <remote-port>10096</remote-port>
+            <publish-timer>120</publish-timer>
+          </kafka-interface>
+        </device>
+    </config>
+</edit-config>

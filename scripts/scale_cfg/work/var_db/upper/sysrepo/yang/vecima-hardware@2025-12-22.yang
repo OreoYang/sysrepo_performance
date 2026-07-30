@@ -1,0 +1,309 @@
+module vecima-hardware {
+  yang-version 1.1;
+  namespace "urn:vecima:yang:vecima-hardware";
+  prefix vcm-hw;
+
+  import ietf-hardware {
+    prefix hw;
+  }
+  import iana-hardware {
+    prefix ianahw;
+  }
+  import bbf-hardware-types {
+    prefix bbf-hwt;
+  }
+  import ietf-yang-types {
+    prefix yang;
+  }
+  import vecima-telemetry {
+    prefix vcm-tlm;
+  }
+  import bbf-xpon {
+    prefix bbf-xpon;
+  }
+  import bbf-software-management {
+    prefix bbf-swm;
+  }
+
+  organization
+    "Vecima Networks Inc.";
+  contact
+    "https://www.vecima.com";
+  description
+    "This module contains vecima specific hardware definitions.";
+
+  revision 2025-12-22 {
+    description
+      "Added with-originaldb option for OLT software activation.
+       - Added with-originaldb boolean leaf to activate action input";
+    reference
+      "Vecima specific requirements XGS-9702";
+  }
+  revision 2025-12-16 {
+    description
+      "Added rj11 port type identity for POTS/telephone links.";
+    reference
+      "Vecima specific requirements";
+  }
+  revision 2025-10-22 {
+    description
+      "Added bulk ONU upgrade functionality for EXS1610.
+       - Added additional-onus-to-upgrade list with pon-ni,
+         onu-id-range
+       - Integrated with BBF software management framework
+       - Added conditional availability based on device type
+       - Support for up to 32 PON interfaces
+       - Uses standard BBF onu-id-values for ONU ID
+         specification";
+    reference
+      "BBF TR-383: Common YANG Modules
+       ITU-T G.988: ONU management and control interface";
+  }
+  revision 2025-06-27 {
+    description
+      "Add support for telemetry control for all hardware components";
+    reference
+      "Vecima specific requirements";
+  }
+  revision 2025-06-17 {
+    description
+      "Add sensors list for hardware";
+    reference
+      "Vecima specific requirements";
+  }
+  revision 2025-05-20 {
+    description
+      "Add support for telemetry control for hardware";
+    reference
+      "Vecima specific requirements";
+  }
+  revision 2024-06-12 {
+    description
+      "Initial revision.";
+    reference
+      "ITU-T G.988";
+  }
+
+  identity rj11 {
+    base ianahw:port;
+    description
+      "A 'rj11' is a special type of port that terminates an
+       electrical telephone/POTS link.";
+  }
+
+  augment "/hw:hardware/hw:component/bbf-swm:software/bbf-swm:software/bbf-swm:revisions/bbf-swm:revision/bbf-swm:activate/bbf-swm:activate/bbf-swm:input" {
+    description
+      "For OLT software activation, this augmentation adds
+       configuration options to preserve the original database
+       during upgrade.";
+    leaf with-originaldb {
+      type boolean;
+      default "false";
+      description
+        "When set to 'true', the activate operation will preserve
+         the original database during activation. When set
+         to 'false', the database will be empty. This option is
+         primarily used for OLT software activation.";
+    }
+  }
+  augment "/hw:hardware/hw:component/bbf-swm:software/bbf-swm:software/bbf-swm:revisions/bbf-swm:download/bbf-swm:download/bbf-swm:input" {
+    description
+      "Additional ONUs to upgrade configuration for download
+       action input. This configuration allows specifying
+       which ONUs should be upgraded during software
+       download operations.";
+    list additional-onus-to-upgrade {
+      key "pon-ni";
+      max-elements 32;
+      description
+        "Additional ONUs to upgrade configuration for PON network
+         interfaces during software download. Multiple entries
+         can be specified to target different PON network
+         interfaces with their respective ONU ID ranges.
+         Maximum of 32 entries allowed. Only available on
+         xPON network terminal devices with software management.";
+      leaf pon-ni {
+        type uint8 {
+          range "0..31";
+        }
+        description
+          "The PON network interface identifier for this
+           additional ONUs to upgrade operation. Valid range
+           is 0-31.";
+      }
+      leaf onu-id-range {
+        type bbf-xpon:onu-id-values;
+        mandatory true;
+        description
+          "ONU IDs in range format for the specified PON
+           interface. Uses the standard BBF onu-id-values
+           format which supports single values, ranges, and
+           comma-separated combinations. Valid ONU-ID range
+           is 0-1020 for XGS-PON and 0-253 for GPON.
+           Examples: '1,3-60,90-100' or '1,7,10-200'.";
+      }
+    }
+  }
+  augment "/hw:hardware/hw:component" {
+    when "derived-from-or-self (hw:class, 'bbf-hwt:xpon-nt')" {
+      description
+        "The xpon-nt specific hardware component.";
+    }
+    description
+      "The hardware component capability";
+    container capability {
+      config false;
+      status deprecated;
+      description
+        "ONU capability from ME(Managed Entity) attributes";
+      leaf num-of-ethernet-base-t {
+        type uint8;
+        description
+          "The number of ethernet BASE-T LAN port.";
+        reference
+          "ITU-T G.988 Circuit pack - Number of ports";
+      }
+      leaf num-of-10g-ethernet {
+        type uint8;
+        description
+          "The number of 10G ethernet LAN port.";
+        reference
+          "ITU-T G.988 Circuit pack - Number of ports";
+      }
+      leaf num-of-veip {
+        type uint8;
+        description
+          "The number of Virtual Ethernet interface point.";
+        reference
+          "ITU-T G.988 Circuit pack - Number of ports";
+      }
+      leaf num-of-pots {
+        type uint8;
+        description
+          "The number of Plain old telephony service port.";
+        reference
+          "ITU-T G.988 Circuit pack - Number of ports";
+      }
+      leaf num-of-ip-host-config-data {
+        type uint8;
+        description
+          "The number of IP Host Config Data managed entity instances
+           reported in the OMCI MIB upload.";
+        reference
+          "ITU-T G.988 IP host config data";
+      }
+      leaf num-of-tcont {
+        type uint32;
+        description
+          "The number of Transmission Container.";
+        reference
+          "ITU-T G.988 ANI-G - Total T-CONT number";
+      }
+      leaf num-of-gem {
+        type uint16;
+        description
+          "The number of Gigabit-capable passive optical network
+           Encapsulation Method port.";
+        reference
+          "ITU-T G.988 ONU2-G - Total GEM port-ID number";
+      }
+    }
+  }
+  augment "/hw:hardware/hw:component" {
+    description
+      "The telemetry control for hardware component";
+    uses vcm-tlm:telemetry-control;
+  }
+  augment "/hw:hardware/hw:component" {
+    description
+      "Information about sensors.";
+    container sensors {
+      description
+        "Sensor information related nodes.";
+      list sensor {
+        key "name";
+        config false;
+        description
+          "List of sensors.";
+        leaf name {
+          type string;
+          description
+            "Sensor name.";
+        }
+        leaf value {
+          type string;
+          description
+            "The most recent measurement for this sensor.";
+        }
+        leaf value-type {
+          type hw:sensor-value-type;
+          description
+            "The unit or classification of the sensor value.";
+        }
+        leaf value-scale {
+          type hw:sensor-value-scale;
+          description
+            "The (power of 10) scaling factor associated
+             with the sensor value";
+          reference
+            "RFC 3433: Entity Sensor Management Information Base -
+                       entPhySensorScale";
+        }
+        leaf value-precision {
+          type hw:sensor-value-precision;
+          description
+            "The number of decimal places of precision
+             associated with the sensor value";
+          reference
+            "RFC 3433: Entity Sensor Management Information Base -
+                       entPhySensorPrecision";
+        }
+        leaf oper-status {
+          type hw:sensor-status;
+          description
+            "The operational status of the sensor.";
+          reference
+            "RFC 3433: Entity Sensor Management Information Base -
+                       entPhySensorOperStatus";
+        }
+        leaf units-display {
+          type string;
+          description
+            "A textual description of the data units that should be
+             used in the display of the sensor value.";
+          reference
+            "RFC 3433: Entity Sensor Management Information Base -
+                       entPhySensorUnitsDisplay";
+        }
+        leaf value-timestamp {
+          type yang:date-and-time;
+          description
+            "The time the status and/or value of this sensor was last
+             obtained by the server.";
+          reference
+            "RFC 3433: Entity Sensor Management Information Base -
+                       entPhySensorValueTimeStamp";
+        }
+        leaf value-update-rate {
+          type uint32;
+          units "milliseconds";
+          description
+            "An indication of the frequency that the server updates
+             the associated 'value' node, represented in
+             milliseconds.  The value zero indicates:
+
+              - the sensor value is updated on demand (e.g.,
+                when polled by the server for a get-request),
+
+              - the sensor value is updated when the sensor
+                value changes (event-driven), or
+
+              - the server does not know the update rate.";
+          reference
+            "RFC 3433: Entity Sensor Management Information Base -
+                       entPhySensorValueUpdateRate";
+        }
+      }
+    }
+  }
+}

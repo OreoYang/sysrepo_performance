@@ -1,0 +1,7 @@
+<device xmlns="urn:vecima:yang:vecima-device">
+  <kafka-interface>
+    <address>xgslscale.vponmanager.qdlab</address>
+    <remote-port>10096</remote-port>
+    <publish-timer>120</publish-timer>
+  </kafka-interface>
+</device>

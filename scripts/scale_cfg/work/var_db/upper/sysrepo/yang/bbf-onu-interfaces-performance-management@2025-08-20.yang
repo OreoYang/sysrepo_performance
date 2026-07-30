@@ -1,0 +1,323 @@
+module bbf-onu-interfaces-performance-management {
+  yang-version 1.1;
+  namespace "urn:bbf:yang:bbf-onu-interfaces-performance-management";
+  prefix bbf-onu-if-pm;
+
+  import bbf-onu-management {
+    prefix bbf-onum;
+  }
+  import bbf-onus {
+    prefix bbf-onus;
+  }
+  import bbf-onu-interfaces {
+    prefix bbf-onu-if;
+  }
+  import bbf-interfaces-performance-management-common {
+    prefix bbf-if-pmc;
+  }
+
+  organization
+    "Broadband Forum <https://www.broadband-forum.org>
+     Common YANG Work Area";
+  contact
+    "Comments or questions about this Broadband Forum YANG module
+     should be directed to <mailto:help@broadband-forum.org>.
+
+     Editor:      Joey Boyd, Adtran
+
+     Editor:      Robert Peschi, Nokia
+
+     PS Leader:   Joey Boyd, Adtran
+
+     WA Director: Marta Seda, Calix";
+  description
+    "This module contains a collection of YANG definitions for
+     supporting the Broadband Forum requirements on the management of
+     Optical Network Units (ONUs).
+
+     Specifically, this module reports performance management of
+     statistics defined by the ONU interfaces data model.
+
+     This module is based on definitions provided in:
+     - bbf-interfaces-performance-management, TR-383 Amendment 7.
+
+     Copyright (c) 2017-2023, Broadband Forum
+
+     Redistribution and use in source and binary forms, with or
+     without modification, are permitted provided that the following
+     conditions are met:
+
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+
+     2. Redistributions in binary form must reproduce the above
+        copyright notice, this list of conditions and the following
+        disclaimer in the documentation and/or other materials
+        provided with the distribution.
+
+     3. Neither the name of the copyright holder nor the names of its
+        contributors may be used to endorse or promote products
+        derived from this software without specific prior written
+        permission.
+
+     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+     CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+     INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+     CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+     STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+     ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+     The above license is used as a license under copyright only.
+     Please reference the Forum IPR Policy for patent licensing terms
+     <https://www.broadband-forum.org/ipr-policy>.
+
+     Any moral rights which are necessary to exercise under the above
+     license grant are also deemed granted under this license.
+
+     This version of this YANG module is part of WT-505; see the WT
+     itself for full legal notices.";
+
+  revision 2025-08-20 {
+    description
+      "TBD
+       * Approval Date:    TBD.
+       * Publication Date: TBD.";
+    reference
+      "TBD";
+  }
+
+  feature total-pkts {
+    description
+      "Indicates support for reporting the total transmitted and
+       received frames on an interface.";
+  }
+
+  feature current-interval-time-stamp {
+    description
+      "Indicates support for reporting the start date and time of
+       the current interval.";
+  }
+
+  feature performance-24hr {
+    description
+      "Indicates that collection of 24 hour performance intervals
+       is supported.";
+  }
+
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-stand-alone-instance/bbf-onu-if:interfaces/bbf-onu-if:interface" {
+    description
+      "Intended for a stand-alone ONU instance (i.e., that does not
+       rely on any template).
+
+       Configuration data nodes to control Performance Management
+       on interfaces.";
+    container performance {
+      description
+        "Performance parameters.";
+      leaf enable {
+        type boolean;
+        default "false";
+        description
+          "Intended for an ONU instance derived from template(s).
+
+           If true, enables performance counters on this interface.
+
+           The performance counters will be available under
+           '/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-original
+           /bbf-onu-if:interfaces-state/bbf-onu-if:interface
+           /bbf-onu-if-pm:performance/' for 15 minute and, if
+           supported, 24 hour current and historic intervals.
+
+           If false, then there are no performance counters available
+           on this interface.";
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-stand-alone-instance/bbf-onu-if:interfaces-state/bbf-onu-if:interface" {
+    description
+      "Intended for a stand-alone ONU instance (i.e., that does not
+       rely on any template).
+
+       State data nodes for Performance Management on interfaces.";
+    container performance {
+      description
+        "Performance parameters.";
+      container intervals-15min {
+        description
+          "15 minute interval performance history.";
+        uses bbf-if-pmc:performance-15min-history-parameters;
+        list history {
+          key "interval-number";
+          max-elements 96;
+          description
+            "A history of 15 minute intervals.";
+          leaf interval-number {
+            type bbf-if-pmc:performance-15min-history-interval;
+            description
+              "The number of the interval relative to the current
+               interval.";
+          }
+          uses bbf-if-pmc:performance-history-15min-interval-parameters;
+          uses bbf-if-pmc:interface-performance-counters {
+            refine "in-pkts" {
+              if-feature "bbf-onu-if-pm:total-pkts";
+            }
+            refine "out-pkts" {
+              if-feature "bbf-onu-if-pm:total-pkts";
+            }
+          }
+        }
+      }
+      container intervals-24hr {
+        if-feature "bbf-onu-if-pm:performance-24hr";
+        description
+          "24 hour interval performance history.";
+        uses bbf-if-pmc:performance-24hr-history-parameters;
+        list history {
+          key "interval-number";
+          max-elements 7;
+          description
+            "A history of 24 hour intervals.";
+          leaf interval-number {
+            type bbf-if-pmc:performance-24hr-history-interval;
+            description
+              "The number of the interval relative to the current
+               interval.";
+          }
+          uses bbf-if-pmc:performance-history-24hr-interval-parameters;
+          uses bbf-if-pmc:interface-performance-counters {
+            refine "in-pkts" {
+              if-feature "bbf-onu-if-pm:total-pkts";
+            }
+            refine "out-pkts" {
+              if-feature "bbf-onu-if-pm:total-pkts";
+            }
+          }
+        }
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template/bbf-onu-if:interfaces/bbf-onu-if:interface" {
+    description
+      "Intended for an ONU instance derived from template(s).
+
+       Configuration data nodes to control Performance Management
+       on interfaces.";
+    container performance {
+      description
+        "Paremeters to control Performance Management on interfaces.";
+      leaf enable {
+        type boolean;
+        description
+          "If true, enables performance counters on this interface.
+
+           The performance counters for this interface will be
+           available under
+           '/bbf-onus:onus/bbf-onum:onu
+           /bbf-onum:data-instance-from-template
+           /bbf-onu-if:interfaces-state/bbf-onu-if:interface
+           /bbf-onu-if-pm:performance/' for 15 minute and, if
+           supported, 24 hour current and historic intervals.
+
+           If false, then there are no performance counters
+           available for this interface.";
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template/bbf-onu-if:interfaces-state/bbf-onu-if:interface" {
+    description
+      "Intended for an ONU instance derived from template(s).
+
+       State data nodes for Performance Management on interfaces.";
+    container performance {
+      description
+        "Performance parameters.";
+      container intervals-15min {
+        description
+          "15 minute interval performance history.";
+        uses bbf-if-pmc:performance-15min-history-parameters;
+        list history {
+          key "interval-number";
+          max-elements 96;
+          description
+            "A history of 15 minute intervals.";
+          leaf interval-number {
+            type bbf-if-pmc:performance-15min-history-interval;
+            description
+              "The number of the interval relative to the current
+               interval.";
+          }
+          uses bbf-if-pmc:performance-history-15min-interval-parameters;
+          uses bbf-if-pmc:interface-performance-counters {
+            refine "in-pkts" {
+              if-feature "bbf-onu-if-pm:total-pkts";
+            }
+            refine "out-pkts" {
+              if-feature "bbf-onu-if-pm:total-pkts";
+            }
+          }
+        }
+      }
+      container intervals-24hr {
+        if-feature "bbf-onu-if-pm:performance-24hr";
+        description
+          "24 hour interval performance history.";
+        uses bbf-if-pmc:performance-24hr-history-parameters;
+        list history {
+          key "interval-number";
+          max-elements 7;
+          description
+            "A history of 24 hour intervals.";
+          leaf interval-number {
+            type bbf-if-pmc:performance-24hr-history-interval;
+            description
+              "The number of the interval relative to the current
+               interval.";
+          }
+          uses bbf-if-pmc:performance-history-24hr-interval-parameters;
+          uses bbf-if-pmc:interface-performance-counters {
+            refine "in-pkts" {
+              if-feature "bbf-onu-if-pm:total-pkts";
+            }
+            refine "out-pkts" {
+              if-feature "bbf-onu-if-pm:total-pkts";
+            }
+          }
+        }
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:template/bbf-onum:data/bbf-onu-if:interfaces/bbf-onu-if:interface" {
+    description
+      "Intended for an ONU template.
+
+       Configuration data nodes to control Performance Management
+       on interfaces.";
+    container performance {
+      description
+        "Performance parameters.";
+      leaf enable {
+        type boolean;
+        default "false";
+        description
+          "If true, enables performance counters on this interface.
+
+           The performance counters will be available under
+           '/bbf-onus:onus/bbf-onum:template/bbf-onum:data/bbf-onu-if:
+           interfaces-state/bbf-onu-if:interface/bbf-onu-if-pm:
+           performance/' for 15 minute and, if supported, 24 hour
+           current and historic intervals.
+
+           If false, then there are no performance counters available
+           on this interface.";
+      }
+    }
+  }
+}

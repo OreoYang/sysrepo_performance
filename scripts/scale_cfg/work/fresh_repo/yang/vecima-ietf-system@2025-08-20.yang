@@ -1,0 +1,362 @@
+module vecima-ietf-system {
+  yang-version 1.1;
+  namespace "urn:vecima:yang:vecima-ietf-system";
+  prefix vcm-ietf-system;
+
+  import ietf-system {
+    prefix sys;
+  }
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import bbf-frame-classification {
+    prefix bbf-classif;
+  }
+  import bbf-yang-types {
+    prefix bbf-yang;
+  }
+
+  organization
+    "Vecima Networks Inc.";
+  contact
+    "https://www.vecima.com";
+  description
+    "This module contains the definitions to configure
+     a remote syslog destination for EXS-1610 product.";
+
+  revision 2025-08-20 {
+    description
+      "CPU, memory, and disk usage resources monitoring.";
+    reference
+      "";
+  }
+  revision 2025-03-20 {
+    description
+      "Initial version.";
+    reference
+      "";
+  }
+
+  grouping remote-syslog-destination {
+    description
+      "Syslog destination configuration parameters.";
+    reference
+      "";
+    leaf syslog-destination-type {
+      type enumeration {
+        enum "kafka" {
+          value 1;
+          description
+            "Shipping log entries to Kafka server.";
+        }
+        enum "loki" {
+          value 2;
+          description
+            "Shipping log entries to Loki server.";
+        }
+        enum "syslog" {
+          value 3;
+          description
+            "Shipping log entries to another syslog server.";
+        }
+      }
+      default "loki";
+      description
+        "The destination type to log shipping.";
+    }
+    leaf uri {
+      type inet:uri;
+      description
+        "The Uniform Resource Identifier (URI) or address
+         of the remote syslog destination server (e.g.
+         http://<URL | IP>:<Port>.)";
+    }
+  }
+
+  grouping protocol-rate-limit-parameters {
+    description
+      "Defines rate limit parameters for protocol-specific
+       CPU protection.";
+    leaf us-rate {
+      type uint32 {
+        range "44..5000";
+      }
+      units "frames per second";
+      description
+        "Limits the number of upstream frames per second to this
+          number.";
+    }
+    leaf us-burst-size {
+      type uint32 {
+        range "1..500";
+      }
+      units "frames";
+      description
+        "The us-burst-size together with the us-rate define a
+          mechanism to control the upstream frame rate.";
+    }
+    leaf ds-rate {
+      type uint32 {
+        range "44..5000";
+      }
+      units "frames per second";
+      description
+        "Limits the number of downstream frames per second to this
+          number.";
+    }
+    leaf ds-burst-size {
+      type uint32 {
+        range "1..500";
+      }
+      units "frames";
+      description
+        "The ds-burst-size together with the ds-rate define a
+          mechanism to control the downstream frame rate.";
+    }
+  }
+
+  grouping cpu-rate-limit-parameters {
+    description
+      "Defines CPU rate limit parameters";
+    reference
+      "BCM PG documents.";
+    container global {
+      description
+        "Overall CPU rate limit configuration.";
+      leaf pir {
+        type uint32 {
+          range "390..10000000";
+        }
+        units "kbits per second";
+        default "200000";
+        description
+          "The Peak Information Rate (PIR), in kilobits per
+            second.";
+      }
+      leaf pbs {
+        type uint32 {
+          range "100000..10000000";
+        }
+        units "bytes";
+        default "1000000";
+        description
+          "The Peak Burst Size (PBS), in bytes.";
+      }
+    }
+    list protocol {
+      key "name";
+      description
+        "Protocol-specific CPU rate limit configuration.";
+      leaf name {
+        type bbf-classif:protocols;
+        description
+          "The name of the protocol to configure rate limit.";
+      }
+      uses protocol-rate-limit-parameters;
+    }
+  }
+
+  grouping cpu-load-averages-stat {
+    description
+      "CPU load averages parameters";
+    leaf load-avg-1-min {
+      type bbf-yang:percent;
+      description
+        "CPU load averages over the past 1 minute as a percentage.";
+    }
+    leaf load-avg-5-min {
+      type bbf-yang:percent;
+      description
+        "CPU load average over the past 5 minutes as a percentage.";
+    }
+    leaf load-avg-15-min {
+      type bbf-yang:percent;
+      description
+        "CPU load average over the past 15 minute as a percentages.";
+    }
+  }
+
+  grouping memory-usage-stat {
+    description
+      "System memory usage statistics";
+    leaf total-ram {
+      type uint32;
+      description
+        "Total RAM in Mega Bytes units.";
+    }
+    leaf free-ram {
+      type uint32;
+      description
+        "Free RAM in Mega Bytes units.";
+    }
+    leaf in-use-ram-percentage {
+      type bbf-yang:percent;
+      description
+        "RAM in-use percentages.";
+    }
+  }
+
+  grouping disk-usage-stat {
+    description
+      "Disk usage statistics for various paths";
+    leaf total-disk-space-root {
+      type uint32;
+      description
+        "Total disk space for / in Mega Bytes units.";
+    }
+    leaf free-disk-space-root {
+      type uint32;
+      description
+        "Free disk space for / in Mega Bytes units.";
+    }
+    leaf in-use-disk-space-root-percentage {
+      type bbf-yang:percent;
+      description
+        "Disk space in-use percentages for /.";
+    }
+    leaf total-disk-space-persistent {
+      type uint32;
+      description
+        "Total disk space for /persistent in Mega Bytes units.";
+    }
+    leaf free-disk-space-persistent {
+      type uint32;
+      description
+        "Free disk space for /persistent in Mega Bytes units.";
+    }
+    leaf in-use-disk-space-persistent-percentage {
+      type bbf-yang:percent;
+      description
+        "Disk space in-use percentages for /persistent.";
+    }
+    leaf total-disk-space-tmp {
+      type uint32;
+      description
+        "Total disk space for /tmp in Mega Bytes units.";
+    }
+    leaf free-disk-space-tmp {
+      type uint32;
+      description
+        "Free disk space for /tmp in Mega Bytes units.";
+    }
+    leaf in-use-disk-space-tmp-percentage {
+      type bbf-yang:percent;
+      description
+        "Disk space in-use percentages for /tmp.";
+    }
+  }
+
+  grouping resource-thresholds {
+    description
+      "System resource usage monitoring thresholds
+       for CPU, memory, and disk.";
+    leaf cpu-threshold {
+      type bbf-yang:percent;
+      default "90";
+      description
+        "CPU monitoring usage threshold percentage
+         before alarm is raised.";
+    }
+    leaf cpu-usage-sustained-period {
+      type uint8 {
+        range "1..60";
+      }
+      units "minutes";
+      default "10";
+      description
+        "CPU usage exceeding threshold sustained period
+         in minutes before alarm is raised.";
+    }
+    leaf mem-threshold {
+      type bbf-yang:percent;
+      default "90";
+      description
+        "RAM monitoring usage threshold percentage
+         before alarm is raised.";
+    }
+    leaf mem-usage-sustained-period {
+      type uint8 {
+        range "1..60";
+      }
+      units "minutes";
+      default "10";
+      description
+        "Memory usage exceeding threshold sustained period
+         in minutes before alarm is raised.";
+    }
+    leaf disk-root-threshold {
+      type bbf-yang:percent;
+      default "90";
+      description
+        "Disk path / monitoring usage threshold percentage
+         before alarm is raised.";
+    }
+    leaf disk-persistent-threshold {
+      type bbf-yang:percent;
+      default "90";
+      description
+        "Disk path /persistent monitoring usage threshold
+         percentage before alarm is raised.";
+    }
+    leaf disk-tmp-threshold {
+      type bbf-yang:percent;
+      default "90";
+      description
+        "Disk /tmp monitoring usage threshold percentage
+         before alarm is raised.";
+    }
+    leaf disk-usage-sustained-period {
+      type uint8 {
+        range "1..60";
+      }
+      units "minutes";
+      default "10";
+      description
+        "Disk usage exceeding threshold sustained period
+         in minutes before alarm is raised.";
+    }
+  }
+
+  augment "/sys:system" {
+    description
+      "Augment Vecima specific system configuration.";
+    container syslog-destination-server {
+      description
+        "Configuration of the remote syslog destination server.";
+      uses remote-syslog-destination;
+    }
+    container cpu-rate-limit {
+      description
+        "Configuration of the CPU rate limit.";
+      uses cpu-rate-limit-parameters;
+    }
+    container resource-thresholds {
+      description
+        "Configuration of different system resource monitoring
+          thresholds for CPU, memory, and disk space.";
+      uses resource-thresholds;
+    }
+  }
+  augment "/sys:system-state" {
+    description
+      "Vecima specific system resources statuses.";
+    container cpu {
+      config false;
+      description
+        "CPU's load averages over the past 1, 5, and 15 minutes.";
+      uses cpu-load-averages-stat;
+    }
+    container memory {
+      config false;
+      description
+        "Memory usage statistics.";
+      uses memory-usage-stat;
+    }
+    container disk {
+      config false;
+      description
+        "Disk partition usage statistics.";
+      uses disk-usage-stat;
+    }
+  }
+}

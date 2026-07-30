@@ -1,0 +1,23 @@
+<hardware xmlns="urn:ietf:params:xml:ns:yang:ietf-hardware"/>
+<interfaces xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces">
+  <interface>
+    <name>ZYXE5372596D-vani</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:v-ani</type>
+    <v-ani xmlns="urn:bbf:yang:bbf-xponvani">
+      <channel-partition>chpart.7</channel-partition>
+      <expected-serial-number>ZYXE5372596D</expected-serial-number>
+      <preferred-channel-pair>chpair.7</preferred-channel-pair>
+    </v-ani>
+  </interface>
+</interfaces>
+<onus xmlns="urn:bbf:yang:bbf-onus">
+  <onu xmlns="urn:bbf:yang:bbf-onu-management">
+    <name>ZYXE5372596D-vani</name>
+    <meta-data>
+      <instance-origin>instance-from-template</instance-origin>
+      <template-references>
+        <template>Prod_XGS_SFU_PM7516-R0</template>
+      </template-references>
+    </meta-data>
+  </onu>
+</onus>

@@ -1,0 +1,32 @@
+<edit-config>
+    <target>
+        <running/>
+    </target>
+    <test-option>test-then-set</test-option>
+    <error-option>rollback-on-error</error-option>
+    <config xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+        <hardware xmlns="urn:ietf:params:xml:ns:yang:ietf-hardware"/>
+        <interfaces xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces">
+          <interface>
+            <name>ALCLFBCAE2EA-vani</name>
+            <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:v-ani</type>
+            <v-ani xmlns="urn:bbf:yang:bbf-xponvani">
+              <channel-partition>chpart.gpon.12</channel-partition>
+              <expected-serial-number>ALCLFBCAE2EA</expected-serial-number>
+              <preferred-channel-pair>chpair.gpon.12</preferred-channel-pair>
+            </v-ani>
+          </interface>
+        </interfaces>
+        <onus xmlns="urn:bbf:yang:bbf-onus">
+          <onu xmlns="urn:bbf:yang:bbf-onu-management">
+            <name>ALCLFBCAE2EA-vani</name>
+            <meta-data>
+              <instance-origin>instance-from-template</instance-origin>
+              <template-references>
+                <template>Prod_GPON_HGU_G240WG</template>
+              </template-references>
+            </meta-data>
+          </onu>
+        </onus>
+    </config>
+</edit-config>

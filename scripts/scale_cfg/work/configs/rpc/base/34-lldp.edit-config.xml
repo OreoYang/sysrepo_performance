@@ -1,0 +1,33 @@
+<edit-config>
+    <target>
+        <running/>
+    </target>
+    <test-option>test-then-set</test-option>
+    <error-option>rollback-on-error</error-option>
+    <config xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+        <lldp xmlns="urn:ieee:std:802.1AB:yang:ieee802-dot1ab-lldp">
+          <message-tx-hold-multiplier>4</message-tx-hold-multiplier>
+          <message-tx-interval>30</message-tx-interval>
+          <port>
+            <name>uplink-1</name>
+            <dest-mac-address>01-80-c2-00-00-0e</dest-mac-address>
+            <admin-status>tx-and-rx</admin-status>
+          </port>
+          <port>
+            <name>uplink-2</name>
+            <dest-mac-address>01-80-c2-00-00-0e</dest-mac-address>
+            <admin-status>tx-and-rx</admin-status>
+          </port>
+          <port>
+            <name>uplink-3</name>
+            <dest-mac-address>01-80-c2-00-00-0e</dest-mac-address>
+            <admin-status>tx-and-rx</admin-status>
+          </port>
+          <port>
+            <name>uplink-4</name>
+            <dest-mac-address>01-80-c2-00-00-0e</dest-mac-address>
+            <admin-status>tx-and-rx</admin-status>
+          </port>
+        </lldp>
+    </config>
+</edit-config>

@@ -1,0 +1,380 @@
+module bbf-onu-ethernet-interfaces-common {
+  yang-version 1.1;
+  namespace "urn:bbf:yang:bbf-onu-ethernet-interfaces-common";
+  prefix bbf-onuethifc;
+
+  organization
+    "Broadband Forum <https://www.broadband-forum.org>
+     Common YANG Work Area";
+  contact
+    "Comments or questions about this Broadband Forum YANG module
+     should be directed to <mailto:help@broadband-forum.org>.
+
+     Editor:      Joey Boyd, Adtran
+
+     Editor:      Robert Peschi, Nokia
+
+     PS Leader:   Joey Boyd, Adtran
+
+     WA Director: Marta Seda, Calix";
+  description
+    "This module contains a collection of YANG definitions for
+     supporting the Broadband Forum requirements on the management of
+     Optical Network Units (ONUs).
+
+     Specifically, this module contains type definitions and groupings
+     for use when defining data nodes for managing Ethernet
+     interfaces. In this YANG module, 'Ethernet interface' is to be
+     understood as referring to a 'IEEE Std 802.3 compliant Ethernet
+     interface'.
+
+     Copyright (c) 2023, Broadband Forum
+
+     Redistribution and use in source and binary forms, with or
+     without modification, are permitted provided that the following
+     conditions are met:
+
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+
+     2. Redistributions in binary form must reproduce the above
+        copyright notice, this list of conditions and the following
+        disclaimer in the documentation and/or other materials
+        provided with the distribution.
+
+     3. Neither the name of the copyright holder nor the names of its
+        contributors may be used to endorse or promote products
+        derived from this software without specific prior written
+        permission.
+
+     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+     CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+     INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+     CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+     STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+     ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+     The above license is used as a license under copyright only.
+     Please reference the Forum IPR Policy for patent licensing terms
+     <https://www.broadband-forum.org/ipr-policy>.
+
+     Any moral rights which are necessary to exercise under the above
+     license grant are also deemed granted under this license.
+
+     This version of this YANG module is part of WT-505; see the WT
+     itself for full legal notices.";
+
+  revision 2026-02-02 {
+    description
+      "TBD
+       * Approval Date:    TBD.
+       * Publication Date: TBD.";
+    reference
+      "TBD";
+  }
+
+  typedef cfg-rate-and-duplex-type {
+    type enumeration {
+      enum "rateauto-duplexauto" {
+        description
+          "Rate is auto-detect and duplex mode is auto-detect.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Autodetect configuration,
+           codepoint 0x00";
+      }
+      enum "rate10meg-full" {
+        description
+          "10 Mbit/s only and full duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Autodetect configuration,
+           codepoint 0x01";
+      }
+      enum "rate100meg-full" {
+        description
+          "100 Mbit/s only and full duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Autodetect configuration,
+           codepoint 0x02";
+      }
+      enum "rate1gig-full" {
+        description
+          "1 Gbit/s only and full duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Autodetect configuration,
+           codepoint 0x03";
+      }
+      enum "rateauto-full" {
+        description
+          "Rate is auto-detect and is full duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Autodetect configuration,
+           codepoint 0x04";
+      }
+      enum "rate10gig-full" {
+        description
+          "10 Gbit/s only and full duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Autodetect configuration,
+           codepoint 0x05";
+      }
+      enum "rate2dot5gig-full" {
+        description
+          "2.5 Gbit/s only and full duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Autodetect configuration,
+           codepoint 0x06";
+      }
+      enum "rate5gig-full" {
+        description
+          "5 Gbit/s only and full duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Autodetect configuration,
+           codepoint 0x07";
+      }
+      enum "rate25gig-full" {
+        description
+          "25 Gbit/s only and full duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Autodetect configuration,
+           codepoint 0x08";
+      }
+      enum "rate40gig-full" {
+        description
+          "40 Gbit/s only and full duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Autodetect configuration,
+           codepoint 0x09";
+      }
+      enum "rate50gig-full" {
+        description
+          "50 Gbit/s only and full duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Autodetect configuration,
+           codepoint 0x0a";
+      }
+      enum "rate100gig-full" {
+        description
+          "100 Gbit/s only and full duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Autodetect configuration,
+           codepoint 0x0b";
+      }
+      enum "rate10meg-duplexauto" {
+        description
+          "10 Mbit/s only and duplexauto.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Autodetect configuration,
+           codepoint 0x10";
+      }
+      enum "rate10meg-half" {
+        description
+          "10 Mbit/s only and half duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Autodetect configuration,
+           codepoint 0x11";
+      }
+      enum "rate100meg-half" {
+        description
+          "100 Mbit/s only and half duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Autodetect configuration,
+           codepoint 0x12";
+      }
+      enum "rate1gig-half" {
+        description
+          "1 Gbit/s only and half duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Autodetect configuration,
+           codepoint 0x13";
+      }
+      enum "rateauto-half" {
+        description
+          "Rate is autodetect and half duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Autodetect configuration,
+           codepoint 0x14";
+      }
+      enum "rate1gig-duplexauto" {
+        description
+          "1 Gbit/s only and duplex mode is auto-detect.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Autodetect configuration,
+           codepoint 0x20";
+      }
+      enum "rate100meg-duplexauto" {
+        description
+          "100 Mbit/s only and duplex mode is auto-detect.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Autodetect configuration,
+           codepoint 0x30";
+      }
+    }
+    description
+      "Used to represent the configured rate and duplex mode of an
+       Ethernet interface.";
+    reference
+      "ITU-T G.988 Clause 9.5.1 - Autodetect configuration";
+  }
+
+  typedef act-rate-and-duplex-type {
+    type enumeration {
+      enum "undetermined" {
+        description
+          "The interface rate and/or duplex mode cannot be determined.
+           This could be for instance because the Ethermet port is not
+           connected or is broken or proper harware is not equiped.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Configuration ind,
+           codepoint 0x00";
+      }
+      enum "rate10meg-full" {
+        description
+          "10 Mbit/s and full duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Configuration ind,
+           codepoint 0x01";
+      }
+      enum "rate100meg-full" {
+        description
+          "100 Mbit/s and full duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Configuration ind,
+           codepoint 0x02";
+      }
+      enum "rate1gig-full" {
+        description
+          "1 Gbit/s only and full duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Configuration ind,
+           codepoint 0x03";
+      }
+      enum "rate10gig-full" {
+        description
+          "10 Gbit/s only and full duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Configuration ind,
+           codepoint 0x04";
+      }
+      enum "rate2dot5gig-full" {
+        description
+          "2.5 Gbit/s only and full duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Configuration ind,
+           codepoint 0x05";
+      }
+      enum "rate5gig-full" {
+        description
+          "5 Gbit/s only and full duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Configuration ind,
+           codepoint 0x06";
+      }
+      enum "rate25gig-full" {
+        description
+          "25 Gbit/s only and full duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Configuration ind,
+           codepoint 0x07";
+      }
+      enum "rate40gig-full" {
+        description
+          "40 Gbit/s only and full duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Configuration ind,
+           codepoint 0x08";
+      }
+      enum "rate50gig-full" {
+        description
+          "50 Gbit/s only and full duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Configuration ind,
+           codepoint 0x09";
+      }
+      enum "rate100gig-full" {
+        description
+          "100 Gbit/s only and full duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Configuration ind,
+           codepoint 0x0a";
+      }
+      enum "rate10meg-half" {
+        description
+          "10 Mbit/s only and half duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Configuration ind,
+           codepoint 0x11";
+      }
+      enum "rate100meg-half" {
+        description
+          "100 Mbit/s only and half duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Configuration ind,
+           codepoint 0x12";
+      }
+      enum "rate1gig-half" {
+        description
+          "1 Gbit/s only and half duplex only.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Configuration ind,
+           codepoint 0x13";
+      }
+    }
+    description
+      "Used to represent the actual rate and duplex mode of an
+       Ethernet interface.";
+    reference
+      "ITU-T G.988 Clause 9.5.1 - Configuration ind";
+  }
+
+  grouping ethernet-config {
+    description
+      "Contains configuration data nodes for an Ethernet interface.";
+    container ethernet {
+      description
+        "Contains configuration data nodes for an Ethernet
+         interface.";
+      leaf cfg-rate-and-duplex {
+        type cfg-rate-and-duplex-type;
+        description
+          "Controls the rate and duplex characteristics of the
+           Ethernet interface.";
+        reference
+          "ITU-T G.988 Clause 9.5.1";
+      }
+    }
+  }
+
+  grouping ethernet-state {
+    description
+      "Contains state data nodes for an Ethernet interface.";
+    container ethernet {
+      description
+        "Contains state data nodes for an Ethernet interface.";
+      leaf max-frame-size {
+        type uint16;
+        units "octets";
+        config false;
+        description
+          "This indicates the maximum frame size allowed across this
+           interface.";
+        reference
+          "ITU-T G.988 Clause 9.5.1 - Max frame size";
+      }
+      leaf actual-rate-and-duplex {
+        type act-rate-and-duplex-type;
+        description
+          "Controls the rate and duplex characteristics of the
+           Ethernet interface.";
+        reference
+          "ITU-T G.988 Clause 9.5.1";
+      }
+    }
+  }
+}

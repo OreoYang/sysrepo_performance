@@ -1,0 +1,115 @@
+<hardware xmlns="urn:ietf:params:xml:ns:yang:ietf-hardware"/>
+<interfaces xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces">
+  <interface>
+    <name>ZYXE537254FF-eth1</name>
+    <type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:olt-v-enet</type>
+    <olt-v-enet xmlns="urn:bbf:yang:bbf-xponvani">
+      <lower-layer-interface>ZYXE537254FF-vani</lower-layer-interface>
+    </olt-v-enet>
+  </interface>
+  <interface>
+    <name>ZYXE537254FF-eth1.vsi.cvlan2000.untag</name>
+    <type xmlns:bbfift="urn:bbf:yang:bbf-if-type">bbfift:vlan-sub-interface</type>
+    <l2-dhcpv4-relay xmlns="urn:bbf:yang:bbf-l2-dhcpv4-relay">
+      <enable>true</enable>
+      <profile-ref>dhcp-relay-profile</profile-ref>
+    </l2-dhcpv4-relay>
+    <dhcpv6-ldra xmlns="urn:bbf:yang:bbf-ldra">
+      <enable>true</enable>
+      <profile-ref>dhcpv6_replay_profile</profile-ref>
+    </dhcpv6-ldra>
+    <ingress-qos-policy-profile xmlns="urn:bbf:yang:bbf-qos-policies">pp-all-to-tc0</ingress-qos-policy-profile>
+    <subif-lower-layer xmlns="urn:bbf:yang:bbf-sub-interfaces">
+      <interface>ZYXE537254FF-eth1</interface>
+    </subif-lower-layer>
+    <inline-frame-processing xmlns="urn:bbf:yang:bbf-sub-interfaces">
+      <ingress-rule>
+        <rule>
+          <name>u1_eth1_cvlan2000_untag</name>
+          <priority>1</priority>
+          <flexible-match>
+            <match-criteria xmlns="urn:bbf:yang:bbf-sub-interface-tagging">
+              <tag>
+                <index>0</index>
+                <dot1q-tag>
+                  <tag-type xmlns:bbf-dot1qt="urn:bbf:yang:bbf-dot1q-types">bbf-dot1qt:c-vlan</tag-type>
+                  <vlan-id>2000</vlan-id>
+                </dot1q-tag>
+              </tag>
+            </match-criteria>
+          </flexible-match>
+          <ingress-rewrite>
+            <pop-tags xmlns="urn:bbf:yang:bbf-sub-interface-tagging">1</pop-tags>
+            <push-tag xmlns="urn:bbf:yang:bbf-sub-interface-tagging">
+              <index>0</index>
+              <dot1q-tag>
+                <tag-type xmlns:bbf-dot1qt="urn:bbf:yang:bbf-dot1q-types">bbf-dot1qt:c-vlan</tag-type>
+                <vlan-id>2000</vlan-id>
+                <write-pbit>0</write-pbit>
+                <write-dei-0/>
+              </dot1q-tag>
+            </push-tag>
+          </ingress-rewrite>
+        </rule>
+      </ingress-rule>
+      <egress-rewrite>
+        <push-tag xmlns="urn:bbf:yang:bbf-sub-interface-tagging">
+          <index>0</index>
+          <dot1q-tag>
+            <tag-type xmlns:bbf-dot1qt="urn:bbf:yang:bbf-dot1q-types">bbf-dot1qt:c-vlan</tag-type>
+            <vlan-id>2000</vlan-id>
+            <write-pbit>0</write-pbit>
+            <write-dei-0/>
+          </dot1q-tag>
+        </push-tag>
+      </egress-rewrite>
+    </inline-frame-processing>
+  </interface>
+  <interface>
+    <name>ZYXE537254FF-vani</name>
+    <v-ani xmlns="urn:bbf:yang:bbf-xponvani">
+      <shaper-name xmlns="urn:vecima:yang:vecima-interfaces">ds_cir_80m</shaper-name>
+    </v-ani>
+  </interface>
+</interfaces>
+<xpongemtcont xmlns="urn:bbf:yang:bbf-xpongemtcont">
+  <tconts>
+    <tcont>
+      <name>tcont-ZYXE537254FF/eth1.tcont-1</name>
+      <interface-reference>ZYXE537254FF-vani</interface-reference>
+      <traffic-descriptor-profile-ref>be_200m</traffic-descriptor-profile-ref>
+    </tcont>
+  </tconts>
+  <gemports>
+    <gemport>
+      <name>gem-ZYXE537254FF/eth1.cvlan2000.untag.tc0</name>
+      <interface>ZYXE537254FF-eth1.vsi.cvlan2000.untag</interface>
+      <traffic-class>0</traffic-class>
+      <tcont-ref>tcont-ZYXE537254FF/eth1.tcont-1</tcont-ref>
+    </gemport>
+  </gemports>
+</xpongemtcont>
+<onus xmlns="urn:bbf:yang:bbf-onus" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <onu xmlns="urn:bbf:yang:bbf-onu-management">
+    <name>ZYXE537254FF-vani</name>
+    <meta-data>
+      <instance-origin>instance-from-template</instance-origin>
+      <template-references nc:operation="replace">
+        <template>Prod_XGS_SFU_PM7516-R0</template>
+      </template-references>
+    </meta-data>
+  </onu>
+</onus>
+<forwarding xmlns="urn:bbf:yang:bbf-l2-forwarding">
+  <forwarders>
+    <forwarder>
+      <name>fwd_nto1_cvlan2000_untag</name>
+      <ports>
+        <port>
+          <name>fwd-port-onu-ZYXE537254FF/eth1-cvlan2000-untag</name>
+          <sub-interface>ZYXE537254FF-eth1.vsi.cvlan2000.untag</sub-interface>
+        </port>
+      </ports>
+    </forwarder>
+  </forwarders>
+</forwarding>

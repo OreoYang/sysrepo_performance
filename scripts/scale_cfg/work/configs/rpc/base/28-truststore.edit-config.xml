@@ -1,0 +1,24 @@
+<edit-config>
+    <target>
+        <running/>
+    </target>
+    <test-option>test-then-set</test-option>
+    <error-option>rollback-on-error</error-option>
+    <config xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+        <truststore xmlns="urn:ietf:params:xml:ns:yang:ietf-truststore">
+          <certificate-bags>
+            <certificate-bag>
+              <name>ca-certs</name>
+              <certificate>
+                <name>eac-cert</name>
+                <cert-data>FAKE</cert-data>
+              </certificate>
+              <certificate>
+                <name>root-cert</name>
+                <cert-data>FAKE</cert-data>
+              </certificate>
+            </certificate-bag>
+          </certificate-bags>
+        </truststore>
+    </config>
+</edit-config>

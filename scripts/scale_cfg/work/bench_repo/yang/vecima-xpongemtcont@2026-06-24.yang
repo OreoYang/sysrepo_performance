@@ -1,0 +1,419 @@
+module vecima-xpongemtcont {
+  yang-version 1.1;
+  namespace "urn:vecima:yang:vecima-xpongemtcont";
+  prefix vcm-xpongemtcont;
+
+  import ietf-yang-types {
+    prefix yang;
+  }
+  import bbf-xpongemtcont {
+    prefix bbf-xpongemtcont;
+  }
+  import bbf-qos-shaping {
+    prefix bbf-qos-shap;
+  }
+  import vecima-telemetry {
+    prefix vcm-tlm;
+  }
+
+  organization
+    "Vecima Networks Inc.";
+  contact
+    "https://www.vecima.com";
+  description
+    "This module contains a collection of statistic counter
+     definitions for EXS-1610 product.
+     ";
+
+  revision 2026-06-24 {
+    description
+      "Add shaper-profile-ref to GEM port configuration.";
+    reference
+      "";
+  }
+  revision 2025-06-05 {
+    description
+      "Change the telemetry-enable to telemetry/enabled.";
+    reference
+      "";
+  }
+  revision 2024-11-26 {
+    description
+      "Add ANI/ONU GEM statistics counters.";
+    reference
+      "";
+  }
+  revision 2024-08-02 {
+    description
+      "Add discontinuity-time.";
+    reference
+      "";
+  }
+  revision 2024-07-15 {
+    description
+      "Initial version.";
+    reference
+      "ITU-T G.987.3 (01/2014)
+       ITU-T G.989.3 (2015)/Amd.2 (11/2018)
+       ITU-T G.9807.1 (2016)/Amd.1 (10/2017)";
+  }
+
+  grouping gemport-counters {
+    description
+      "Current GEM statistics counters.";
+    reference
+      "ITU-T G.987.3 (01/2014) Table 14.1
+       ITU-T G.989.3 (2015)/Amd.2 (11/2018) Table 14-1
+       ITU-T G.9807.1 (2016)/Amd.1 (10/2017) Table C.14.1";
+    leaf discontinuity-time {
+      type yang:date-and-time;
+      mandatory true;
+      description
+        "The time on the most recent occasion at which any one or
+         more of this interface's counters suffered a
+         discontinuity.  If no such discontinuities have occurred
+         since the last re-initialization of the local management
+         subsystem, then this node contains the time the local
+         management subsystem re-initialized itself.";
+    }
+    leaf out-gem-pkts {
+      type yang:counter64;
+      description
+        "Total number of G-PON Encapsulation Method (GEM) frames
+         transmitted.";
+      reference
+        "ITU-T G.987.3 (01/2014)
+         Table 14-1 Transmitted XGEM frames per XGEM port
+
+         ITU-T G.989.3 (2015)/Amd.2 (11/2018)
+         Table 14-1 Transmitted XGEM frames per XGEM port
+
+         ITU-T G.9807.1 (2016)/Amd.1 (10/2017)
+         Table C.14.1 Transmitted XGEM frames per XGEM port";
+    }
+    leaf in-gem-pkts {
+      type yang:counter64;
+      description
+        "Total number of G-PON Encapsulation Method (GEM) frames
+         received.";
+      reference
+        "ITU-T G.987.3 (01/2014)
+         Table 14-1 Received XGEM frames per XGEM port
+
+         ITU-T G.989.3 (2015)/Amd.2 (11/2018)
+         Table 14-1 Received XGEM frames per XGEM port
+
+         ITU-T G.9807.1 (2016)/Amd.1 (10/2017)
+         Table C.14.1 Received XGEM frames per XGEM port";
+    }
+    leaf in-octets {
+      type yang:counter64;
+      description
+        "The total number of octets received on the GEM port.";
+      reference
+        "";
+    }
+    leaf out-octets {
+      type yang:counter64;
+      description
+        "The total number of octets transmitted out of the GEM port.";
+      reference
+        "";
+    }
+  }
+
+  grouping ani-gemport-counters {
+    description
+      "Current GEM statistics counters.";
+    reference
+      "ITU-T G.988 (2022) Amd. 1 (03/2024)";
+    leaf discontinuity-time {
+      type yang:date-and-time;
+      mandatory true;
+      description
+        "The time on the most recent occasion at which any one or
+         more of this interface's counters suffered a
+         discontinuity.  If no such discontinuities have occurred
+         since the last re-initialization of the local management
+         subsystem, then this node contains the time the local
+         management subsystem re-initialized itself.";
+    }
+    leaf out-gem-pkts {
+      type yang:counter64;
+      description
+        "Total number of G-PON Encapsulation Method (GEM) frames
+         transmitted on the monitored GEM port.";
+      reference
+        "ITU-T G.988 (2022) Amd. 1 (03/2024):
+         clause 9.2.13 GEM port network CTP performance monitoring
+         history data.";
+    }
+    leaf in-gem-pkts {
+      type yang:counter64;
+      description
+        "Total number of G-PON Encapsulation Method (GEM) frames
+         received on the monitored GEM port.";
+      reference
+        "ITU-T G.988 (2022) Amd. 1 (03/2024):
+         clause 9.2.13 GEM port network CTP performance monitoring
+         history data.";
+    }
+    leaf in-octets {
+      type yang:counter64;
+      description
+        "Counts user payload bytes received on the monitored
+         GEM port.";
+      reference
+        "ITU-T G.988 (2022) Amd. 1 (03/2024):
+         clause 9.2.13 GEM port network CTP performance monitoring
+         history data.";
+    }
+    leaf out-octets {
+      type yang:counter64;
+      description
+        "Counts user payload bytes transmitted on the monitored
+         GEM port.";
+      reference
+        "ITU-T G.988 (2022) Amd. 1 (03/2024):
+         clause 9.2.13 GEM port network CTP performance monitoring
+         history data.";
+    }
+    leaf encryption-key-errors {
+      type yang:counter64;
+      description
+        "Counts GEM frames with erroneous encryption key indexes.
+         If the GEM port is not encrypted, this attribute counts any
+         frame with a key index not equal to 0. If the GEM port is
+         encrypted, this attribute counts any frame whose key index
+         specifies a key that is not known to the ONU.";
+      reference
+        "ITU-T G.988 (2022) Amd. 1 (03/2024):
+         clause 9.2.13 GEM port network CTP performance monitoring
+         history data.";
+    }
+    leaf discarded-ds-pkts {
+      type yang:counter64;
+      description
+        "Ccounts the number of downstream GEM frames discarded
+         for any reason";
+      reference
+        "ITU-T G.988 (2022) Amd. 1 (03/2024):
+         clause 9.2.8 GAL Ethernet performance monitoring
+         history data.";
+    }
+    leaf discarded-us-pkts {
+      type yang:counter64;
+      description
+        "Ccounts the number of upstream frames discarded prior to
+         GEM encapsulation (due to congestion).";
+      reference
+        "ITU-T G.988 (2022) Amd. 1 (03/2024):
+         clause 9.2.8 GAL Ethernet performance monitoring
+         history data.";
+    }
+    leaf drop-events {
+      type yang:counter64;
+      description
+        "Total number of events in which packets were dropped due to
+         a lack of resources. This is not necessarily the number of
+         packets dropped; it is the number of times this event was
+         detected.";
+      reference
+        "ITU-T G.988 (2022) Amd. 1 (03/2024):
+         clause 9.5.4 Ethernet PM history data 3 and
+         9.3.32 Ethernet frame extended PM.";
+    }
+    leaf rx-octets {
+      type yang:counter64;
+      description
+        "Total number of octets received from the CPE, including
+         those in bad packets, excluding framing bytes, but
+         including FCS.";
+      reference
+        "ITU-T G.988 (2022) Amd. 1 (03/2024):
+         clause 9.5.4 Ethernet PM history data 3 and
+         9.3.32 Ethernet frame extended PM.";
+    }
+    leaf rx-pkts {
+      type yang:counter64;
+      description
+        "Total number of packets received, including bad packets,
+         broadcast packets and multicast packets.";
+      reference
+        "ITU-T G.988 (2022) Amd. 1 (03/2024):
+         clause 9.5.4 Ethernet PM history data 3 and
+         9.3.32 Ethernet frame extended PM.";
+    }
+    leaf broadcast-pkts {
+      type yang:counter64;
+      description
+        "Total number of received good packets directed to the
+         broadcast address. This does not include multicast
+         packets.";
+      reference
+        "ITU-T G.988 (2022) Amd. 1 (03/2024):
+         clause 9.5.4 Ethernet PM history data 3 and
+         9.3.32 Ethernet frame extended PM.";
+    }
+    leaf multicast-pkts {
+      type yang:counter64;
+      description
+        "Total number of received good packets directed to a
+         multicast address. This does not include broadcast
+         packets.";
+      reference
+        "ITU-T G.988 (2022) Amd. 1 (03/2024):
+         clause 9.5.4 Ethernet PM history data 3 and
+         9.3.32 Ethernet frame extended PM.";
+    }
+    leaf fcs-errors {
+      type yang:counter64;
+      description
+        "Counts upstream frames received on a particular
+         interface that were an integral number of octets in
+         length (between 64 octets and 1518 octets, inclusive)
+         but failed the FCS check (a.k.a CRC errored frames).";
+      reference
+        "ITU-T G.988 (2022) Amd. 1 (03/2024):
+         clause 9.5.2 Ethernet PM history data and
+         9.3.32 Ethernet frame extended PM.";
+    }
+    leaf undersize-pkts {
+      type yang:counter64;
+      description
+        "The total number of packets received that were less than
+         64 octets long, but were otherwise well formed (excluding
+         framing bits, but including FCS).";
+      reference
+        "ITU-T G.988 (2022) Amd. 1 (03/2024):
+         clause 9.5.4 Ethernet PM history data 3 and
+         9.3.32 Ethernet frame extended PM.";
+    }
+    leaf oversize-pkts {
+      type yang:counter64;
+      description
+        "Jabbers: The total number of packets received that were
+         longer than 1518 octets, excluding framing bits but
+         including FCS octets, and had either a bad FCS with an
+         integral number of octets (FCS error) or a bad FCS with a
+         non-integral number of octets (alignment error).";
+      reference
+        "ITU-T G.988 (2022) Amd. 1 (03/2024):
+         clause 9.5.4 Ethernet PM history data 3 and
+         9.3.32 Ethernet frame extended PM.";
+    }
+    leaf pkts-64-octets {
+      type yang:counter64;
+      description
+        "Total number of received packets (including bad packets)
+         that were 64 octets long, excluding framing bits but
+         including FCS.";
+      reference
+        "ITU-T G.988 (2022) Amd. 1 (03/2024):
+         clause 9.5.4 Ethernet PM history data 3 and
+         9.3.32 Ethernet frame extended PM.";
+    }
+    leaf pkts-65to127-octets {
+      type yang:counter64;
+      description
+        "Total number of received packets (including bad packets)
+         that were 65..127 octets long, excluding framing bits but
+         including FCS.";
+      reference
+        "ITU-T G.988 (2022) Amd. 1 (03/2024):
+         clause 9.5.4 Ethernet PM history data 3 and
+         9.3.32 Ethernet frame extended PM.";
+    }
+    leaf pkts-128to255-octets {
+      type yang:counter64;
+      description
+        "Total number of packets (including bad packets) received
+         that were 128..255 octets long, excluding framing bits
+         but including FCS.";
+      reference
+        "ITU-T G.988 (2022) Amd. 1 (03/2024):
+         clause 9.5.4 Ethernet PM history data 3 and
+         9.3.32 Ethernet frame extended PM.";
+    }
+    leaf pkts-256to511-octets {
+      type yang:counter64;
+      description
+        "Total number of packets (including bad packets) received
+         that were 256..511 octets long, excluding framing bits but
+         including FCS.";
+      reference
+        "ITU-T G.988 (2022) Amd. 1 (03/2024):
+         clause 9.5.4 Ethernet PM history data 3 and
+         9.3.32 Ethernet frame extended PM.";
+    }
+    leaf pkts-512to1023-octets {
+      type yang:counter64;
+      description
+        "Total number of packets (including bad packets) received
+         that were 512..1023 octets long, excluding framing bits but
+         including FCS.";
+      reference
+        "ITU-T G.988 (2022) Amd. 1 (03/2024):
+         clause 9.5.4 Ethernet PM history data 3 and
+         9.3.32 Ethernet frame extended PM.";
+    }
+    leaf pkts-1024to1518-octets {
+      type yang:counter64;
+      description
+        "Total number of packets (including bad packets) received
+         that were 1024..1518 octets long, excluding framing bits
+         but including FCS.";
+      reference
+        "ITU-T G.988 (2022) Amd. 1 (03/2024):
+         clause 9.5.4 Ethernet PM history data 3 and
+         9.3.32 Ethernet frame extended PM.";
+    }
+  }
+
+  grouping gemports-state-statistics {
+    description
+      "GEM port state statistics group";
+    container ani-side {
+      presence "Enable ANI side GEM port state statistics";
+      description
+        "GEM Counters from the Optical Network Unit's (ONU)
+         perspective.";
+      uses ani-gemport-counters;
+    }
+    container v-ani-side {
+      presence "Enable virtual ANI side GEM port state statistics";
+      description
+        "GEM Counters from the Optical Line Termination's (OLT)
+         perspective.";
+      uses gemport-counters;
+    }
+  }
+
+  augment "/bbf-xpongemtcont:xpongemtcont-state/bbf-xpongemtcont:gemports/bbf-xpongemtcont:gemport" {
+    description
+      "Augment the xPON G-PON Encapsulation Method (GEM) port
+       with GEM port statistics counters (non-interval) data.";
+    container statistics {
+      description
+        "G-PON Encapsulation Method (GEM) port counters data.";
+      uses gemports-state-statistics;
+    }
+    action reset-statistics {
+      description
+        "When this action is invoked, the counters of this
+         GEM port are cleared.";
+    }
+  }
+
+  augment "/bbf-xpongemtcont:xpongemtcont/bbf-xpongemtcont:gemports/bbf-xpongemtcont:gemport" {
+    description
+      "Allows telemetry streaming for this gemport to be controlled.";
+    uses vcm-tlm:telemetry-control;
+  }
+  augment "/bbf-xpongemtcont:xpongemtcont/bbf-xpongemtcont:gemports/bbf-xpongemtcont:gemport" {
+    description
+      "Augment the G-PON Encapsulation Method (GEM) port with a
+       reference to a shaper profile.";
+    uses bbf-qos-shap:shaper-profile-ref;
+  }
+}

@@ -1,0 +1,522 @@
+module vecima-onu-voip {
+  yang-version 1.1;
+  namespace "urn:vecima:yang:vecima-onu-voip";
+  prefix vcm-onu-voip;
+
+  import bbf-onus {
+    prefix bbf-onus;
+  }
+  import bbf-onu-management {
+    prefix bbf-onum;
+  }
+  import bbf-voip-sip {
+    prefix bbf-vsip;
+  }
+  import bbf-pots {
+    prefix bbf-pots;
+  }
+  import bbf-yang-types {
+    prefix bbf-yang;
+  }
+  import bbf-onu-interfaces {
+    prefix bbf-onu-if;
+  }
+  import bbf-onu-if-type {
+    prefix bbf-onuift;
+  }
+  import bbf-onu-ip {
+    prefix bbf-onu-ip;
+  }
+  import ietf-yang-types {
+    prefix yang;
+  }
+
+  organization
+    "Vecima Networks Inc.";
+  contact
+    "https://www.vecima.com";
+  description
+    "Augments ONU data-instance-from-template with
+     per-subscriber VoIP (SIP user-termination)
+     configuration for template-based ONUs.
+
+     This module enables VoIP provisioning for ONUs
+     managed via the ONU template system (WT-505).
+     The template carries structural POTS hardware
+     and voiceFXS interfaces; this augment adds
+     per-line SIP subscriber configuration to the
+     ONU instance.";
+
+  revision 2026-04-13 {
+    description
+      "Removal of vecima-voip-sip and its impact.";
+    reference
+      "";
+  }
+  revision 2026-03-31 {
+    description
+      "Initial revision.";
+    reference
+      "";
+  }
+
+  augment "/bbf-onus:onus/bbf-onum:template/bbf-onum:data/bbf-onu-if:interfaces/bbf-onu-if:interface" {
+    when "derived-from-or-self(bbf-onu-if:type, 'bbf-onuift:voiceFXS')";
+    if-feature "bbf-onum:onu-templates";
+    description
+      "Augment voiceFXS interfaces within ONU template with default
+       POTS configuration (uni-profile, data-transmission, tone,
+       ringing). Most ONUs share the same VoIP Profile, so encoding
+       defaults here avoids repeating them in every ONU instance.";
+    container pots {
+      presence "Enables POTS functionality on this ONU interface.";
+      description
+        "Default POTS UNI configuration for voice lines in this
+         template.";
+      container uni-configuration {
+        description
+          "The POTS UNI configuration.";
+        choice uni-configuration {
+          description
+            "Selects the method of configuration for the POTS UNI.";
+          leaf uni-profile {
+            if-feature "bbf-pots:uni-profiles";
+            type bbf-pots:uni-profile-ref;
+            description
+              "Reference to a global POTS UNI profile.";
+          }
+        }
+      }
+      leaf data-transmission-profile {
+        type bbf-pots:data-transmission-profile-ref;
+        description
+          "The data transmission profile to be applied to this
+           interface.
+
+           If not configured, the vendor's default data transmission
+           mode is used.";
+      }
+      leaf tone-event-profile {
+        if-feature "bbf-pots:tone-event-profiles";
+        type bbf-pots:tone-event-profile-ref;
+        description
+          "The tone pattern profile to be applied to this interface.
+
+           If not configured, the vendor's default tone patterns are
+           used.";
+      }
+      leaf ringing-event-profile {
+        if-feature "bbf-pots:ringing-event-profiles";
+        type bbf-pots:ringing-event-profile-ref;
+        description
+          "The ringing pattern profile to be applied to this
+           interface.
+
+           If not configured, the vendor's default ringing patterns
+           are used.";
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template/bbf-onu-if:interfaces/bbf-onu-if:interface" {
+    when "derived-from-or-self(bbf-onu-if:type, 'bbf-onuift:voiceFXS')";
+    if-feature "bbf-onum:onu-templates";
+    description
+      "Augment voiceFXS interfaces within ONU instance with POTS
+       configuration overrides. Only needed when an ONU requires a
+       different VoIP Profile than the template default. Per WT-505,
+       this merges on top of template data by interface list key.";
+    container pots {
+      presence "Enables POTS functionality on this ONU interface.";
+      description
+        "Per-ONU POTS UNI configuration override for this
+         voice line.";
+      container uni-configuration {
+        description
+          "POTS UNI configuration.";
+        choice uni-configuration {
+          description
+            "Selects the method of configuration for the POTS UNI.";
+          leaf uni-profile {
+            if-feature "bbf-pots:uni-profiles";
+            type bbf-pots:uni-profile-ref;
+            description
+              "Reference to a global POTS UNI profile.";
+          }
+        }
+      }
+      leaf data-transmission-profile {
+        type bbf-pots:data-transmission-profile-ref;
+        description
+          "The data transmission profile to be applied to this
+           interface.
+
+           If not configured, the vendor's default data transmission
+           mode is used.";
+      }
+      leaf tone-event-profile {
+        if-feature "bbf-pots:tone-event-profiles";
+        type bbf-pots:tone-event-profile-ref;
+        description
+          "The tone pattern profile to be applied to this interface.
+
+           If not configured, the vendor's default tone patterns are
+           used.";
+      }
+      leaf ringing-event-profile {
+        if-feature "bbf-pots:ringing-event-profiles";
+        type bbf-pots:ringing-event-profile-ref;
+        description
+          "The ringing pattern profile to be applied to this
+           interface.
+
+           If not configured, the vendor's default ringing patterns
+           are used.";
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template" {
+    if-feature "bbf-onum:onu-templates";
+    description
+      "Per-subscriber VoIP configuration scoped to a
+       template-based ONU instance.";
+    container sip {
+      description
+        "SIP VoIP configuration for this ONU instance.";
+      container user-terminations {
+        description
+          "Management of user terminations.
+           Mirrors bbf-voip-sip grouping
+           /bbf-voip-sip:sip/user-terminations.";
+        list user-termination {
+          key "username";
+          description
+            "Per-line VoIP subscriber configuration.
+             Keyed by username (SIP AOR user part),
+             aligned with bbf-voip-sip
+             user-terminations/user-termination.
+             The voice-interface leaf references the
+             POTS-UNI interface name declared in the
+             template (e.g. pots1, pots2), enabling
+             the OLT to associate each user-termination
+             with the correct POTS port on the ONU.";
+          leaf username {
+            type bbf-yang:string-ascii64;
+            description
+              "SIP user part of AOR (Address of Record).
+               Used as the list key.";
+          }
+          leaf voice-interface {
+            type string;
+            must "derived-from-or-self(../../../../bbf-onu-if:interfaces/bbf-onu-if:interface[bbf-onu-if:name = current()]/bbf-onu-if:type,'bbf-onuift:voiceFXS') or derived-from-or-self(/bbf-onus:onus/bbf-onum:template[bbf-onum:name = current()/ancestor::bbf-onum:onu/bbf-onum:meta-data/bbf-onum:template-references/bbf-onum:template]/bbf-onum:data/bbf-onu-if:interfaces/bbf-onu-if:interface[bbf-onu-if:name = current()]/bbf-onu-if:type,'bbf-onuift:voiceFXS')" {
+              error-message
+                "voice-interface must name a voiceFXS interface
+                  + under data-instance-from-template/interfaces or under data/interfaces of a template listed in template-references.";
+              description
+                "WT-505: interface may be defined only on the template, only under data-instance-from-template, or overridden on the instance; must be voiceFXS.";
+            }
+            mandatory true;
+            description
+              "References the POTS-UNI interface name
+               within the same ONU instance (e.g. pots1).
+               Used to resolve the POTS port for OMCI
+               provisioning.";
+          }
+          leaf voip-gateway {
+            type bbf-vsip:voip-gateway-ref;
+            mandatory true;
+            description
+              "Reference to global VoIP gateway.";
+          }
+          leaf signaling-ip-interface {
+            type string;
+            must '(boolean(/bbf-onus:onus/bbf-onum:template[bbf-onum:name = current()/ancestor::bbf-onum:onu/bbf-onum:meta-data/bbf-onum:template-references/bbf-onum:template]/bbf-onum:data/bbf-onu-if:interfaces/bbf-onu-if:interface[bbf-onu-if:name = current()]/bbf-onu-ip:ipv4) or boolean(/bbf-onus:onus/bbf-onum:template[bbf-onum:name = current()/ancestor::bbf-onum:onu/bbf-onum:meta-data/bbf-onum:template-references/bbf-onum:template]/bbf-onum:data/bbf-onu-if:interfaces/bbf-onu-if:interface[bbf-onu-if:name = current()]/bbf-onu-ip:ipv6))' {
+              error-message
+                "The signaling interface must be IP-enabled (ipv4 or ipv6) under template data interfaces/interface for a template listed in template-references.";
+              description
+                "Name must resolve under bbf-onum:template/.../data/interfaces for any template in this ONU's template-references (not under data-instance-from-template).";
+            }
+            description
+              "ONU IP interface name used for SIP signaling (e.g. iphost1). Names the interface as declared in referenced template data (ipForward on vuni), not in data-instance-from-template.";
+          }
+          leaf media-stream-ip-interface {
+            type string;
+            must '(boolean(/bbf-onus:onus/bbf-onum:template[bbf-onum:name = current()/ancestor::bbf-onum:onu/bbf-onum:meta-data/bbf-onum:template-references/bbf-onum:template]/bbf-onum:data/bbf-onu-if:interfaces/bbf-onu-if:interface[bbf-onu-if:name = current()]/bbf-onu-ip:ipv4) or boolean(/bbf-onus:onus/bbf-onum:template[bbf-onum:name = current()/ancestor::bbf-onum:onu/bbf-onum:meta-data/bbf-onum:template-references/bbf-onum:template]/bbf-onum:data/bbf-onu-if:interfaces/bbf-onu-if:interface[bbf-onu-if:name = current()]/bbf-onu-ip:ipv6))' {
+              error-message
+                "The media-stream interface must be IP-enabled (ipv4 or ipv6) under template data interfaces/interface for a template listed in template-references.";
+              description
+                "Same as signaling-ip-interface: template data interfaces only (not data-instance-from-template).";
+            }
+            description
+              "ONU IP interface name used for RTP/media (forwarder). Often the same as signaling-ip-interface (e.g. iphost1); name comes from template data.";
+          }
+          leaf display-name {
+            type string {
+              length "1..25";
+            }
+            description
+              "Display name for this user-termination.";
+          }
+          leaf directory-number {
+            type string {
+              length "1..32";
+            }
+            description
+              "Directory number for this voice line.";
+          }
+          container authentication {
+            description
+              "SIP authentication credentials.";
+            leaf username {
+              type string;
+              description
+                "SIP authentication username.";
+            }
+            leaf password {
+              type string;
+              description
+                "SIP authentication password.";
+            }
+          }
+          leaf supplementary-services-profile {
+            type bbf-vsip:supplementary-services-profile-ref;
+            description
+              "Supplementary services profile for this
+               user-termination. If not configured, no
+               supplementary services are provisioned.";
+          }
+          container fax {
+            description
+              "Fax settings for this voice line.";
+            leaf try-t38 {
+              type boolean;
+              default "false";
+              description
+                "Enable T.38 fax relay.";
+            }
+          }
+          leaf enabled {
+            type boolean;
+            default "false";
+            description
+              "Administrative state. OMCI provisioning
+               is triggered when set to true.";
+          }
+          container state {
+            config false;
+            description
+              "Operational state of the user termination.";
+            leaf call-state {
+              type enumeration {
+                enum "on-hook" {
+                  description
+                    "Idle, on-hook.";
+                  reference
+                    "ITU-T G.988 Clause 9.9.11 - VoIP line state";
+                }
+                enum "off-hook-dialtone" {
+                  description
+                    "The subscriber has gone off-hook and dial tone is
+                     being played.";
+                  reference
+                    "ITU-T G.988 Clause 9.9.11, VoIP line state";
+                }
+                enum "dialing" {
+                  description
+                    "The subscriber is dialing.";
+                  reference
+                    "ITU-T G.988 Clause 9.9.11 - VoIP line state";
+                }
+                enum "ringing-or-fsk-alerting" {
+                  description
+                    "The ringing tone is being played at the subscriber
+                     line or FSK alerting.";
+                  reference
+                    "ITU-T G.988 Clause 9.9.11 - VoIP line state";
+                }
+                enum "audible-ringback" {
+                  description
+                    "The ring back tone is being played at the calling
+                     subscriber line.";
+                  reference
+                    "ITU-T G.988 Clause 9.9.11 - VoIP line state";
+                }
+                enum "connecting" {
+                  description
+                    "The call is connecting, i.e., a SIP INVITE request
+                     has been sent and the system is awaiting a
+                     response.";
+                  reference
+                    "ITU-T G.988 Clause 9.9.11 - VoIP line state";
+                }
+                enum "connected" {
+                  description
+                    "The call has been established and is in a stable
+                     call phase.";
+                  reference
+                    "ITU-T G.988 Clause 9.9.11 - VoIP line state";
+                }
+                enum "disconnecting" {
+                  description
+                    "The call has terminated. However, the subscriber
+                     has not yet gone back on hook yet; the subscriber
+                     line is in the process of being released or is
+                     disconnecting.
+
+                     A particular tone may be played on the subscriber
+                     line in this state.";
+                  reference
+                    "ITU-T G.988 Clause 9.9.11 - VoIP line state";
+                }
+                enum "roh-no-tone" {
+                  description
+                    "The subscriber line is idle, off-hook or parked;
+                     no receiver off-hook (ROH) tone is being
+                     generated.";
+                  reference
+                    "ITU-T G.988 Clause 9.9.11 - VoIP line state";
+                }
+                enum "roh-tone" {
+                  description
+                    "The subscriber line is idle, off-hook or parked; a
+                     receiver off-hook (ROH) tone is being generated.";
+                  reference
+                    "ITU-T G.988 Clause 9.9.11 - VoIP line state";
+                }
+                enum "unknown-or-undefined" {
+                  description
+                    "The user termination is in an unknown or undefined
+                     call state.";
+                  reference
+                    "ITU-T G.988 Clause 9.9.11 - VoIP line state";
+                }
+                enum "shared-cut-off" {
+                  if-feature "bbf-vsip:shared-lines";
+                  description
+                    "The user termination is a shared line and the
+                     other SIP user sharing the same subscriber line
+                     is involved in call, resulting in this SIP user
+                     being in the shared cut-off state.
+
+                     When in this state, the SIP user would hear,
+                     silence, if the user goes off-hook. Any incoming
+                     call request for this SIP user will be rejected.";
+                }
+              }
+              mandatory true;
+              description
+                "The call state of the SIP user termination.";
+            }
+            leaf emergency-call-in-progress {
+              type boolean;
+              mandatory true;
+              description
+                "If 'true', indicates an emergency call is ongoing.";
+              reference
+                "ITU-T G.988 Clause 9.9.11 - Emergency call status";
+            }
+            leaf oper-state {
+              type identityref {
+                base bbf-vsip:user-agent-oper-state;
+              }
+              description
+                "Operational state of the SIP user agent.";
+            }
+          }
+          container statistics {
+            if-feature "bbf-vsip:statistics";
+            config false;
+            description
+              "Add protocol statistics to user-termination (moved from user-agent/statistics).";
+            container protocol {
+              description
+                "The SIP protocol statistics.";
+              leaf total-transactions {
+                type yang:counter64;
+                description
+                  "The total number of SIP transactions created by the
+                   SIP user agent.";
+              }
+              leaf in-invite-requests {
+                type yang:counter64;
+                description
+                  "The total number of incoming SIP INVITE requests.";
+              }
+              leaf in-invite-retransmit-requests {
+                type yang:counter64;
+                description
+                  "The total number of incoming retransmit SIP INVITE
+                   requests.";
+              }
+              leaf in-noninvite-requests {
+                type yang:counter64;
+                description
+                  "The total number of incoming SIP non-INVITE
+                   requests.";
+              }
+              leaf in-noninvite-retransmit-requests {
+                type yang:counter64;
+                description
+                  "The total number of incoming retransmit SIP non-
+                   INVITE requests.";
+              }
+              leaf in-responses {
+                type yang:counter64;
+                description
+                  "The total number of incoming SIP responses.";
+              }
+              leaf in-retransmit-responses {
+                type yang:counter64;
+                description
+                  "The total number of incoming SIP responses.";
+              }
+              leaf out-invite-requests {
+                type yang:counter64;
+                description
+                  "The total number of outgoing SIP INVITE requests sent
+                   by the SIP user agent.";
+              }
+              leaf out-invite-retransmit-requests {
+                type yang:counter64;
+                description
+                  "The total number of outgoing SIP INVITE requests
+                   retransmit by the SIP user agent.";
+              }
+              leaf out-noninvite-requests {
+                type yang:counter64;
+                description
+                  "The total number of outgoing SIP non-INVITE requests
+                   sent by the SIP user agent.";
+              }
+              leaf out-noninvite-retransmit-requests {
+                type yang:counter64;
+                description
+                  "The total number of outgoing SIP non-INVITE requests
+                   retransmit by the SIP user agent.";
+              }
+              leaf out-responses {
+                type yang:counter64;
+                description
+                  "The total number of outgoing SIP responses sent by
+                   the SIP user agent.";
+              }
+              leaf out-retransmit-responses {
+                type yang:counter64;
+                description
+                  "The total number of outgoing SIP responses retransmit
+                   by the SIP user agent.";
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  deviation "/bbf-vsip:sip/bbf-vsip:user-agents/bbf-vsip:user-agent/bbf-vsip:signaling/bbf-vsip:ip-interface" {
+    description
+      "Remove the ip-interface leaf from the signaling container
+       within the user-agent list to make voip-gateway more
+       general and not to configure it for every ONU.";
+    deviate not-supported;
+  }
+}

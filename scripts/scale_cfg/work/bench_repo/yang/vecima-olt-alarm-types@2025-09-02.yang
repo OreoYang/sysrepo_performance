@@ -1,0 +1,51 @@
+module vecima-olt-alarm-types {
+  yang-version 1.1;
+  namespace "urn:vecima:yang:vecima-olt-alarm-types";
+  prefix vcm-olt-alt;
+
+  import bbf-alarm-types {
+    prefix bbf-alt;
+  }
+
+  organization
+    "Vecima Networks Inc.";
+  contact
+    "https://www.vecima.com";
+  description
+    "This YANG module defines Vecima alarm types derived from
+     either bbf or ietf alarms which are further referenced/derived
+     in defining olt alarm objects.";
+
+  revision 2025-09-02 {
+    description
+      "Vecima base alarm type definitions.";
+    reference
+      "";
+  }
+
+  identity system-alarm-type-id {
+    base bbf-alt:bbf-threshold-crossing-alarm-type-id;
+    description
+      "Base identity for system-wide alarms.
+
+       This identity is abstract and SHOULD NOT generally be used for
+       alarms. If used to define an alarm that was not known at
+       design time, it MUST be qualified with an alarm type qualifier
+       string. This practice, however, should be generally avoided to
+       ensure all possible alarms are known at design time.";
+  }
+
+  identity memory-usage-exceeded {
+    base system-alarm-type-id;
+    description
+      "The system memory usage has exceeded the high level
+       threshold.";
+  }
+
+  identity disk-usage-exceeded {
+    base system-alarm-type-id;
+    description
+      "The disk space usage of /, /persistent, or /tmp has exceeded
+       the high level threshold.";
+  }
+}

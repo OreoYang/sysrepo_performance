@@ -1,0 +1,319 @@
+module bbf-onu-qos-traffic-mngt-profiles {
+  yang-version 1.1;
+  namespace "urn:bbf:yang:bbf-onu-qos-traffic-mngt-profiles";
+  prefix bbf-onu-qos-tm-prof;
+
+  import bbf-yang-types {
+    prefix bbf-yang;
+  }
+  import bbf-qos-types {
+    prefix bbf-qos-t;
+  }
+  import bbf-onus {
+    prefix bbf-onus;
+  }
+  import bbf-qos-traffic-mngt-profiles-common {
+    prefix bbf-qos-tm-profc;
+  }
+
+  organization
+    "Broadband Forum <https://www.broadband-forum.org>
+     Common YANG Work Area";
+  contact
+    "Comments or questions about this Broadband Forum YANG module
+     should be directed to <mailto:help@broadband-forum.org>.
+
+     Editor:      Joey Boyd, Adtran
+
+     Editor:      Robert Peschi, Nokia
+
+     PS Leader:   Joey Boyd, Adtran
+
+     WA Director: Marta Seda, Calix";
+  description
+    "This module contains a collection of YANG definitions for
+     supporting the Broadband Forum requirements on the management of
+     Optical Network Units (ONUs).
+
+     Specifically, this module defines a set of profiles for QoS
+     traffic management (TM).
+
+     This module is based on definitions provided in:
+     - bbf-qos-traffic-mngt.yang, TR-383 Amendment 6.
+
+     Copyright (c) 2023, Broadband Forum
+
+     Redistribution and use in source and binary forms, with or
+     without modification, are permitted provided that the following
+     conditions are met:
+
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+
+     2. Redistributions in binary form must reproduce the above
+        copyright notice, this list of conditions and the following
+        disclaimer in the documentation and/or other materials
+        provided with the distribution.
+
+     3. Neither the name of the copyright holder nor the names of its
+        contributors may be used to endorse or promote products
+        derived from this software without specific prior written
+        permission.
+
+     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+     CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+     INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+     CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+     STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+     ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+     The above license is used as a license under copyright only.
+     Please reference the Forum IPR Policy for patent licensing terms
+     <https://www.broadband-forum.org/ipr-policy>.
+
+     Any moral rights which are necessary to exercise under the above
+     license grant are also deemed granted under this license.
+
+     This version of this YANG module is part of WT-505; see the WT
+     itself for full legal notices.";
+
+  revision 2023-09-22 {
+    description
+      "TBD
+       * Approval Date:    TBD.
+       * Publication Date: TBD.";
+    reference
+      "TBD";
+  }
+
+  feature tc-id-2-queue-id-mapping-config {
+    description
+      "This feature indicates whether the network element supports
+       configuring traffic class ID to queue ID mapping profiles.";
+  }
+
+  feature queue-templates {
+    description
+      "Indicates that the ONU supports templates to configure
+       queues.";
+  }
+
+  grouping tc-id-2-queue-id-mapping-profile-ref {
+    description
+      "A reference to a traffic class ID to queue ID mapping
+       profile.";
+    leaf tc-id-2-queue-id-mapping-profile-name {
+      if-feature "bbf-onu-qos-tm-prof:tc-id-2-queue-id-mapping-config";
+      type leafref {
+        path "/bbf-onus:onus/bbf-onu-qos-tm-prof:tm-profiles/bbf-onu-qos-tm-prof:tc-id-2-queue-id-mapping-profile/bbf-onu-qos-tm-prof:name";
+      }
+      description
+        "The name of a referenced traffic class ID to queue ID mapping
+         profile.";
+    }
+  }
+
+  grouping bac-ref {
+    description
+      "A reference to a BAC entry.";
+    leaf bac-name {
+      type leafref {
+        path "/bbf-onus:onus/bbf-onu-qos-tm-prof:tm-profiles/bbf-onu-qos-tm-prof:bac-entry/bbf-onu-qos-tm-prof:name";
+      }
+      description
+        "The name of a referenced BAC entry.";
+    }
+  }
+
+  grouping queues-from-template {
+    description
+      "Configuration data for referencing a queue template.";
+    container queues-from-template {
+      description
+        "Data for defining queues using a template.";
+      leaf queue-template {
+        type leafref {
+          path "/bbf-onus:onus/bbf-onu-qos-tm-prof:tm-profiles/bbf-onu-qos-tm-prof:queue-templates/bbf-onu-qos-tm-prof:template/bbf-onu-qos-tm-prof:name";
+        }
+        description
+          "A reference to a queues template.";
+      }
+    }
+  }
+
+  augment "/bbf-onus:onus" {
+    description
+      "Augments the set of ONU profiles.";
+    container tm-profiles {
+      description
+        "A set of types of profiles for traffic management
+         configuration.";
+      list tc-id-2-queue-id-mapping-profile {
+        if-feature "tc-id-2-queue-id-mapping-config";
+        key "name";
+        description
+          "A traffic class ID to queue ID mapping profile.";
+        leaf name {
+          type bbf-yang:string-ascii64;
+          description
+            "The name of a traffic class ID to queue ID mapping
+             profile.";
+        }
+        list mapping-entry {
+          key "traffic-class-id";
+          description
+            "A traffic class ID to queue ID mapping profile. One
+             profile maps each of the traffic class IDs to a queue
+             ID.";
+          leaf traffic-class-id {
+            type bbf-qos-t:traffic-class-id;
+            description
+              "A traffic class ID.";
+          }
+          leaf local-queue-id {
+            type bbf-qos-tm-profc:queue-id;
+            mandatory true;
+            description
+              "The identification of a queue locally within a parent
+               node context.";
+          }
+        }
+      }
+      list bac-entry {
+        key "name";
+        description
+          "A Buffer Acceptance Control (BAC) entry.";
+        leaf name {
+          type bbf-yang:string-ascii64;
+          description
+            "The name of a BAC entry.";
+        }
+        leaf max-queue-size {
+          type uint32;
+          units "bytes";
+          description
+            "The maximum queue length.";
+        }
+        choice bac-type {
+          mandatory true;
+          description
+            "Choice of BAC types.";
+          case taildrop {
+            description
+              "Applicable when the BAC type is 'taildrop'.";
+            container taildrop {
+              description
+                "Management data nodes associated with taildrop.";
+              uses bbf-qos-tm-profc:max-threshold;
+            }
+          }
+          case red {
+            description
+              "Applicable when the BAC type is 'red'.";
+            container red {
+              description
+                "Management data nodes associated with Random Early
+                 Detection (RED).";
+              uses bbf-qos-tm-profc:common-random-early-detection-parameters;
+            }
+          }
+          case wtaildrop {
+            description
+              "Applicable when the BAC type is 'wtaildrop'.";
+            container wtaildrop {
+              description
+                "Management data nodes associated with weighted
+                 taildrop.";
+              container color {
+                description
+                  "Management data nodes associated with the marked
+                   color of the frame.";
+                container green {
+                  description
+                    "Green frames.";
+                  uses bbf-qos-tm-profc:max-threshold;
+                }
+                container yellow {
+                  description
+                    "Yellow frames.";
+                  uses bbf-qos-tm-profc:max-threshold;
+                }
+                container red {
+                  description
+                    "Red frames.";
+                  uses bbf-qos-tm-profc:max-threshold;
+                }
+              }
+            }
+          }
+          case wred {
+            description
+              "Applicable when the BAC type is 'wred'.";
+            container wred {
+              description
+                "Management data nodes associated with Weighted
+                 Random Early Detection.";
+              container color {
+                description
+                  "Management data nodes associated with the marked
+                   color of the frame.";
+                container green {
+                  description
+                    "Green frames.";
+                  uses bbf-qos-tm-profc:common-random-early-detection-parameters;
+                }
+                container yellow {
+                  description
+                    "Yellow frames.";
+                  uses bbf-qos-tm-profc:common-random-early-detection-parameters;
+                }
+                container red {
+                  description
+                    "Red frames.";
+                  uses bbf-qos-tm-profc:common-random-early-detection-parameters;
+                }
+              }
+            }
+          }
+        }
+      }
+      container queue-templates {
+        if-feature "queue-templates";
+        description
+          "Contains data nodes for configuring templates for a set of
+           queues.";
+        list template {
+          key "name";
+          description
+            "A template for a a set of queues.
+
+             A template provides a method to configure a pattern for a
+             specific behavior, but on its own it does not result in
+             an actual behavior. It needs to be referenced and then
+             the actual behavior is within the context from where it
+             is referenced.";
+          leaf name {
+            type bbf-yang:string-ascii64;
+            description
+              "A name of a template with queues.";
+          }
+          uses bbf-qos-tm-profc:queues {
+            augment "queue" {
+              description
+                "Adds a reference to a Buffer Acceptance Control (BAC)
+                 entry to the queues.";
+              uses bac-ref;
+            }
+          }
+        }
+      }
+    }
+  }
+}

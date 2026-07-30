@@ -1,0 +1,201 @@
+module vecima-olt-notif-adaptor {
+  yang-version 1.1;
+  namespace "urn:vecima:yang:vecima-olt-notif-adaptor";
+  prefix vcm-olt-na;
+
+  import ietf-yang-types {
+    prefix yang;
+  }
+  import bbf-xpon-types {
+    prefix bbf-xpon-types;
+  }
+  import bbf-xpon-onu-state {
+    prefix bbf-xpon-onu-s;
+  }
+  import bbf-yang-types {
+    prefix bbf-yang;
+  }
+  import vecima-olt-notifications {
+    prefix vcm-olt-notif;
+  }
+
+  organization
+    "Vecima Networks Inc.";
+  contact
+    "https://www.vecima.com";
+  description
+    "This module contains a collection of notification definitions.
+
+     These notifications are defined originally in standard yang
+     models as per YANG 1.1 spec. But Tail-f NSO does not support
+     YANG 1.1 notifications. So Vecima re-define these notifications
+     in this module per YANG 1.0 spec.";
+
+  revision 2022-07-12 {
+    description
+      "Initial version.";
+    reference
+      "";
+  }
+
+  identity reset-type {
+    description
+      "Type of reset requested of the component.";
+  }
+
+  identity hardware-reset {
+    base reset-type;
+    description
+      "Hardware reset.";
+  }
+
+  grouping swmgnt-notify-data {
+    description
+      "data for software management notification";
+    leaf id {
+      type uint8;
+      mandatory true;
+      description
+        "The unique identifier of the software revision";
+    }
+    leaf component {
+      type string;
+      mandatory true;
+      description
+        "The component which was used for software management";
+    }
+  }
+
+  grouping error {
+    description
+      "Data nodes associated with an error.";
+    leaf tag {
+      type string;
+      config false;
+      mandatory true;
+      description
+        "Identifies the error that occurred.";
+    }
+    leaf message {
+      type string;
+      config false;
+      description
+        "Identifies the error or provides additional information
+         on the given error as a string suitable for human display.";
+    }
+  }
+
+  grouping component-reset-notify-data {
+    description
+      "Indicates that the component was reset. The reset can have
+       been forced by the client using the action 'reset', or it can
+       be a autonomous reset triggered inside the managed device.";
+    leaf component {
+      type string;
+      mandatory true;
+      description
+        "Indicates which component was reset.";
+    }
+    leaf reset-type {
+      type identityref {
+        base reset-type;
+      }
+      description
+        "Type of reset of the component that has been done, i.e.
+         what reset has been dome.";
+    }
+    leaf reason {
+      type bbf-yang:string-ascii64;
+      description
+        "The reason this reset was triggered.";
+    }
+  }
+
+  notification onu-presence-state-change {
+    description
+      "The ONU presence state change notification";
+    uses vcm-olt-notif:common-event-group;
+    leaf detected-serial-number {
+      type bbf-xpon-types:onu-serial-number;
+      mandatory true;
+      description
+        "The detected serial number";
+    }
+    leaf last-change {
+      type yang:date-and-time;
+      mandatory true;
+      description
+        "The last changes";
+    }
+    uses bbf-xpon-onu-s:onu-state-data;
+  }
+  notification revision-downloaded {
+    description
+      "The revision download notification";
+    uses swmgnt-notify-data;
+  }
+  notification download-revision-failed {
+    description
+      "The download revision failed notification";
+    uses swmgnt-notify-data;
+    container error {
+      description
+        "Data nodes describing the error that caused the
+         download to fail.";
+      uses error;
+    }
+  }
+  notification download-revision-aborted {
+    description
+      "The download revision aborted notification";
+    uses swmgnt-notify-data;
+  }
+  notification abort-failed {
+    description
+      "The abort failed notification";
+    uses swmgnt-notify-data;
+    container error {
+      description
+        "Data nodes describing the error that caused the
+         abort activity to fail";
+      uses error;
+    }
+  }
+  notification revision-activated {
+    description
+      "The revision activated notification";
+    uses swmgnt-notify-data;
+  }
+  notification activate-failed {
+    description
+      "The activated failed notification";
+    uses swmgnt-notify-data;
+    container error {
+      description
+        "Data nodes describing the error that caused the
+         activation to fail.";
+      uses error;
+    }
+  }
+  notification revision-committed {
+    description
+      "The revision committed notification";
+    uses swmgnt-notify-data;
+  }
+  notification commit-failed {
+    description
+      "The commit failed notification";
+    uses swmgnt-notify-data;
+    container error {
+      description
+        "Data nodes describing the error that caused the
+         commit to fail.";
+      uses error;
+    }
+  }
+  notification component-reset {
+    description
+      "The component reset notification";
+    uses component-reset-notify-data;
+  }
+}

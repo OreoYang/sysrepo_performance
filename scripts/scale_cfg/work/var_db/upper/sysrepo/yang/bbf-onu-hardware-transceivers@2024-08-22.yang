@@ -1,0 +1,361 @@
+module bbf-onu-hardware-transceivers {
+  yang-version 1.1;
+  namespace "urn:bbf:yang:bbf-onu-hardware-transceivers";
+  prefix bbf-onu-hw-xcvr;
+
+  import bbf-onus {
+    prefix bbf-onus;
+  }
+  import bbf-onu-management {
+    prefix bbf-onum;
+  }
+  import bbf-onu-hardware {
+    prefix bbf-onu-hw;
+  }
+  import bbf-onu-hardware-transceivers-common {
+    prefix bbf-onu-hw-xcvrc;
+  }
+  import bbf-hardware-types {
+    prefix bbf-hwt;
+  }
+
+  organization
+    "Broadband Forum <https://www.broadband-forum.org>
+     Common YANG Work Area";
+  contact
+    "Comments or questions about this Broadband Forum YANG module
+     should be directed to <mailto:help@broadband-forum.org>.
+
+     Editor:      Joey Boyd, Adtran
+
+     Editor:      Robert Peschi, Nokia
+
+     PS Leader:   Joey Boyd, Adtran
+
+     WA Director: Marta Seda, Calix";
+  description
+    "This module contains a collection of YANG definitions for
+     supporting the Broadband Forum requirements on the management of
+     Optical Network Units (ONUs).
+
+     Specifically, this module augments the ONU management hardware
+     model with the management of compact transceivers.
+
+     This module is based on definitions provided in:
+     - bbf-hardware-transceivers.yang, TR-383 Amendment 6.
+
+     Copyright (c) 2023, Broadband Forum
+
+     Redistribution and use in source and binary forms, with or
+     without modification, are permitted provided that the following
+     conditions are met:
+
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+
+     2. Redistributions in binary form must reproduce the above
+        copyright notice, this list of conditions and the following
+        disclaimer in the documentation and/or other materials
+        provided with the distribution.
+
+     3. Neither the name of the copyright holder nor the names of its
+        contributors may be used to endorse or promote products
+        derived from this software without specific prior written
+        permission.
+
+     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+     CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+     INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+     CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+     STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+     ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+     The above license is used as a license under copyright only.
+     Please reference the Forum IPR Policy for patent licensing terms
+     <https://www.broadband-forum.org/ipr-policy>.
+
+     Any moral rights which are necessary to exercise under the above
+     license grant are also deemed granted under this license.
+
+     This version of this YANG module is part of WT-505; see the WT
+     itself for full legal notices.";
+
+  revision 2024-08-22 {
+    description
+      "TBD
+       * Approval Date:    TBD.
+       * Publication Date: TBD.";
+    reference
+      "TBD";
+  }
+
+  feature vendor-eeprom {
+    description
+      "Indicates support for reporting the contents of the vendor-
+       specific EEPROM data fields.";
+    reference
+      "SFF-8472 (Revision 12.4) Table 4-1 - Address A0h, Bytes 96-127;
+       SFF-8436 (Revision 4.9) Table 29 - Page 00h, Bytes 224-255;
+       INF-8077i (Revision 4.5) Table 46 - Page 01h, Bytes 224-255";
+  }
+
+  feature vendor-eeprom-string {
+    if-feature "vendor-eeprom";
+    description
+      "Indicates support for reporting the contents of the vendor-
+       specific EEPROM data fields as a string.";
+    reference
+      "SFF-8472 (Revision 12.4) Table 4-1 - Address A0h, Bytes 96-127;
+       SFF-8436 (Revision 4.9) Table 29 - Page 00h, Bytes 224-255;
+       INF-8077i (Revision 4.5) Table 46 - Page 01h, Bytes 224-255";
+  }
+
+  feature vendor-eeprom-binary {
+    if-feature "vendor-eeprom";
+    description
+      "Indicates support for reporting the contents of the vendor-
+       specific EEPROM data fields in binary format.";
+    reference
+      "SFF-8472 (Revision 12.4) Table 4-1 - Address A0h, Bytes 96-127;
+       SFF-8436 (Revision 4.9) Table 29 - Page 00h, Bytes 224-255;
+       INF-8077i (Revision 4.5) Table 46 - Page 01h, Bytes 224-255";
+  }
+
+  feature extended-information {
+    description
+      "Indicates whether reporting extended information data fields
+       of the transceiver are supported.";
+    reference
+      "SFF-8472 (Revision 12.4) Section 10";
+  }
+
+  feature user-eeprom {
+    if-feature "extended-information";
+    description
+      "Indicates support for reporting the contents of the user-
+       writable EEPROM data fields.";
+    reference
+      "SFF-8472 (Revision 12.4) Table 10-4 - Address A2h,
+       Page 00h/01h, Bytes 128-247;
+       SFF-8436 (Revision 4.9) Section 7.6.4 - Page 02h,
+       Bytes 128-255;
+       INF-8077i (Revision 4.5) Section 5.45 - Table 02h,
+       Bytes 128-255";
+  }
+
+  feature user-eeprom-string {
+    if-feature "user-eeprom";
+    description
+      "Indicates support for reporting the contents of the user-
+       writable EEPROM data fields as a string.";
+    reference
+      "SFF-8472 (Revision 12.4) Table 10-4 - Address A2h,
+       Page 00h/01h, Bytes 128-247;
+       SFF-8436 (Revision 4.9) Section 7.6.4 - Page 02h,
+       Bytes 128-255;
+       INF-8077i (Revision 4.5) Section 5.45 - Table 02h,
+       Bytes 128-255";
+  }
+
+  feature user-eeprom-binary {
+    if-feature "user-eeprom";
+    description
+      "Indicates support for reporting the contents of the user-
+       writable EEPROM data fields in binary format.";
+    reference
+      "SFF-8472 (Revision 12.4) Table 10-4 - Address A2h,
+       Page 00h/01h, Bytes 128-247;
+       SFF-8436 (Revision 4.9) Section 7.6.4 - Page 02h,
+       Bytes 128-255;
+       INF-8077i (Revision 4.5) Section 5.45 - Table 02h,
+       Bytes 128-255";
+  }
+
+  feature optical-power-and-sensitivity-in-dbm {
+    description
+      "Indicates support for reporting optical power and sensitivity
+       diagnostic data in dBm.";
+  }
+
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-stand-alone-instance/bbf-onu-hw:hardware/bbf-onu-hw:component" {
+    when "derived-from-or-self(bbf-onu-hw:class,'bbf-hwt:transceiver')";
+    description
+      "Intended for an ONU instance derived from template(s).
+
+       State data nodes for hardware components of identity class
+       'transceiver'.";
+    container transceiver {
+      description
+        "Data nodes for hardware components of identity class
+         'transceiver'.";
+      uses bbf-onu-hw-xcvrc:identifiers-and-codes;
+      uses bbf-onu-hw-xcvrc:link-length;
+      uses bbf-onu-hw-xcvrc:vendor-fields {
+        refine "vendor-fields/eeprom" {
+          if-feature "vendor-eeprom";
+        }
+        refine "vendor-fields/eeprom/string" {
+          if-feature "vendor-eeprom-string";
+        }
+        refine "vendor-fields/eeprom/binary" {
+          if-feature "vendor-eeprom-binary";
+        }
+      }
+      uses bbf-onu-hw-xcvrc:transceiver-diagnostics-monitoring;
+      uses bbf-onu-hw-xcvrc:transceiver-enhanced-options;
+      container diagnostics {
+        presence "If present, indicates that digital diagnostics monitoring
+         has been implemented in the transceiver. Supply voltage
+         monitoring and temperature monitoring must both be
+         implemented.";
+        description
+          "Diagnostic data of the transceiver.";
+        reference
+          "SFF-8472 (Revision 12.4) Section 8.8 - Address A0h,
+           Byte 92;
+           SFF-8472 (Revision 12.4) Section 9";
+        uses bbf-onu-hw-xcvrc:transceiver-diagnostic-parameters;
+        uses bbf-onu-hw-xcvrc:transceiver-alarm-diagnostic-parameters;
+      }
+      uses bbf-onu-hw-xcvrc:thresholds;
+      uses bbf-onu-hw-xcvrc:extended-information {
+        refine "extended-information" {
+          if-feature "extended-information";
+        }
+        refine "extended-information/user-eeprom" {
+          if-feature "user-eeprom";
+        }
+        refine "extended-information/user-eeprom/string" {
+          if-feature "user-eeprom-string";
+        }
+        refine "extended-information/user-eeprom/binary" {
+          if-feature "user-eeprom-binary";
+        }
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-stand-alone-instance/bbf-onu-hw:hardware/bbf-onu-hw:component" {
+    when "derived-from-or-self(bbf-onu-hw:class,'bbf-hwt:transceiver-link')";
+    description
+      "State data nodes for hardware components of identity class
+       'transceiver-link'.";
+    container transceiver-link {
+      description
+        "Data nodes for hardware components of identity class
+         'transceiver-link'.";
+      uses bbf-onu-hw-xcvrc:link-parameters;
+      container diagnostics {
+        presence "If present, indicates that digital diagnostics monitoring
+         has been implemented in the transceiver. Received power
+         monitoring, transmit power monitoring and bias current
+         monitoring must all be implemented.";
+        description
+          "Diagnostic data of the transceiver link.";
+        reference
+          "SFF-8472 (Revision 12.4) Section 8.8 - Address A0h,
+           Byte 92;
+           SFF-8472 (Revision 12.4) Section 9";
+        uses bbf-onu-hw-xcvrc:link-diagnostic-parameters {
+          refine "power-dbm" {
+            if-feature "optical-power-and-sensitivity-in-dbm";
+          }
+        }
+        uses bbf-onu-hw-xcvrc:link-alarm-diagnostic-parameters;
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template/bbf-onu-hw:hardware/bbf-onu-hw:component" {
+    when "derived-from-or-self(bbf-onu-hw:class,'bbf-hwt:transceiver')";
+    description
+      "Intended for an ONU instance derived from template(s).
+
+       State data nodes for hardware components of identity class
+       'transceiver'.";
+    container transceiver {
+      description
+        "Data nodes for hardware components of identity class
+         'transceiver'.";
+      uses bbf-onu-hw-xcvrc:identifiers-and-codes;
+      uses bbf-onu-hw-xcvrc:link-length;
+      uses bbf-onu-hw-xcvrc:vendor-fields {
+        refine "vendor-fields/eeprom" {
+          if-feature "vendor-eeprom";
+        }
+        refine "vendor-fields/eeprom/string" {
+          if-feature "vendor-eeprom-string";
+        }
+        refine "vendor-fields/eeprom/binary" {
+          if-feature "vendor-eeprom-binary";
+        }
+      }
+      uses bbf-onu-hw-xcvrc:transceiver-diagnostics-monitoring;
+      uses bbf-onu-hw-xcvrc:transceiver-enhanced-options;
+      container diagnostics {
+        presence "If present, indicates that digital diagnostics monitoring
+         has been implemented in the transceiver. Supply voltage
+         monitoring and temperature monitoring must both be
+         implemented.";
+        description
+          "Diagnostic data of the transceiver.";
+        reference
+          "SFF-8472 (Revision 12.4) Section 8.8 - Address A0h,
+           Byte 92;
+           SFF-8472 (Revision 12.4) Section 9";
+        uses bbf-onu-hw-xcvrc:transceiver-diagnostic-parameters;
+        uses bbf-onu-hw-xcvrc:transceiver-alarm-diagnostic-parameters;
+      }
+      uses bbf-onu-hw-xcvrc:thresholds;
+      uses bbf-onu-hw-xcvrc:extended-information {
+        refine "extended-information" {
+          if-feature "extended-information";
+        }
+        refine "extended-information/user-eeprom" {
+          if-feature "user-eeprom";
+        }
+        refine "extended-information/user-eeprom/string" {
+          if-feature "user-eeprom-string";
+        }
+        refine "extended-information/user-eeprom/binary" {
+          if-feature "user-eeprom-binary";
+        }
+      }
+    }
+  }
+  augment "/bbf-onus:onus/bbf-onum:onu/bbf-onum:data-instance-from-template/bbf-onu-hw:hardware/bbf-onu-hw:component" {
+    when "derived-from-or-self(bbf-onu-hw:class,'bbf-hwt:transceiver-link')";
+    description
+      "State data nodes for hardware components of identity class
+       'transceiver-link'.";
+    container transceiver-link {
+      description
+        "Data nodes for hardware components of identity class
+         'transceiver-link'.";
+      uses bbf-onu-hw-xcvrc:link-parameters;
+      container diagnostics {
+        presence "If present, indicates that digital diagnostics monitoring
+         has been implemented in the transceiver. Received power
+         monitoring, transmit power monitoring and bias current
+         monitoring must all be implemented.";
+        description
+          "Diagnostic data of the transceiver link.";
+        reference
+          "SFF-8472 (Revision 12.4) Section 8.8 - Address A0h,
+           Byte 92;
+           SFF-8472 (Revision 12.4) Section 9";
+        uses bbf-onu-hw-xcvrc:link-diagnostic-parameters {
+          refine "power-dbm" {
+            if-feature "optical-power-and-sensitivity-in-dbm";
+          }
+        }
+        uses bbf-onu-hw-xcvrc:link-alarm-diagnostic-parameters;
+      }
+    }
+  }
+}

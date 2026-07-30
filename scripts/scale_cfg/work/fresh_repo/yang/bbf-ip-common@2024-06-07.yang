@@ -1,0 +1,594 @@
+module bbf-ip-common {
+  yang-version 1.1;
+  namespace "urn:bbf:yang:bbf-ip-common";
+  prefix bbf-ipc;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import ietf-yang-types {
+    prefix yang;
+  }
+
+  organization
+    "Broadband Forum <https://www.broadband-forum.org>
+     Common YANG Work Area";
+  contact
+    "Comments or questions about this Broadband Forum YANG module
+     should be directed to <mailto:help@broadband-forum.org>.
+
+     Editor:      Joey Boyd, Adtran
+
+     Editor:      Robert Peschi, Nokia
+
+     PS Leader:   Joey Boyd, Adtran
+
+     WA Director: Marta Seda, Calix";
+  description
+    "This module contains a collection of YANG definitions for
+     supporting the Broadband Forum requirements on the management of
+     Optical Network Units (ONUs).
+
+     Specifically,this module contains a collection of YANG
+     definitions for managing IP implementations.
+
+     This module is based on definitions provided in:
+     - module ietf-ip.yang, revision 2014-06-16, RFC 7277.
+
+     Copyright (c) 2024, Broadband Forum
+
+     Redistribution and use in source and binary forms, with or
+     without modification, are permitted provided that the following
+     conditions are met:
+
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+
+     2. Redistributions in binary form must reproduce the above
+        copyright notice, this list of conditions and the following
+        disclaimer in the documentation and/or other materials
+        provided with the distribution.
+
+     3. Neither the name of the copyright holder nor the names of its
+        contributors may be used to endorse or promote products
+        derived from this software without specific prior written
+        permission.
+
+     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+     CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+     INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+     CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+     STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+     ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+     The above license is used as a license under copyright only.
+     Please reference the Forum IPR Policy for patent licensing terms
+     <https://www.broadband-forum.org/ipr-policy>.
+
+     Any moral rights which are necessary to exercise under the above
+     license grant are also deemed granted under this license.
+
+     This version of this YANG module is part of WT-505; see the WT
+     itself for full legal notices.";
+
+  revision 2024-06-07 {
+    description
+      "TBD
+       * Approval Date:    TBD.
+       * Publication Date: TBD.";
+    reference
+      "TBD";
+  }
+
+  typedef ip-address-origin {
+    type enumeration {
+      enum "other" {
+        description
+          "None of the following.";
+      }
+      enum "static" {
+        description
+          "Indicates that the address has been statically
+           configured - for example, using NETCONF or a Command Line
+           Interface.";
+      }
+      enum "dhcp" {
+        description
+          "Indicates an address that has been assigned to this
+           system by a DHCP server.";
+      }
+      enum "link-layer" {
+        description
+          "Indicates an address created by IPv6 stateless
+           autoconfiguration that embeds a link-layer address in its
+           interface identifier.";
+      }
+      enum "random" {
+        description
+          "Indicates an address chosen by the system at
+           random, e.g., an IPv4 address within 169.254/16, an
+           RFC 4941 temporary address, or an RFC 7217 semantically
+           opaque address.";
+        reference
+          "RFC 4941;
+           RFC 7217";
+      }
+    }
+    description
+      "The origin of an address.";
+  }
+
+  typedef neighbor-origin {
+    type enumeration {
+      enum "other" {
+        description
+          "None of the following.";
+      }
+      enum "static" {
+        description
+          "Indicates that the mapping has been statically
+           configured - for example, using NETCONF or a Command Line
+           Interface.";
+      }
+      enum "dynamic" {
+        description
+          "Indicates that the mapping has been dynamically resolved
+           using, e.g., IPv4 ARP or the IPv6 Neighbor Discovery
+           protocol.";
+      }
+    }
+    description
+      "The origin of a neighbor entry.";
+  }
+
+  grouping ipv4-common {
+    description
+      "Parameters for configuring IPv4 on interfaces.";
+    container ipv4 {
+      presence "Enables IPv4 unless the 'enabled' leaf
+       (which defaults to 'true') is set to 'false'";
+      description
+        "Parameters for the IPv4 address family.";
+      leaf enabled {
+        type boolean;
+        description
+          "Controls whether IPv4 is enabled or disabled on this
+           interface.  When IPv4 is enabled, this interface is
+           connected to an IPv4 stack, and the interface can send
+           and receive IPv4 packets.";
+      }
+    }
+  }
+
+  grouping ipv4 {
+    description
+      "Parameters for configuring IPv4 on interfaces.";
+    uses ipv4-common {
+      augment "ipv4" {
+        description
+          "Augment with IPv4 address data nodes.";
+        list address {
+          key "ip";
+          description
+            "The list of configured IPv4 addresses on the interface.";
+          leaf ip {
+            type inet:ipv4-address-no-zone;
+            description
+              "The IPv4 address on the interface.";
+          }
+          choice subnet {
+            mandatory true;
+            description
+              "The subnet can be specified as a prefix-length, or,
+               if the server supports non-contiguous netmasks, as
+               a netmask.";
+            leaf prefix-length {
+              type uint8 {
+                range "0..32";
+              }
+              description
+                "The length of the subnet prefix.";
+            }
+          }
+        }
+      }
+    }
+  }
+
+  grouping ipv6-common {
+    description
+      "Parameters for configuring IPv6 on interfaces.";
+    container ipv6 {
+      presence "Enables IPv6 unless the 'enabled' leaf
+       (which defaults to 'true') is set to 'false'";
+      description
+        "Parameters for the IPv6 address family.";
+      leaf enabled {
+        type boolean;
+        description
+          "Controls whether IPv6 is enabled or disabled on this
+           interface.  When IPv6 is enabled, this interface is
+           connected to an IPv6 stack, and the interface can send
+           and receive IPv6 packets.";
+      }
+      leaf dup-addr-detect-transmits {
+        type uint32;
+        default "1";
+        description
+          "The number of consecutive Neighbor Solicitation messages
+           sent while performing Duplicate Address Detection on a
+           tentative address.  A value of zero indicates that
+           Duplicate Address Detection is not performed on
+           tentative addresses.  A value of one indicates a single
+           transmission with no follow-up retransmissions.";
+        reference
+          "RFC 4862";
+      }
+      container autoconf {
+        description
+          "Parameters to control the autoconfiguration of IPv6
+           addresses, as described in RFC 4862.";
+        reference
+          "RFC 4862";
+        leaf create-global-addresses {
+          type boolean;
+          default "true";
+          description
+            "If enabled, the host creates global addresses as
+             described in RFC 4862.";
+          reference
+            "RFC 4862 Section 5.5";
+        }
+        leaf create-temporary-addresses {
+          type boolean;
+          default "false";
+          description
+            "If enabled, the host creates temporary addresses as
+             described in RFC 4941.";
+          reference
+            "RFC 4941";
+        }
+        leaf temporary-valid-lifetime {
+          type uint32;
+          units "seconds";
+          default "604800";
+          description
+            "The time period during which the temporary address
+             is valid.";
+          reference
+            "RFC 4941 - TEMP_VALID_LIFETIME";
+        }
+        leaf temporary-preferred-lifetime {
+          type uint32;
+          units "seconds";
+          default "86400";
+          description
+            "The time period during which the temporary address is
+             preferred.";
+          reference
+            "RFC 4941 - TEMP_PREFERRED_LIFETIME";
+        }
+      }
+    }
+  }
+
+  grouping ipv6 {
+    description
+      "Parameters for configuring IPv4 on interfaces.";
+    uses ipv6-common {
+      augment "ipv6" {
+        description
+          "Augment with IPv6 address data nodes.";
+        list address {
+          key "ip";
+          description
+            "The list of configured IPv6 addresses on the interface.";
+          leaf ip {
+            type inet:ipv6-address-no-zone;
+            description
+              "The IPv6 address on the interface.";
+          }
+          leaf prefix-length {
+            type uint8 {
+              range "0..128";
+            }
+            description
+              "The length of the subnet prefix.";
+          }
+        }
+      }
+    }
+  }
+
+  grouping ipv4-g988-state {
+    description
+      "Data nodes for the operational state of IPv4 on interfaces.";
+    container ipv4 {
+      presence "Present if IPv4 is enabled on this interface";
+      config false;
+      description
+        "Interface-specific parameters for the IPv4 address family.";
+      list address {
+        key "ip";
+        description
+          "The list of IPv4 addresses on the interface.";
+        leaf ip {
+          type inet:ipv4-address-no-zone;
+          description
+            "The IPv4 address on the interface.";
+        }
+        choice subnet {
+          description
+            "The subnet can be specified as a prefix-length, or,
+             if the server supports non-contiguous netmasks, as
+             a netmask.";
+          leaf prefix-length {
+            type uint8 {
+              range "0..32";
+            }
+            description
+              "The length of the subnet prefix.";
+          }
+        }
+        leaf origin {
+          type ip-address-origin;
+          description
+            "The origin of this address.";
+        }
+      }
+    }
+  }
+
+  grouping ipv4-state {
+    description
+      "Data nodes for the operational state of IPv4 on interfaces.";
+    uses ipv4-g988-state {
+      augment "ipv4" {
+        description
+          "Augment with IPv4 state data nodes not supported by OMCI.";
+        leaf forwarding {
+          type boolean;
+          description
+            "Indicates whether IPv4 packet forwarding is enabled or
+             disabled on this interface.";
+        }
+        leaf mtu {
+          type uint16 {
+            range "68..max";
+          }
+          units "octets";
+          description
+            "The size, in octets, of the largest IPv4 packet that the
+             interface will send and receive.";
+          reference
+            "RFC 791";
+        }
+        list neighbor {
+          key "ip";
+          description
+            "A list of mappings from IPv4 addresses to
+             link-layer addresses.
+
+             This list represents the ARP Cache.";
+          reference
+            "RFC 826";
+          leaf ip {
+            type inet:ipv4-address-no-zone;
+            description
+              "The IPv4 address of the neighbor node.";
+          }
+          leaf link-layer-address {
+            type yang:phys-address;
+            description
+              "The link-layer address of the neighbor node.";
+          }
+          leaf origin {
+            type neighbor-origin;
+            description
+              "The origin of this neighbor entry.";
+          }
+        }
+      }
+    }
+  }
+
+  grouping ipv6-g988-state {
+    description
+      "Data nodes for the operational state of IPv6 on interfaces.";
+    container ipv6 {
+      presence "Present if IPv6 is enabled on this interface";
+      config false;
+      description
+        "Parameters for the IPv6 address family.";
+      list address {
+        key "ip";
+        description
+          "The list of IPv6 addresses on the interface.";
+        leaf ip {
+          type inet:ipv6-address-no-zone;
+          description
+            "The IPv6 address on the interface.";
+        }
+        leaf prefix-length {
+          type uint8 {
+            range "0..128";
+          }
+          description
+            "The length of the subnet prefix.";
+        }
+        leaf origin {
+          type ip-address-origin;
+          description
+            "The origin of this address.";
+        }
+        leaf status {
+          type enumeration {
+            enum "preferred" {
+              description
+                "This is a valid address that can appear as the
+                 destination or source address of a packet.";
+            }
+            enum "deprecated" {
+              description
+                "This is a valid but deprecated address that should
+                 no longer be used as a source address in new
+                 communications, but packets addressed to such an
+                 address are processed as expected.";
+            }
+            enum "invalid" {
+              description
+                "This isn't a valid address, and it shouldn't appear
+                 as the destination or source address of a packet.";
+            }
+            enum "inaccessible" {
+              description
+                "The address is not accessible because the interface
+                 to which this address is assigned is not
+                 operational.";
+            }
+            enum "unknown" {
+              description
+                "The status cannot be determined for some reason.";
+            }
+            enum "tentative" {
+              description
+                "The uniqueness of the address on the link is being
+                 verified.  Addresses in this state should not be
+                 used for general communication and should only be
+                 used to determine the uniqueness of the address.";
+            }
+            enum "duplicate" {
+              description
+                "The address has been determined to be non-unique on
+                 the link and so must not be used.";
+            }
+            enum "optimistic" {
+              description
+                "The address is available for use, subject to
+                 restrictions, while its uniqueness on a link is
+                 being verified.";
+            }
+          }
+          description
+            "The status of an address.  Most of the states correspond
+             to states from the IPv6 Stateless Address
+             Autoconfiguration protocol.";
+          reference
+            "RFC 4293 - IpAddressStatusTC;
+             RFC 4862";
+        }
+      }
+    }
+  }
+
+  grouping ipv6-state {
+    description
+      "Data nodes for the operational state of IPv6 on interfaces.";
+    uses ipv6-g988-state {
+      augment "ipv6" {
+        description
+          "Augment with IPv6 state data nodes not supported by OMCI.";
+        leaf forwarding {
+          type boolean;
+          description
+            "Indicates whether IPv6 packet forwarding is enabled or
+             disabled on this interface.";
+          reference
+            "RFC 4861: Neighbor Discovery for IP version 6 (IPv6)
+                       Section 6.2.1, IsRouter";
+        }
+        leaf mtu {
+          type uint32 {
+            range "1280..max";
+          }
+          units "octets";
+          description
+            "The size, in octets, of the largest IPv6 packet that the
+             interface will send and receive.";
+          reference
+            "RFC 2460 Section 5";
+        }
+        list neighbor {
+          key "ip";
+          description
+            "A list of mappings from IPv6 addresses to
+             link-layer addresses.
+
+             This list represents the Neighbor Cache.";
+          reference
+            "RFC 4861";
+          leaf ip {
+            type inet:ipv6-address-no-zone;
+            description
+              "The IPv6 address of the neighbor node.";
+          }
+          leaf link-layer-address {
+            type yang:phys-address;
+            description
+              "The link-layer address of the neighbor node.";
+          }
+          leaf origin {
+            type neighbor-origin;
+            description
+              "The origin of this neighbor entry.";
+          }
+          leaf is-router {
+            type empty;
+            description
+              "Indicates that the neighbor node acts as a router.";
+          }
+          leaf state {
+            type enumeration {
+              enum "incomplete" {
+                description
+                  "Address resolution is in progress, and the
+                   link-layer address of the neighbor has not yet been
+                   determined.";
+              }
+              enum "reachable" {
+                description
+                  "Roughly speaking, the neighbor is known to have
+                   been reachable recently (within tens of seconds
+                   ago).";
+              }
+              enum "stale" {
+                description
+                  "The neighbor is no longer known to be reachable,
+                   but until traffic is sent to the neighbor no
+                   attempt should be made to verify its
+                   reachability.";
+              }
+              enum "delay" {
+                description
+                  "The neighbor is no longer known to be reachable,
+                   and traffic has recently been sent to the neighbor.
+                   Rather than probe the neighbor immediately,
+                   however, delay sending probes for a short while in
+                   order to give upper-layer protocols a chance to
+                   provide reachability confirmation.";
+              }
+              enum "probe" {
+                description
+                  "The neighbor is no longer known to be reachable,
+                   and unicast Neighbor Solicitation probes are being
+                   sent to verify reachability.";
+              }
+            }
+            description
+              "The Neighbor Unreachability Detection state of this
+               entry.";
+            reference
+              "RFC 4861 Section 7.3.2";
+          }
+        }
+      }
+    }
+  }
+}

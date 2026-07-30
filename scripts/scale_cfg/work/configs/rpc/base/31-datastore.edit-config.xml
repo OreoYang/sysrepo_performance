@@ -1,0 +1,12 @@
+<edit-config>
+    <target>
+        <running/>
+    </target>
+    <test-option>test-then-set</test-option>
+    <error-option>rollback-on-error</error-option>
+    <config xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+        <datastore xmlns="urn:vecima:yang:vecima-netconf-server-ext">
+          <running-config-txid>252124145</running-config-txid>
+        </datastore>
+    </config>
+</edit-config>
