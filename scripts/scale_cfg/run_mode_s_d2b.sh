@@ -65,8 +65,16 @@ if [[ ! -s "${EXPORT_XML}" ]]; then
         || die "export failed"
 fi
 
-log "Step A: split export.xml"
-python3 "${SCRIPT_DIR}/split_export.py" --export "${EXPORT_XML}" --out "${CONFIGS_DIR}" 2>&1 | tee -a "${LOG}"
+if [[ "${SKIP_SPLIT:-0}" == "1" ]]; then
+    log "Step A: skip split (SKIP_SPLIT=1), using existing ${CONFIGS_DIR}"
+else
+    log "Step A: split export.xml"
+    python3 "${SCRIPT_DIR}/split_export.py" --export "${EXPORT_XML}" --out "${CONFIGS_DIR}" 2>&1 | tee -a "${LOG}"
+fi
+if [[ -n "${EXTEND_ONU_COUNT:-}" && "${EXTEND_ONU_COUNT}" -gt 0 ]]; then
+    log "Step A.1: extend ${EXTEND_ONU_COUNT} synthetic ONUs"
+    python3 "${SCRIPT_DIR}/extend_onu_configs.py" --configs "${CONFIGS_DIR}" --count "${EXTEND_ONU_COUNT}" --emit-rpc 2>&1 | tee -a "${LOG}"
+fi
 
 rm -rf "${FRESH_REPO}"
 mkdir -p "${FRESH_REPO}"
@@ -81,6 +89,7 @@ log "Step B1: install YANG on fresh repo"
 base_order_before_templates=(
     hardware.xml
     qos-stack.xml
+    voip-stack.xml
     platform-stack.xml
     network-vsubif.xml
     xpongemtcont-base.xml

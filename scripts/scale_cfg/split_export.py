@@ -17,6 +17,9 @@ BBF_ONUS_NS = "urn:bbf:yang:bbf-onus"
 BBF_ONU_MGMT_NS = "urn:bbf:yang:bbf-onu-management"
 BBF_FWD_NS = "urn:bbf:yang:bbf-l2-forwarding"
 BBF_XGEM_NS = "urn:bbf:yang:bbf-xpongemtcont"
+BBF_VOIP_MEDIA_NS = "urn:bbf:yang:bbf-voip-media"
+BBF_VOIP_SIP_NS = "urn:bbf:yang:bbf-voip-sip"
+VECIMA_ONU_VOIP_NS = "urn:vecima:yang:vecima-onu-voip"
 
 TOP_TAGS = [
     "l2-dhcpv4-relay-profiles",
@@ -38,6 +41,8 @@ TOP_TAGS = [
     "device",
     "datastore",
     "subsys",
+    "media",
+    "sip",
 ]
 
 BASE_SHARED_TAGS = [
@@ -56,10 +61,26 @@ BASE_SHARED_TAGS = [
     "device",
     "datastore",
     "subsys",
+    "media",
+    "sip",
 ]
 
 
 def extract_module(text: str, tag: str) -> str | None:
+    if tag == "media":
+        m = re.search(
+            rf"^<media xmlns=\"{re.escape(BBF_VOIP_MEDIA_NS)}\">.*?</media>",
+            text,
+            re.DOTALL | re.MULTILINE,
+        )
+        return m.group(0) if m else None
+    if tag == "sip":
+        m = re.search(
+            rf"^<sip xmlns=\"{re.escape(BBF_VOIP_SIP_NS)}\">.*?</sip>",
+            text,
+            re.DOTALL | re.MULTILINE,
+        )
+        return m.group(0) if m else None
     if tag == "interfaces":
         m = re.search(
             rf"^<interfaces xmlns=\"{re.escape(IETF_IF_NS)}\">.*?</interfaces>",
@@ -170,8 +191,24 @@ def onu_create_body(onu_block: str) -> str:
     )
 
 
+def onu_service_voip_instance(onu_block: str) -> str | None:
+    """Per-ONU vecima-onu-voip sip under data-instance-from-template."""
+    sip = re.search(
+        rf'<sip xmlns="{re.escape(VECIMA_ONU_VOIP_NS)}">.*?</sip>',
+        onu_block,
+        re.DOTALL,
+    )
+    if not sip:
+        return None
+    return (
+        "    <data-instance-from-template>\n"
+        f"      {sip.group(0)}\n"
+        "    </data-instance-from-template>"
+    )
+
+
 def onu_service_meta_body(onu_block: str) -> str:
-    """Second RPC: meta-data with template-references replace (no data-instance-from-template)."""
+    """Second RPC: meta-data replace; include per-ONU voip instance when present."""
     name = element_name(onu_block)
     meta = re.search(r"<meta-data>.*?</meta-data>", onu_block, re.DOTALL)
     if not name or not meta:
@@ -184,12 +221,16 @@ def onu_service_meta_body(onu_block: str) -> str:
             meta_xml,
             count=1,
         )
-    return (
-        f'  <onu xmlns="{BBF_ONU_MGMT_NS}">\n'
-        f"    <name>{name}</name>\n"
-        f"    {meta_xml}\n"
-        f"  </onu>"
-    )
+    voip_xml = onu_service_voip_instance(onu_block)
+    parts = [
+        f'  <onu xmlns="{BBF_ONU_MGMT_NS}">',
+        f"    <name>{name}</name>",
+        f"    {meta_xml}",
+    ]
+    if voip_xml:
+        parts.append(voip_xml)
+    parts.append("  </onu>")
+    return "\n".join(parts)
 
 
 def is_network_vsubif(iface_block: str) -> bool:
@@ -267,6 +308,7 @@ def template_slug(name: str) -> str:
 BASE_RPC_ORDER = [
     "hardware.xml",
     "qos-stack.xml",
+    "voip-stack.xml",
     "platform-stack.xml",
     "network-vsubif.xml",
     "xpongemtcont-base.xml",
@@ -484,6 +526,15 @@ def main() -> int:
             }
         )
 
+    voip_parts = [modules[tag] for tag in ("media", "sip") if modules.get(tag)]
+    if voip_parts:
+        manifest["base"].append(
+            {
+                "file": "voip-stack.xml",
+                "bytes": write_text(base_dir / "voip-stack.xml", "\n".join(voip_parts) + "\n"),
+            }
+        )
+
     for tag in ["system", "device", "datastore", "subsys", "keystore", "truststore", "netconf-server", "lldp"]:
         if modules.get(tag):
             manifest["base"].append(
@@ -696,7 +747,8 @@ def main() -> int:
             for fw_name, ports in by_fw.items():
                 service_parts.append(wrap_forwarder_ports(fw_name, ports).strip())
 
-        if len(service_parts) <= 2 and not fwd_items and not xpon_items and not svc_ifaces:
+        has_voip = onu_service_voip_instance(onu_block) is not None
+        if len(service_parts) <= 2 and not fwd_items and not xpon_items and not svc_ifaces and not has_voip:
             continue
         service_path = service_dir / f"{prefix}.xml"
         manifest["service"].append(

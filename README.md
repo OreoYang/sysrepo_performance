@@ -5,6 +5,8 @@ Measures incremental `sysrepocfg --edit` time (Mode S D2b): base + per-ONU provi
 
 Detailed design notes: [`scripts/scale_cfg/PLAN.md`](scripts/scale_cfg/PLAN.md).
 
+**Confluence:** [LargeScale Config Test Performance](https://vecima.atlassian.net/wiki/spaces/~Oreo.Yang/pages/237766811/LargeScale+Config+Test+Performance) — results summary in [`docs/confluence-LargeScale-Config-Test-Performance.md`](docs/confluence-LargeScale-Config-Test-Performance.md).
+
 ## Repository layout
 
 ```text

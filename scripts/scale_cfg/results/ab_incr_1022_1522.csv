@@ -1,0 +1,9 @@
+timestamp,mode,kind,n,ok,fail,seconds,first_s,mid_s,last_s,status
+2026-08-15T18:09:46+08:00,full,serial_provision,1022,,,215.442,0.0347,0.1911,0.3727,ok
+2026-08-15T18:09:46+08:00,full,serial_service,1022,,,1524.516,0.4228,1.4292,2.7312,fail
+2026-08-15T18:16:23+08:00,editdiff,serial_provision,1022,,,30.608,0.0149,0.0314,0.0417,ok
+2026-08-15T18:16:23+08:00,editdiff,serial_service,1022,,,361.998,0.0389,0.2957,0.8050,fail
+2026-08-15T19:33:58+08:00,full,serial_provision,1522,,,457.412,0.0400,0.2855,0.6054,ok
+2026-08-15T19:33:58+08:00,full,serial_service,1522,,,4194.808,0.5907,2.4364,7.0250,ok
+2026-08-15T19:52:36+08:00,editdiff,serial_provision,1522,,,64.072,0.0236,0.0415,0.0727,ok
+2026-08-15T19:52:36+08:00,editdiff,serial_service,1522,,,1049.040,0.0826,0.6038,1.7870,ok

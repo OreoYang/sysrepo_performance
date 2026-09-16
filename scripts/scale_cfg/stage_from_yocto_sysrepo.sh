@@ -23,6 +23,11 @@ else
     cp -a "${LIBYANG_NATIVE_ROOT}/usr/lib/." "${RUNTIME_DIR}/usr/lib/" 2>/dev/null || true
     cp -a "${LIBYANG_NATIVE_ROOT}/usr/share/." "${RUNTIME_DIR}/usr/share/" 2>/dev/null || true
 fi
+# sysrepo-native may omit libyang headers; needed to compile sr_edit_files against this runtime.
+if [[ -d "${LIBYANG_NATIVE_ROOT}/usr/include/libyang" ]]; then
+    mkdir -p "${RUNTIME_DIR}/usr/include"
+    cp -a "${LIBYANG_NATIVE_ROOT}/usr/include/." "${RUNTIME_DIR}/usr/include/"
+fi
 
 [[ -x "${RUNTIME_DIR}/usr/bin/sysrepocfg" ]] || die "sysrepocfg not staged"
 [[ -f "${RUNTIME_DIR}/usr/lib/libyang.so" || -f "${RUNTIME_DIR}/usr/lib/libyang.so.3" ]] || die "libyang not staged"
