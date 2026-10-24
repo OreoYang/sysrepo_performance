@@ -54,6 +54,37 @@ csv_escape(FILE *f, const char *str)
     fputc('"', f);
 }
 
+/**
+ * @brief Number of data-parent steps from the context node of @p cons up to its outermost list, -1 if none.
+ *
+ * An expression whose relative path climbs more steps than this reads outside the list instance that an edit of
+ * the constrained node is revalidated in.
+ */
+static int
+up_to_outer(const struct lyd_val_constraint *cons)
+{
+    const struct lysc_node *ctx = cons->snode, *n;
+    struct lysc_when **whens;
+    LY_ARRAY_COUNT_TYPE u;
+    int steps, outer = -1;
+
+    if (cons->kind == LYD_VAL_DEP_WHEN) {
+        whens = lysc_node_when(cons->snode);
+        LY_ARRAY_FOR(whens, u) {
+            if (lyxp_get_expr(whens[u]->cond) == cons->expr) {
+                ctx = whens[u]->context;
+                break;
+            }
+        }
+    }
+    for (n = ctx, steps = 0; n; n = lysc_data_parent(n), ++steps) {
+        if (n->nodetype == LYS_LIST) {
+            outer = steps;
+        }
+    }
+    return outer;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -63,7 +94,7 @@ main(int argc, char **argv)
     const struct lyd_val_dep_index *index;
     uint32_t idx = 0, i, c;
     uint64_t total[LYD_VAL_DEP_CLASS_COUNT] = {0};
-    uint64_t total_all = 0, total_unsafe = 0, total_unconfined = 0, total_toplevel_atoms = 0;
+    uint64_t total_all = 0, total_unsafe = 0, total_unconfined = 0, total_toplevel_atoms = 0, total_unanalysable = 0;
     FILE *out;
     char *path;
     int rc = 1;
@@ -80,7 +111,7 @@ main(int argc, char **argv)
     }
     ctx = sr_acquire_context(conn);
 
-    fprintf(out, "module,node,kind,class,creation_safe,unit,atoms,expr\n");
+    fprintf(out, "module,node,kind,class,creation_safe,unit,atoms,up_to_outer,expr\n");
 
     while ((mod = ly_ctx_get_module_iter(ctx, &idx))) {
         if (!mod->implemented) {
@@ -92,6 +123,10 @@ main(int argc, char **argv)
         }
 
         total_toplevel_atoms += index->toplevel_atoms.count;
+        if (index->unanalysable) {
+            fprintf(stderr, "always validated in full: %s\n", mod->name);
+            ++total_unanalysable;
+        }
 
         for (i = 0; i < index->constraint_count; ++i) {
             const struct lyd_val_constraint *cons = &index->constraints[i];
@@ -101,9 +136,9 @@ main(int argc, char **argv)
 
             path = lysc_path(cons->snode, LYSC_PATH_LOG, NULL, 0);
             unit = cons->unit ? lysc_path(cons->unit, LYSC_PATH_LOG, NULL, 0) : NULL;
-            fprintf(out, "%s,%s,%s,%s,%u,%s,%u,", mod->name, path ? path : "?",
+            fprintf(out, "%s,%s,%s,%s,%u,%s,%u,%d,", mod->name, path ? path : "?",
                     lyd_val_dep_kind_str(cons->kind), lyd_val_dep_class_str(cons->cls), cons->creation_safe,
-                    unit ? unit : "", c);
+                    unit ? unit : "", c, up_to_outer(cons));
             csv_escape(out, cons->expr);
             fputc('\n', out);
             free(path);
@@ -130,6 +165,7 @@ main(int argc, char **argv)
     fprintf(stderr, "  confined but not to any list: %llu (%.1f%%), %llu schema nodes widen the scope\n",
             (unsigned long long)total_unconfined, total_all ? (100.0 * total_unconfined) / total_all : 0.0,
             (unsigned long long)total_toplevel_atoms);
+    fprintf(stderr, "  modules always validated in full: %llu\n", (unsigned long long)total_unanalysable);
 
     rc = 0;
 

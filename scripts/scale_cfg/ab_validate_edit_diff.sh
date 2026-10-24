@@ -26,6 +26,10 @@ AB_N_LIST="${AB_N_LIST:-}"
 AB_MODE="${AB_MODE:-both}"
 SR_EDIT_FILES="${SR_EDIT_FILES:-${SCRIPT_DIR}/.local/bin/sr_edit_files}"
 SR_EDIT_EXTRA="${SR_EDIT_EXTRA:-}"
+# AB_DELETE=1: after provision+service, delete the same ONUs again (SR_EDIT_DEL, built from sr_edit_files.c)
+AB_DELETE="${AB_DELETE:-0}"
+SR_EDIT_DEL="${SR_EDIT_DEL:-${SCRIPT_DIR}/.local/bin/sr_edit_files_del}"
+AB_EXPORT_DIR="${AB_EXPORT_DIR:-${RESULTS_DIR}/delete_exports}"
 
 log() { echo "$*" | tee -a "${LOG}"; }
 die() { log "error: $*"; exit 1; }
@@ -165,6 +169,11 @@ run_serial() {
     import_base
     python3 "${SCRIPT_DIR}/verify_base_ready.py" --configs "${CONFIGS_DIR}" >> "${LOG}" 2>&1 \
         || die "base preflight failed"
+    if [[ "${AB_DELETE}" == "1" ]]; then
+        mkdir -p "${AB_EXPORT_DIR}"
+        "${SYSREPOCFG_EXECUTABLE}" --export="${AB_EXPORT_DIR}/base_${mode}_${n}.xml" -d running -f xml \
+            >> "${LOG}" 2>&1 || log "warn: base export failed"
+    fi
 
     tmp=$(mktemp)
     t0=$(date +%s.%N)
@@ -197,6 +206,40 @@ run_serial() {
     st_s=$([ "${svc_ok}" -eq 0 ] && echo ok || echo fail)
     echo "$(date -Iseconds),${mode},serial_provision,${n},,,${prov_s},${psum},${st_p}" >> "${CSV}"
     echo "$(date -Iseconds),${mode},serial_service,${n},,,${svc_s},${ssum},${st_s}" >> "${CSV}"
+
+    [[ "${AB_DELETE}" == "1" ]] && run_delete "${mode}" "${n}" "${prov_n}" "${svc_n}"
+    return 0
+}
+
+# Undo the ONUs just added, service first, one apply per ONU file; then export running so the modes can be compared.
+run_delete() {
+    local mode="$1" n="$2" prov_n="$3" svc_n="$4"
+    local tmp phase t0 t1 secs sum rc st
+    local files=("${PROV_FILES[@]:0:${prov_n}}" "${SVC_FILES[@]:0:${svc_n}}")
+
+    [[ -x "${SR_EDIT_DEL}" ]] || die "delete tool missing at ${SR_EDIT_DEL}"
+    tmp=$(mktemp)
+    for phase in service provision; do
+        : > "${tmp}"
+        t0=$(date +%s.%N)
+        set +e
+        "${SR_EDIT_DEL}" --delete-phase "${phase}" --prov-count "${prov_n}" "${files[@]}" > "${tmp}" 2>&1
+        rc=$?
+        set -e
+        t1=$(date +%s.%N)
+        cat "${tmp}" >> "${LOG}"
+        parse_serial "${mode}" "delete_${phase}" "${tmp}"
+        sum=$(summarize_from_tmp "${tmp}")
+        secs=$(awk -v s="${t0}" -v e="${t1}" 'BEGIN { printf "%.3f", e-s }')
+        log "serial delete_${phase} N=${n} mode=${mode} total=${secs}s rc=${rc}"
+        st=$([ "${rc}" -eq 0 ] && echo ok || echo fail)
+        echo "$(date -Iseconds),${mode},serial_delete_${phase},${n},,,${secs},${sum},${st}" >> "${CSV}"
+    done
+    rm -f "${tmp}"
+
+    mkdir -p "${AB_EXPORT_DIR}"
+    "${SYSREPOCFG_EXECUTABLE}" --export="${AB_EXPORT_DIR}/after_delete_${mode}_${n}.xml" -d running -f xml \
+        >> "${LOG}" 2>&1 || log "warn: export after delete failed"
 }
 
 run_late() {

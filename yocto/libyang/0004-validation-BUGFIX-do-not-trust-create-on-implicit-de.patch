@@ -1,0 +1,136 @@
+From c02e70bc1700eeef40ba94fc198ac87152771b40 Mon Sep 17 00:00:00 2001
+From: "Oreo.Yang" <2167young@163.com>
+Date: Sat, 24 Oct 2026 14:08:58 +0800
+Subject: [PATCH] validation BUGFIX do not trust create on implicit defaults
+
+A diff that does not describe default nodes can call a node created
+when it only replaced an implicit default container or leaf. Count such
+nodes as modified so creation-safe constraints are still rechecked.
+
+Extend the default-case-in-default-container test with an explicit
+leaf that replaces its default value.
+---
+ src/validation_deps.c                    | 11 ++++-------
+ src/validation_deps.h                    |  9 +++++++++
+ src/validation_incr.c                    |  7 ++++---
+ tests/utests/data/test_validation_incr.c | 16 ++++++++++++----
+ 4 files changed, 29 insertions(+), 14 deletions(-)
+
+diff --git a/src/validation_deps.c b/src/validation_deps.c
+index 460bd40..a380574 100644
+--- a/src/validation_deps.c
++++ b/src/validation_deps.c
+@@ -788,11 +788,8 @@ lyd_val_dep_add_leafrefs(struct lyd_val_dep_index *index, const struct lysc_node
+     }
+ }
+ 
+-/**
+- * @brief Whether a node can appear in the data without anyone asking for it.
+- */
+-static ly_bool
+-lyd_val_dep_is_implicit(const struct lysc_node *snode)
++ly_bool
++lyd_val_deps_is_implicit(const struct lysc_node *snode)
+ {
+     switch (snode->nodetype) {
+     case LYS_LEAF:
+@@ -819,7 +816,7 @@ lyd_val_dep_add_node(struct lyd_val_dep_index *index, const struct lysc_node *sn
+     LY_ERR rc = LY_SUCCESS;
+ 
+     whens = lysc_node_when(snode);
+-    if (whens && lyd_val_dep_is_implicit(snode)) {
++    if (whens && lyd_val_deps_is_implicit(snode)) {
+         LY_CHECK_RET(ly_set_add(&index->dflt_when, (void *)snode, 0, NULL));
+     }
+     LY_ARRAY_FOR(whens, u) {
+@@ -838,7 +835,7 @@ lyd_val_dep_add_node(struct lyd_val_dep_index *index, const struct lysc_node *sn
+ 
+         /* an implicit default appears without the edit describing it, so its value could not be recognised as
+          * touched and the constraint has to keep being evaluated on every instance */
+-        if (!rc && (cls == LYD_VAL_DEP_BOUNDED) && !lyd_val_dep_is_implicit(snode) &&
++        if (!rc && (cls == LYD_VAL_DEP_BOUNDED) && !lyd_val_deps_is_implicit(snode) &&
+                 lyd_val_dep_value_keyed_shape(musts[u].cond, snode, atom_set)) {
+             rc = lyd_val_dep_value_keyed_mark(index, musts[u].cond);
+         }
+diff --git a/src/validation_deps.h b/src/validation_deps.h
+index a95dc80..2256d33 100644
+--- a/src/validation_deps.h
++++ b/src/validation_deps.h
+@@ -173,6 +173,15 @@ LY_ERR lyd_val_deps_get(const struct lys_module *mod, const struct lyd_val_dep_i
+ ly_bool lyd_val_deps_value_keyed(const struct lyd_val_dep_index *index, const struct lysc_node *snode,
+         const struct lyxp_expr *cond);
+ 
++/**
++ * @brief Whether a node can appear in the data without anyone asking for it.
++ *
++ * @param[in] snode Schema node to check.
++ * @return Whether its instance can be an implicit default (a non-presence container, a leaf or leaf-list with a
++ * default).
++ */
++ly_bool lyd_val_deps_is_implicit(const struct lysc_node *snode);
++
+ /**
+  * @brief Free all cached dependency indexes of a context.
+  *
+diff --git a/src/validation_incr.c b/src/validation_incr.c
+index 5af9ec0..8d6265d 100644
+--- a/src/validation_incr.c
++++ b/src/validation_incr.c
+@@ -430,9 +430,10 @@ lyd_val_incr_collect(const struct lyd_node *tree, const struct lys_module *mod,
+             }
+ 
+             /* remember what the edit touched, for every module: a constraint of the validated module may well
+-             * read another module's data */
+-            LY_CHECK_RET(lyd_val_incr_touch((op == LYD_DIFF_OP_CREATE) ? &incr->created : &incr->modified,
+-                    diter->schema));
++             * read another module's data; a diff that does not describe defaults calls a node created even when
++             * it replaced an implicit one, so such a create may have removed or changed default data */
++            LY_CHECK_RET(lyd_val_incr_touch(((op == LYD_DIFF_OP_CREATE) && !lyd_val_deps_is_implicit(diter->schema)) ?
++                    &incr->created : &incr->modified, diter->schema));
+ 
+             /* collected for every module as well: the same value may be held by data of another module */
+             LY_CHECK_RET(lyd_val_incr_values(index, diter, incr));
+diff --git a/tests/utests/data/test_validation_incr.c b/tests/utests/data/test_validation_incr.c
+index cc6ad56..541f9e8 100644
+--- a/tests/utests/data/test_validation_incr.c
++++ b/tests/utests/data/test_validation_incr.c
+@@ -1254,10 +1254,9 @@ test_aug_dflt_replace(void **state)
+  * @brief The default case is replaced inside a container that only existed as a default.
+  *
+  * The edit diff does not see default nodes, so it calls the whole b-cfg of x1 created, and the m1-val default that
+- * the validation of b then deletes merges away into that create. The must of c-ref/m1need is creation-safe, a
+- * created b-cfg cannot make it false, so the final pass of c skips it: incremental accepts what full rejects.
+- *
+- * Passes with a diff that describes default nodes (LYD_DIFF_DEFAULTS), which is the shape sysrepo produces.
++ * the validation of b then deletes merges away into that create. The must of c-ref/m1need is creation-safe, yet
++ * the created b-cfg replaced a default one, so it must not be skipped. The same holds for an explicit m1-val the
++ * diff calls created while it replaced the default value.
+  */
+ static void
+ test_aug_dflt_case_in_dflt(void **state)
+@@ -1265,13 +1264,22 @@ test_aug_dflt_case_in_dflt(void **state)
+     struct lyd_node *before, *start;
+     const char *setup[] = {"/c:c-refs/c-ref[name='r4']/ifname", "x1", "/c:c-refs/c-ref[name='r4']/m1need", "y",
+         NULL, NULL};
++    const char *setup_x1[] = {"/c:c-refs/c-ref[name='r4']/ifname", "x1", "/c:c-refs/c-ref[name='r4']/m1need", "y",
++        "/a:ifs/if[name='x1']/b:b-cfg/speed", "200", NULL, NULL};
+     const char *to_m2[] = {"/a:ifs/if[name='x1']/b:b-cfg/m2-val", "5", NULL, NULL};
++    const char *m1_2[] = {"/a:ifs/if[name='x1']/b:b-cfg/m1-val", "2", NULL, NULL};
+ 
+     aug_setup(state);
+     before = parse_valid(state, aug_xml);
+     start = aug_start(state, before, setup);
+ 
+     aug_check_multi(state, start, to_m2, LY_EVALID);
++    aug_check_multi(state, start, m1_2, LY_EVALID);
++    lyd_free_siblings(start);
++
++    /* b-cfg is explicit, only the leaf replaces its default */
++    start = aug_start(state, before, setup_x1);
++    aug_check_multi(state, start, m1_2, LY_EVALID);
+ 
+     lyd_free_siblings(start);
+     lyd_free_siblings(before);
+-- 
+2.47.3
+
