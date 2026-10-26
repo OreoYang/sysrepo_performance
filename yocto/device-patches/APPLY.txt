@@ -15,16 +15,16 @@ Preferred: Yocto layer (other server has meta-xpon)
   bitbake -c cleansstate libyang libyang-native sysrepo sysrepo-native netconf-polt netopeer2
   bitbake xpon-olt-image
 
-The patch adds libyang 0001-0006 and sysrepo 0004-0006 to the two bbappends. It does not touch the service
+The patch adds one libyang patch (0001) and one sysrepo patch (0004) to the two bbappends. It does not touch the service
 files. To ship the image with full validation, add EXTRA_OECMAKE:append = " -DENABLE_VALIDATE_INCREMENTAL=OFF"
 to sysrepo_%.bbappend and rebuild.
 
 The component patches alone, for `git am` on a clean tree:
 
-  libyang-incremental-validation.patch   on libyang 3.9.13  (6 patches)
-  sysrepo-incremental-validation.patch   on sysrepo 3.7.11 + the meta-xpon 0001-0003 patches (3 patches)
+  libyang-incremental-validation.patch   on libyang 3.9.13
+  sysrepo-incremental-validation.patch   on sysrepo 3.7.11 + the meta-xpon 0001-0003 patches
 
-The sysrepo 0005 patch needs libyang 0005 (lyd_validate_incr_late_stats), so take both series together.
+The sysrepo patch calls lyd_validate_incr_late_stats() and needs the libyang patch, take both together.
 
 After boot, check which validator a process uses, in the journal of any sysrepo user:
 

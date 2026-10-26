@@ -1,11 +1,55 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Oreo.Yang <2167young@163.com>
-Date: Tue, 18 Aug 2026 09:58:00 +0800
-Subject: [PATCH] validation FEATURE use the incremental validator when the diff is complete
+From bb48430f48e885de24b50cc71175208269339f2c Mon Sep 17 00:00:00 2001
+From: "Oreo.Yang" <2167young@163.com>
+Date: Mon, 26 Oct 2026 10:46:43 +0800
+Subject: [PATCH] validation FEATURE use the incremental validator when the
+ diff is complete
 
-Enable with SR_VALIDATE_INCREMENTAL=1. Logs a warning when the flag is
-read and dumps call/fallback counters on disconnect (also warning).
+sr_modinfo_validate() validates each module with libyang's
+lyd_validate_module_incr() when the edit diff is complete and the datastore
+is a conventional one; otherwise, and whenever libyang cannot prove the
+change safe, the module is validated in full as before.
 
+It is a build option: cmake -DENABLE_VALIDATE_INCREMENTAL=ON (default) or
+OFF, where OFF validates every edit in full. Each process logs which one it
+was built with once, at its first sr_connect. At sr_disconnect the
+incremental counters are logged: a warning when there were fallbacks,
+otherwise INFO.
+
+Needs the libyang incremental validation patch.
+---
+ CMakeLists.txt  |  1 +
+ src/config.h.in |  3 ++
+ src/ly_wrap.c   | 47 ++++++++++++++++++++++++++
+ src/ly_wrap.h   | 28 ++++++++++++++++
+ src/modinfo.c   | 87 +++++++++++++++++++++++++++++++++++++++++++++----
+ src/modinfo.h   | 16 +++++++--
+ src/sysrepo.c   | 11 +++++--
+ 7 files changed, 181 insertions(+), 12 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 9b36de44..d0a5789e 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -86,6 +86,7 @@ else()
+     option(ENABLE_TESTS "Build tests" OFF)
+     option(ENABLE_VALGRIND_TESTS "Build tests with valgrind" OFF)
+ endif()
++option(ENABLE_VALIDATE_INCREMENTAL "Use incremental YANG validation (falls back to full validation when it cannot prove a change safe)" ON)
+ option(ENABLE_EXAMPLES "Build examples." ON)
+ option(ENABLE_COVERAGE "Build code coverage report from tests" OFF)
+ option(ENABLE_COMMON_TARGETS "Define common custom target names such as 'doc' or 'uninstall', may cause conflicts when using add_subdirectory() to build this project" ON)
+diff --git a/src/config.h.in b/src/config.h.in
+index 2fa895c0..7d534649 100644
+--- a/src/config.h.in
++++ b/src/config.h.in
+@@ -192,4 +192,7 @@
+ /** port for Redis database */
+ #define SR_DS_PLG_REDIS_PORT          @REDIS_PORT@
+ 
++/** incremental YANG validation compiled in and used (cmake -DENABLE_VALIDATE_INCREMENTAL=OFF removes it) */
++#cmakedefine ENABLE_VALIDATE_INCREMENTAL
++
+ #endif /* _CONFIG_H */
 diff --git a/src/ly_wrap.c b/src/ly_wrap.c
 index 0fd4ff2b..d5feed04 100644
 --- a/src/ly_wrap.c
@@ -104,49 +148,68 @@ index 83097b4e..e02b6954 100644
   * @brief Finish validation of data of a single module.
   *
 diff --git a/src/modinfo.c b/src/modinfo.c
-index f448835c..cef54917 100644
+index f448835c..9663f064 100644
 --- a/src/modinfo.c
 +++ b/src/modinfo.c
-@@ -3353,14 +3353,53 @@ cleanup:
+@@ -3353,14 +3353,72 @@ cleanup:
      return err_info;
  }
  
 +/**
 + * @brief Whether the incremental validator may be used for this change.
 + *
-+ * Off unless SR_VALIDATE_INCREMENTAL says otherwise.
++ * Decided at build time, cmake -DENABLE_VALIDATE_INCREMENTAL=OFF turns it off (on by default).
 + */
 +static int
 +sr_modinfo_validate_incr(const struct sr_mod_info_s *mod_info, int diff_is_complete, int finish_diff)
 +{
-+    static int enabled = -1;
++#ifdef ENABLE_VALIDATE_INCREMENTAL
++    return diff_is_complete && finish_diff && mod_info->notify_diff && SR_IS_CONVENTIONAL_DS(mod_info->ds);
++#else
++    (void)mod_info;
++    (void)diff_is_complete;
++    (void)finish_diff;
 +
-+    if (enabled == -1) {
-+        const char *env = getenv("SR_VALIDATE_INCREMENTAL");
++    return 0;
++#endif
++}
 +
-+        enabled = env && (env[0] == '1');
-+        if (enabled) {
-+            SR_LOG_WRN("Incremental YANG validation is enabled (SR_VALIDATE_INCREMENTAL=1).");
-+        }
++void
++sr_validate_incr_status_log(void)
++{
++    static int logged;
++
++    /* once per process, it is the only way to tell from the logs whether this build uses the incremental validator */
++    if (__sync_lock_test_and_set(&logged, 1)) {
++        return;
 +    }
-+
-+    return enabled && diff_is_complete && finish_diff && mod_info->notify_diff && SR_IS_CONVENTIONAL_DS(mod_info->ds);
++#ifdef ENABLE_VALIDATE_INCREMENTAL
++    SR_LOG_WRN("Incremental YANG validation: compiled in (ENABLE_VALIDATE_INCREMENTAL=ON).");
++#else
++    SR_LOG_WRN("Incremental YANG validation: not compiled in (ENABLE_VALIDATE_INCREMENTAL=OFF).");
++#endif
 +}
 +
 +void
 +sr_validate_incr_stats_log(void)
 +{
-+    uint64_t calls = 0, fallbacks = 0;
++    uint64_t calls = 0, fallbacks = 0, late = 0;
 +
 +    /* process totals: sysrepo drops the context on every schema change, per-context counters would not survive */
 +    lyd_validate_incr_stats(NULL, &calls, &fallbacks);
++    lyd_validate_incr_late_stats(NULL, &late);
 +    if (!calls) {
 +        return;
 +    }
 +
-+    /* the fallback rate decides whether the incremental validator is actually doing anything */
-+    SR_LOG_WRN("Incremental validation: %" PRIu64 " calls, %" PRIu64 " fallbacks (%.1f%%).", calls, fallbacks,
-+            (100.0 * (double)fallbacks) / (double)calls);
++    /* the fallback rate decides whether the incremental validator is actually doing anything, the late ones are
++     * a rule that deletes data on most edits; it is on by default, so only a fallback is worth a warning */
++    if (fallbacks) {
++        SR_LOG_WRN("Incremental validation: %" PRIu64 " calls, %" PRIu64 " fallbacks (%.1f%%), %" PRIu64 " late.",
++                calls, fallbacks, (100.0 * (double)fallbacks) / (double)calls, late);
++    } else {
++        SR_LOG_INF("Incremental validation: %" PRIu64 " calls, 0 fallbacks.", calls);
++    }
 +}
 +
  sr_error_info_t *
@@ -163,7 +226,7 @@ index f448835c..cef54917 100644
  
      assert(!mod_info->data_cached);
      assert(SR_IS_CONVENTIONAL_DS(mod_info->ds) || !finish_diff);
-@@ -3371,12 +3410,21 @@ sr_modinfo_validate(struct sr_mod_info_s *mod_info, uint32_t mod_state, int fini
+@@ -3371,12 +3429,21 @@ sr_modinfo_validate(struct sr_mod_info_s *mod_info, uint32_t mod_state, int fini
      } else {
          val_opts = LYD_VALIDATE_OPERATIONAL | LYD_VALIDATE_NO_DEFAULTS | LYD_VALIDATE_MULTI_ERROR;
      }
@@ -187,7 +250,7 @@ index f448835c..cef54917 100644
                  sr_errinfo_merge(val_err_info, tmp_err);
              }
  
-@@ -3410,7 +3458,12 @@ sr_modinfo_validate(struct sr_mod_info_s *mod_info, uint32_t mod_state, int fini
+@@ -3410,7 +3477,12 @@ sr_modinfo_validate(struct sr_mod_info_s *mod_info, uint32_t mod_state, int fini
      for (i = 0; i < mod_info->mod_count; ++i) {
          mod = &mod_info->mods[i];
          if (mod->state & mod_state) {
@@ -201,7 +264,7 @@ index f448835c..cef54917 100644
                  sr_errinfo_merge(val_err_info, tmp_err);
              }
          }
-@@ -3822,8 +3875,9 @@ sr_modinfo_change_notify_update(struct sr_mod_info_s *mod_info, sr_session_ctx_t
+@@ -3822,8 +3894,9 @@ sr_modinfo_change_notify_update(struct sr_mod_info_s *mod_info, sr_session_ctx_t
                  goto cleanup;
              }
  
@@ -214,10 +277,10 @@ index f448835c..cef54917 100644
              }
              break;
 diff --git a/src/modinfo.h b/src/modinfo.h
-index 2f62f0e2..496064f0 100644
+index 2f62f0e2..93688dae 100644
 --- a/src/modinfo.h
 +++ b/src/modinfo.h
-@@ -270,12 +270,19 @@ sr_error_info_t *sr_modinfo_consolidate(struct sr_mod_info_s *mod_info, sr_lock_
+@@ -270,12 +270,24 @@ sr_error_info_t *sr_modinfo_consolidate(struct sr_mod_info_s *mod_info, sr_lock_
   *
   * @param[in] mod_info Mod info to use.
   * @param[in] mod_state Bitmask of state flags, module with at least one matching bit will be validated.
@@ -234,16 +297,29 @@ index 2f62f0e2..496064f0 100644
 + */
 +void sr_validate_incr_stats_log(void);
 +
++/**
++ * @brief Log once per process whether the incremental validator is compiled in.
++ */
++void sr_validate_incr_status_log(void);
++
 +sr_error_info_t *sr_modinfo_validate(struct sr_mod_info_s *mod_info, uint32_t mod_state, int diff_is_complete,
 +        int finish_diff, sr_error_info_t **val_err_info);
  
  /**
   * @brief Add default values into data for modules in mod info.
 diff --git a/src/sysrepo.c b/src/sysrepo.c
-index 068585d7..c25b719d 100644
+index 068585d7..a15b885a 100644
 --- a/src/sysrepo.c
 +++ b/src/sysrepo.c
-@@ -351,6 +351,8 @@ sr_disconnect(sr_conn_ctx_t *conn)
+@@ -308,6 +308,7 @@ sr_connect(const sr_conn_options_t opts, sr_conn_ctx_t **conn_p)
+     }
+ 
+     SR_LOG_INF("Connection %" PRIu32 " created.", conn->cid);
++    sr_validate_incr_status_log();
+ 
+ cleanup_unlock:
+     /* CREATE UNLOCK */
+@@ -351,6 +352,8 @@ sr_disconnect(sr_conn_ctx_t *conn)
          return sr_api_ret(NULL, NULL);
      }
  
@@ -252,7 +328,7 @@ index 068585d7..c25b719d 100644
      /* stop all session notification buffer threads, they use read lock so they need conn state in SHM */
      for (i = 0; i < conn->session_count; ++i) {
          if ((err_info = sr_session_notif_buf_stop(conn->sessions[i]))) {
-@@ -4277,14 +4279,14 @@ sr_validate(sr_session_ctx_t *session, const char *module_name, uint32_t timeout
+@@ -4277,14 +4280,14 @@ sr_validate(sr_session_ctx_t *session, const char *module_name, uint32_t timeout
      case SR_DS_STARTUP:
      case SR_DS_RUNNING:
          /* validate only changed modules and any that can become invalid because of the changes */
@@ -269,7 +345,7 @@ index 068585d7..c25b719d 100644
              goto cleanup;
          }
          break;
-@@ -4375,7 +4377,9 @@ sr_changes_notify_store(struct sr_mod_info_s *mod_info, sr_session_ctx_t *sessio
+@@ -4375,7 +4378,9 @@ sr_changes_notify_store(struct sr_mod_info_s *mod_info, sr_session_ctx_t *sessio
  
          /* finish on validation errors */
          err_count = *err_info2 ? (*err_info2)->err_count : 0;
@@ -280,190 +356,6 @@ index 068585d7..c25b719d 100644
              goto cleanup;
          } else if (*err_info2 && ((*err_info2)->err_count > err_count)) {
              goto cleanup;
-From 4cd88709bc5ccf5dd752f422a1b04bccb60f5fde Mon Sep 17 00:00:00 2001
-From: "Oreo.Yang" <2167young@163.com>
-Date: Sat, 24 Oct 2026 14:51:52 +0800
-Subject: [PATCH] validation FEATURE log late incremental validation fallbacks
-
----
- src/modinfo.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/src/modinfo.c b/src/modinfo.c
-index cef54917..d24f9fb3 100644
---- a/src/modinfo.c
-+++ b/src/modinfo.c
-@@ -3378,17 +3378,19 @@ sr_modinfo_validate_incr(const struct sr_mod_info_s *mod_info, int diff_is_compl
- void
- sr_validate_incr_stats_log(void)
- {
--    uint64_t calls = 0, fallbacks = 0;
-+    uint64_t calls = 0, fallbacks = 0, late = 0;
- 
-     /* process totals: sysrepo drops the context on every schema change, per-context counters would not survive */
-     lyd_validate_incr_stats(NULL, &calls, &fallbacks);
-+    lyd_validate_incr_late_stats(NULL, &late);
-     if (!calls) {
-         return;
-     }
- 
--    /* the fallback rate decides whether the incremental validator is actually doing anything */
--    SR_LOG_WRN("Incremental validation: %" PRIu64 " calls, %" PRIu64 " fallbacks (%.1f%%).", calls, fallbacks,
--            (100.0 * (double)fallbacks) / (double)calls);
-+    /* the fallback rate decides whether the incremental validator is actually doing anything, the late ones are
-+     * a rule that deletes data on most edits */
-+    SR_LOG_WRN("Incremental validation: %" PRIu64 " calls, %" PRIu64 " fallbacks (%.1f%%), %" PRIu64 " late.", calls,
-+            fallbacks, (100.0 * (double)fallbacks) / (double)calls, late);
- }
- 
- sr_error_info_t *
--- 
-2.47.3
-
-From ef14d1440280c39b2e60379af73cd6dc06a0f223 Mon Sep 17 00:00:00 2001
-From: "Oreo.Yang" <2167young@163.com>
-Date: Mon, 26 Oct 2026 10:44:32 +0800
-Subject: [PATCH] validation FEATURE incremental validation is a build option,
- on by default
-
-The incremental validator was switched on by the SR_VALIDATE_INCREMENTAL
-environment variable, read once per process. Make it a build option instead:
-cmake -DENABLE_VALIDATE_INCREMENTAL=ON (default) or OFF. With OFF the
-incremental call site always returns 0 and every edit is validated in full.
-
-Because the build decides, nothing in the log told which validator a process
-runs. Log it once per process at the first sr_connect, at warning level:
-"compiled in (ENABLE_VALIDATE_INCREMENTAL=ON)" or "not compiled in (...=OFF)".
-The counters line at sr_disconnect is a warning only when there were
-fallbacks, so that tools like sysrepocfg stay quiet when everything is fine.
----
- CMakeLists.txt  |  1 +
- src/config.h.in |  3 +++
- src/modinfo.c   | 43 ++++++++++++++++++++++++++++++-------------
- src/modinfo.h   |  5 +++++
- src/sysrepo.c   |  1 +
- 5 files changed, 40 insertions(+), 13 deletions(-)
-
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 9b36de44..d0a5789e 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -86,6 +86,7 @@ else()
-     option(ENABLE_TESTS "Build tests" OFF)
-     option(ENABLE_VALGRIND_TESTS "Build tests with valgrind" OFF)
- endif()
-+option(ENABLE_VALIDATE_INCREMENTAL "Use incremental YANG validation (falls back to full validation when it cannot prove a change safe)" ON)
- option(ENABLE_EXAMPLES "Build examples." ON)
- option(ENABLE_COVERAGE "Build code coverage report from tests" OFF)
- option(ENABLE_COMMON_TARGETS "Define common custom target names such as 'doc' or 'uninstall', may cause conflicts when using add_subdirectory() to build this project" ON)
-diff --git a/src/config.h.in b/src/config.h.in
-index 2fa895c0..7d534649 100644
---- a/src/config.h.in
-+++ b/src/config.h.in
-@@ -192,4 +192,7 @@
- /** port for Redis database */
- #define SR_DS_PLG_REDIS_PORT          @REDIS_PORT@
- 
-+/** incremental YANG validation compiled in and used (cmake -DENABLE_VALIDATE_INCREMENTAL=OFF removes it) */
-+#cmakedefine ENABLE_VALIDATE_INCREMENTAL
-+
- #endif /* _CONFIG_H */
-diff --git a/src/modinfo.c b/src/modinfo.c
-index d24f9fb3..9663f064 100644
---- a/src/modinfo.c
-+++ b/src/modinfo.c
-@@ -3356,23 +3356,36 @@ cleanup:
- /**
-  * @brief Whether the incremental validator may be used for this change.
-  *
-- * Off unless SR_VALIDATE_INCREMENTAL says otherwise.
-+ * Decided at build time, cmake -DENABLE_VALIDATE_INCREMENTAL=OFF turns it off (on by default).
-  */
- static int
- sr_modinfo_validate_incr(const struct sr_mod_info_s *mod_info, int diff_is_complete, int finish_diff)
- {
--    static int enabled = -1;
-+#ifdef ENABLE_VALIDATE_INCREMENTAL
-+    return diff_is_complete && finish_diff && mod_info->notify_diff && SR_IS_CONVENTIONAL_DS(mod_info->ds);
-+#else
-+    (void)mod_info;
-+    (void)diff_is_complete;
-+    (void)finish_diff;
- 
--    if (enabled == -1) {
--        const char *env = getenv("SR_VALIDATE_INCREMENTAL");
-+    return 0;
-+#endif
-+}
- 
--        enabled = env && (env[0] == '1');
--        if (enabled) {
--            SR_LOG_WRN("Incremental YANG validation is enabled (SR_VALIDATE_INCREMENTAL=1).");
--        }
--    }
-+void
-+sr_validate_incr_status_log(void)
-+{
-+    static int logged;
- 
--    return enabled && diff_is_complete && finish_diff && mod_info->notify_diff && SR_IS_CONVENTIONAL_DS(mod_info->ds);
-+    /* once per process, it is the only way to tell from the logs whether this build uses the incremental validator */
-+    if (__sync_lock_test_and_set(&logged, 1)) {
-+        return;
-+    }
-+#ifdef ENABLE_VALIDATE_INCREMENTAL
-+    SR_LOG_WRN("Incremental YANG validation: compiled in (ENABLE_VALIDATE_INCREMENTAL=ON).");
-+#else
-+    SR_LOG_WRN("Incremental YANG validation: not compiled in (ENABLE_VALIDATE_INCREMENTAL=OFF).");
-+#endif
- }
- 
- void
-@@ -3388,9 +3401,13 @@ sr_validate_incr_stats_log(void)
-     }
- 
-     /* the fallback rate decides whether the incremental validator is actually doing anything, the late ones are
--     * a rule that deletes data on most edits */
--    SR_LOG_WRN("Incremental validation: %" PRIu64 " calls, %" PRIu64 " fallbacks (%.1f%%), %" PRIu64 " late.", calls,
--            fallbacks, (100.0 * (double)fallbacks) / (double)calls, late);
-+     * a rule that deletes data on most edits; it is on by default, so only a fallback is worth a warning */
-+    if (fallbacks) {
-+        SR_LOG_WRN("Incremental validation: %" PRIu64 " calls, %" PRIu64 " fallbacks (%.1f%%), %" PRIu64 " late.",
-+                calls, fallbacks, (100.0 * (double)fallbacks) / (double)calls, late);
-+    } else {
-+        SR_LOG_INF("Incremental validation: %" PRIu64 " calls, 0 fallbacks.", calls);
-+    }
- }
- 
- sr_error_info_t *
-diff --git a/src/modinfo.h b/src/modinfo.h
-index 496064f0..93688dae 100644
---- a/src/modinfo.h
-+++ b/src/modinfo.h
-@@ -281,6 +281,11 @@ sr_error_info_t *sr_modinfo_consolidate(struct sr_mod_info_s *mod_info, sr_lock_
-  */
- void sr_validate_incr_stats_log(void);
- 
-+/**
-+ * @brief Log once per process whether the incremental validator is compiled in.
-+ */
-+void sr_validate_incr_status_log(void);
-+
- sr_error_info_t *sr_modinfo_validate(struct sr_mod_info_s *mod_info, uint32_t mod_state, int diff_is_complete,
-         int finish_diff, sr_error_info_t **val_err_info);
- 
-diff --git a/src/sysrepo.c b/src/sysrepo.c
-index c25b719d..a15b885a 100644
---- a/src/sysrepo.c
-+++ b/src/sysrepo.c
-@@ -308,6 +308,7 @@ sr_connect(const sr_conn_options_t opts, sr_conn_ctx_t **conn_p)
-     }
- 
-     SR_LOG_INF("Connection %" PRIu32 " created.", conn->cid);
-+    sr_validate_incr_status_log();
- 
- cleanup_unlock:
-     /* CREATE UNLOCK */
 -- 
 2.47.3
 
