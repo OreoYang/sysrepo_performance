@@ -1,0 +1,281 @@
+From: Oreo.Yang <2167young@163.com>
+Date: Tue, 18 Aug 2026 09:58:00 +0800
+Subject: [PATCH] validation FEATURE use the incremental validator when the diff is complete
+
+Enable with SR_VALIDATE_INCREMENTAL=1. Logs a warning when the flag is
+read and dumps call/fallback counters on disconnect (also warning).
+
+diff --git a/src/ly_wrap.c b/src/ly_wrap.c
+index 0fd4ff2b..d5feed04 100644
+--- a/src/ly_wrap.c
++++ b/src/ly_wrap.c
+@@ -596,6 +596,53 @@ cleanup:
+     return err_info;
+ }
+ 
++sr_error_info_t *
++sr_lyd_validate_module_incr(struct lyd_node **data, const struct lys_module *mod, const struct lyd_node *edit_diff,
++        uint32_t options, struct lyd_node **diff)
++{
++    sr_error_info_t *err_info = NULL;
++    uint32_t temp_lo = LY_LOSTORE;
++
++    ly_temp_log_options(&temp_lo);
++
++    if (lyd_validate_module_incr(data, mod, edit_diff, options, diff)) {
++        sr_errinfo_new_ly(&err_info, mod->ctx, NULL, SR_ERR_VALIDATION_FAILED);
++        goto cleanup;
++    }
++
++cleanup:
++    ly_temp_log_options(NULL);
++    return err_info;
++}
++
++sr_error_info_t *
++sr_lyd_validate_module_incr_final(struct lyd_node *data, const struct lys_module *mod, const struct lyd_node *edit_diff,
++        uint32_t options)
++{
++    sr_error_info_t *err_info = NULL;
++    uint32_t temp_lo = LY_LOSTORE;
++    const struct ly_err_item *e;
++
++    ly_temp_log_options(&temp_lo);
++
++    /* clear any previous errors and warnings */
++    ly_err_clean(mod->ctx, NULL);
++
++    if (lyd_validate_module_incr_final(data, mod, edit_diff, options)) {
++        sr_errinfo_new_ly(&err_info, mod->ctx, data, SR_ERR_VALIDATION_FAILED);
++        goto cleanup;
++    }
++
++    /* print any warnings (such as about obsolete data being instantiated) */
++    for (e = ly_err_first(mod->ctx); e; e = e->next) {
++        SR_LOG_WRN("%s", e->msg);
++    }
++
++cleanup:
++    ly_temp_log_options(NULL);
++    return err_info;
++}
++
+ sr_error_info_t *
+ sr_lyd_validate_module_final(struct lyd_node *data, const struct lys_module *mod, uint32_t options)
+ {
+diff --git a/src/ly_wrap.h b/src/ly_wrap.h
+index 83097b4e..e02b6954 100644
+--- a/src/ly_wrap.h
++++ b/src/ly_wrap.h
+@@ -213,6 +213,34 @@ sr_error_info_t *sr_lyd_validate_all(struct lyd_node **data, const struct ly_ctx
+ sr_error_info_t *sr_lyd_validate_module(struct lyd_node **data, const struct lys_module *mod, uint32_t options,
+         struct lyd_node **diff);
+ 
++/**
++ * @brief Validate data of a single module, revalidating only what @p edit_diff could have invalidated.
++ *
++ * Falls back to a full validation of the module whenever the diff cannot be analysed, so the result is always
++ * the same as ::sr_lyd_validate_module().
++ *
++ * @param[in,out] data Data to validate.
++ * @param[in] mod Module to use.
++ * @param[in] edit_diff Diff of the change that produced @p data.
++ * @param[in] options Validate options.
++ * @param[out] diff Optional generated diff.
++ * @return err_info, NULL on success.
++ */
++sr_error_info_t *sr_lyd_validate_module_incr(struct lyd_node **data, const struct lys_module *mod,
++        const struct lyd_node *edit_diff, uint32_t options, struct lyd_node **diff);
++
++/**
++ * @brief Finish validation of data of a single module, revalidating only what @p edit_diff could have invalidated.
++ *
++ * @param[in] data Data to validate.
++ * @param[in] mod Module to use.
++ * @param[in] edit_diff Diff of the change that produced @p data.
++ * @param[in] options Validate options.
++ * @return err_info, NULL on success.
++ */
++sr_error_info_t *sr_lyd_validate_module_incr_final(struct lyd_node *data, const struct lys_module *mod,
++        const struct lyd_node *edit_diff, uint32_t options);
++
+ /**
+  * @brief Finish validation of data of a single module.
+  *
+diff --git a/src/modinfo.c b/src/modinfo.c
+index f448835c..cef54917 100644
+--- a/src/modinfo.c
++++ b/src/modinfo.c
+@@ -3353,14 +3353,53 @@ cleanup:
+     return err_info;
+ }
+ 
++/**
++ * @brief Whether the incremental validator may be used for this change.
++ *
++ * Off unless SR_VALIDATE_INCREMENTAL says otherwise.
++ */
++static int
++sr_modinfo_validate_incr(const struct sr_mod_info_s *mod_info, int diff_is_complete, int finish_diff)
++{
++    static int enabled = -1;
++
++    if (enabled == -1) {
++        const char *env = getenv("SR_VALIDATE_INCREMENTAL");
++
++        enabled = env && (env[0] == '1');
++        if (enabled) {
++            SR_LOG_WRN("Incremental YANG validation is enabled (SR_VALIDATE_INCREMENTAL=1).");
++        }
++    }
++
++    return enabled && diff_is_complete && finish_diff && mod_info->notify_diff && SR_IS_CONVENTIONAL_DS(mod_info->ds);
++}
++
++void
++sr_validate_incr_stats_log(void)
++{
++    uint64_t calls = 0, fallbacks = 0;
++
++    /* process totals: sysrepo drops the context on every schema change, per-context counters would not survive */
++    lyd_validate_incr_stats(NULL, &calls, &fallbacks);
++    if (!calls) {
++        return;
++    }
++
++    /* the fallback rate decides whether the incremental validator is actually doing anything */
++    SR_LOG_WRN("Incremental validation: %" PRIu64 " calls, %" PRIu64 " fallbacks (%.1f%%).", calls, fallbacks,
++            (100.0 * (double)fallbacks) / (double)calls);
++}
++
+ sr_error_info_t *
+-sr_modinfo_validate(struct sr_mod_info_s *mod_info, uint32_t mod_state, int finish_diff, sr_error_info_t **val_err_info)
++sr_modinfo_validate(struct sr_mod_info_s *mod_info, uint32_t mod_state, int diff_is_complete, int finish_diff,
++        sr_error_info_t **val_err_info)
+ {
+     sr_error_info_t *err_info = NULL, *tmp_err;
+     struct sr_mod_info_mod_s *mod;
+     struct lyd_node *diff = NULL, *iter;
+     uint32_t i;
+-    int val_opts;
++    int val_opts, incr;
+ 
+     assert(!mod_info->data_cached);
+     assert(SR_IS_CONVENTIONAL_DS(mod_info->ds) || !finish_diff);
+@@ -3371,12 +3410,21 @@ sr_modinfo_validate(struct sr_mod_info_s *mod_info, uint32_t mod_state, int fini
+     } else {
+         val_opts = LYD_VALIDATE_OPERATIONAL | LYD_VALIDATE_NO_DEFAULTS | LYD_VALIDATE_MULTI_ERROR;
+     }
++    incr = sr_modinfo_validate_incr(mod_info, diff_is_complete, finish_diff);
++
+     for (i = 0; i < mod_info->mod_count; ++i) {
+         mod = &mod_info->mods[i];
+         if (mod->state & mod_state) {
+             /* validate this module */
+-            if ((tmp_err = sr_lyd_validate_module(&mod_info->data, mod->ly_mod, val_opts | LYD_VALIDATE_NOT_FINAL,
+-                    finish_diff ? &diff : NULL))) {
++            if (incr) {
++                /* re-read the diff every time, merging the validation diff into it can move its first sibling */
++                tmp_err = sr_lyd_validate_module_incr(&mod_info->data, mod->ly_mod, mod_info->notify_diff,
++                        val_opts | LYD_VALIDATE_NOT_FINAL, &diff);
++            } else {
++                tmp_err = sr_lyd_validate_module(&mod_info->data, mod->ly_mod, val_opts | LYD_VALIDATE_NOT_FINAL,
++                        finish_diff ? &diff : NULL);
++            }
++            if (tmp_err) {
+                 sr_errinfo_merge(val_err_info, tmp_err);
+             }
+ 
+@@ -3410,7 +3458,12 @@ sr_modinfo_validate(struct sr_mod_info_s *mod_info, uint32_t mod_state, int fini
+     for (i = 0; i < mod_info->mod_count; ++i) {
+         mod = &mod_info->mods[i];
+         if (mod->state & mod_state) {
+-            if ((tmp_err = sr_lyd_validate_module_final(mod_info->data, mod->ly_mod, val_opts))) {
++            if (incr) {
++                tmp_err = sr_lyd_validate_module_incr_final(mod_info->data, mod->ly_mod, mod_info->notify_diff, val_opts);
++            } else {
++                tmp_err = sr_lyd_validate_module_final(mod_info->data, mod->ly_mod, val_opts);
++            }
++            if (tmp_err) {
+                 sr_errinfo_merge(val_err_info, tmp_err);
+             }
+         }
+@@ -3822,8 +3875,9 @@ sr_modinfo_change_notify_update(struct sr_mod_info_s *mod_info, sr_session_ctx_t
+                 goto cleanup;
+             }
+ 
+-            /* validate */
+-            if ((err_info = sr_modinfo_validate(mod_info, MOD_INFO_CHANGED | MOD_INFO_INV_DEP, 1, err_info2))) {
++            /* validate; the data were validated before the "update" event and the new diff describes every
++             * change the updated edit made to them since */
++            if ((err_info = sr_modinfo_validate(mod_info, MOD_INFO_CHANGED | MOD_INFO_INV_DEP, 1, 1, err_info2))) {
+                 goto cleanup;
+             }
+             break;
+diff --git a/src/modinfo.h b/src/modinfo.h
+index 2f62f0e2..496064f0 100644
+--- a/src/modinfo.h
++++ b/src/modinfo.h
+@@ -270,12 +270,19 @@ sr_error_info_t *sr_modinfo_consolidate(struct sr_mod_info_s *mod_info, sr_lock_
+  *
+  * @param[in] mod_info Mod info to use.
+  * @param[in] mod_state Bitmask of state flags, module with at least one matching bit will be validated.
++ * @param[in] diff_is_complete Whether ::sr_mod_info_s.notify_diff describes every change made to the data since
++ * they were last known to be valid. Only then may the incremental validator be used, and only if it is enabled.
+  * @param[in] finish_diff Whether to update diff with possible changes caused by validation.
+  * @param[in,out] val_err_info Validation error info to add validation errors to.
+  * @return err_info, NULL on success.
+  */
+-sr_error_info_t *sr_modinfo_validate(struct sr_mod_info_s *mod_info, uint32_t mod_state, int finish_diff,
+-        sr_error_info_t **val_err_info);
++/**
++ * @brief Log the incremental validation counters of the process, if there are any.
++ */
++void sr_validate_incr_stats_log(void);
++
++sr_error_info_t *sr_modinfo_validate(struct sr_mod_info_s *mod_info, uint32_t mod_state, int diff_is_complete,
++        int finish_diff, sr_error_info_t **val_err_info);
+ 
+ /**
+  * @brief Add default values into data for modules in mod info.
+diff --git a/src/sysrepo.c b/src/sysrepo.c
+index 068585d7..c25b719d 100644
+--- a/src/sysrepo.c
++++ b/src/sysrepo.c
+@@ -351,6 +351,8 @@ sr_disconnect(sr_conn_ctx_t *conn)
+         return sr_api_ret(NULL, NULL);
+     }
+ 
++    sr_validate_incr_stats_log();
++
+     /* stop all session notification buffer threads, they use read lock so they need conn state in SHM */
+     for (i = 0; i < conn->session_count; ++i) {
+         if ((err_info = sr_session_notif_buf_stop(conn->sessions[i]))) {
+@@ -4277,14 +4279,14 @@ sr_validate(sr_session_ctx_t *session, const char *module_name, uint32_t timeout
+     case SR_DS_STARTUP:
+     case SR_DS_RUNNING:
+         /* validate only changed modules and any that can become invalid because of the changes */
+-        if ((err_info = sr_modinfo_validate(&mod_info, MOD_INFO_CHANGED | MOD_INFO_INV_DEP, 0, &err_info2))) {
++        if ((err_info = sr_modinfo_validate(&mod_info, MOD_INFO_CHANGED | MOD_INFO_INV_DEP, 0, 0, &err_info2))) {
+             goto cleanup;
+         }
+         break;
+     case SR_DS_CANDIDATE:
+     case SR_DS_OPERATIONAL:
+         /* validate all the modules because they may be invalid without any changes */
+-        if ((err_info = sr_modinfo_validate(&mod_info, MOD_INFO_REQ | MOD_INFO_INV_DEP, 0, &err_info2))) {
++        if ((err_info = sr_modinfo_validate(&mod_info, MOD_INFO_REQ | MOD_INFO_INV_DEP, 0, 0, &err_info2))) {
+             goto cleanup;
+         }
+         break;
+@@ -4375,7 +4377,9 @@ sr_changes_notify_store(struct sr_mod_info_s *mod_info, sr_session_ctx_t *sessio
+ 
+         /* finish on validation errors */
+         err_count = *err_info2 ? (*err_info2)->err_count : 0;
+-        if ((err_info = sr_modinfo_validate(mod_info, MOD_INFO_CHANGED | MOD_INFO_INV_DEP, 1, err_info2))) {
++
++        /* the stored data were valid and the diff describes every change made to them since */
++        if ((err_info = sr_modinfo_validate(mod_info, MOD_INFO_CHANGED | MOD_INFO_INV_DEP, 1, 1, err_info2))) {
+             goto cleanup;
+         } else if (*err_info2 && ((*err_info2)->err_count > err_count)) {
+             goto cleanup;

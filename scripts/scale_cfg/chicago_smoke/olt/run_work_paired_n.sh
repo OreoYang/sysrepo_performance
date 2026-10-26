@@ -1,18 +1,33 @@
 #!/bin/sh
 # Per-ONU: provision then service (work/ XML). Serial only.
 # pairs.txt: idx TAB onu-provision/file.xml TAB onu-service/file.xml|-
-# Do not stop netconf-polt / protocol-handler. Still export SR_VALIDATE_INCREMENTAL
-# on this shell — sysrepocfg does not inherit systemd Environment.
+# Do not stop netconf-polt / protocol-handler.
+# Incremental validation is a build-time switch (-DENABLE_VALIDATE_INCREMENTAL), the sysrepo installed on the OLT
+# decides. The build kind is read from libsysrepo and tags the output files (incr1 = incremental, incr0 = full).
+# Older images read SR_VALIDATE_INCREMENTAL (default 1 here, 0 for full); sysrepocfg does not inherit systemd
+# Environment, so export it on this shell.
 set -eu
 
 CFG="${CFG:-/root/chicago_smoke/work_xml}"
 WORK="${WORK:-/root/chicago_smoke/work}"
 N="${1:-${N:-1022}}"
 START="${START:-1}"
-# Only =1 enables incr. Use 0/unset for full validate. Do not inherit systemd.
-export SR_VALIDATE_INCREMENTAL="${SR_VALIDATE_INCREMENTAL:-1}"
-CSV="${WORK}/work_paired_${N}_incr${SR_VALIDATE_INCREMENTAL}.csv"
-LOG="${WORK}/work_paired_${N}_incr${SR_VALIDATE_INCREMENTAL}.log"
+
+SO=$(ldd "$(command -v sysrepocfg)" | awk '/libsysrepo/{print $3; exit}')
+[ -n "$SO" ] && [ -f "$SO" ] || { echo "cannot find libsysrepo for sysrepocfg"; exit 1; }
+if grep -aq "not compiled in (ENABLE_VALIDATE_INCREMENTAL=OFF)" "$SO"; then
+    BUILD=full; TAG=incr0
+elif grep -aq "compiled in (ENABLE_VALIDATE_INCREMENTAL=ON)" "$SO"; then
+    BUILD=incr; TAG=incr1
+elif grep -aq "SR_VALIDATE_INCREMENTAL" "$SO"; then
+    BUILD=legacy
+    export SR_VALIDATE_INCREMENTAL="${SR_VALIDATE_INCREMENTAL:-1}"
+    TAG="incr${SR_VALIDATE_INCREMENTAL}"
+else
+    echo "libsysrepo ${SO} has no incremental validation marker"; exit 1
+fi
+CSV="${WORK}/work_paired_${N}_${TAG}.csv"
+LOG="${WORK}/work_paired_${N}_${TAG}.log"
 PAIRS="${CFG}/pairs.txt"
 
 mkdir -p "$WORK"
@@ -28,7 +43,7 @@ mid_i=$(( N / 2 ))
 last_pms=""; last_sms=""
 
 echo "timestamp,idx,serial,step,rc,ms,file" > "$CSV"
-echo "paired N=${N} START=${START} SR_VALIDATE_INCREMENTAL=${SR_VALIDATE_INCREMENTAL}"
+echo "paired N=${N} START=${START} build=${BUILD} (${TAG}) libsysrepo=${SO}"
 echo "csv=${CSV} log=${LOG}"
 
 while IFS='	' read -r idx prov svc; do

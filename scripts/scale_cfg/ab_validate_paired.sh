@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Host: 00-base, then per-ONU provision + matching service by SN.
-# Incremental on (SR_VALIDATE_INCREMENTAL=1). Do not use ls|head N on service.
+# Incremental validation is a build-time switch: editdiff uses SCALECFG_RUNTIME_DIR, full uses
+# SCALECFG_RUNTIME_DIR_FULL (see env_host.sh). Do not use ls|head N on service.
 #
 # Env: PAIR_N (default 1), PAIR_MODE=editdiff|full (default editdiff)
 set -euo pipefail
@@ -94,12 +95,11 @@ import_base() {
 }
 
 if [[ "${PAIR_MODE}" == "editdiff" ]]; then
-    export SR_VALIDATE_INCREMENTAL=1
-    log "mode=editdiff SR_VALIDATE_INCREMENTAL=1"
+    sr_use_build incr >> "${LOG}" 2>&1 || die "cannot select the incr build, see ${LOG}"
 else
-    unset SR_VALIDATE_INCREMENTAL
-    log "mode=full (SR_VALIDATE_INCREMENTAL unset)"
+    sr_use_build full >> "${LOG}" 2>&1 || die "cannot select the full build, see ${LOG}"
 fi
+log "mode=${PAIR_MODE} sysrepocfg: ${SYSREPOCFG_EXECUTABLE}"
 
 fresh_repo "paired_${PAIR_MODE}_${PAIR_N}"
 

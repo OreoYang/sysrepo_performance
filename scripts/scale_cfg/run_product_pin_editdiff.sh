@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Product-pin 3.7.11 + 3.9.13 with incremental validation (SR_VALIDATE_INCREMENTAL).
+# Product-pin 3.7.11 + 3.9.13 with incremental validation. SCALECFG_RUNTIME_DIR is the incremental build, the full
+# arm needs SCALECFG_RUNTIME_DIR_FULL (a build with -DENABLE_VALIDATE_INCREMENTAL=OFF), see env_host.sh.
 # Same harness as product-pin baseline. Default A/B both modes at N=1022 and 1522.
 #
 # Env: AB_N_LIST (default "1022 1522"), AB_MODE (default both), AB_APPEND=1

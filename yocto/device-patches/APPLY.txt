@@ -1,0 +1,45 @@
+Incremental YANG validation patches (product pin libyang 3.9.13 / sysrepo 3.7.11).
+
+Semantics: incremental validation is a BUILD option of sysrepo, on by default.
+
+  cmake -DENABLE_VALIDATE_INCREMENTAL=ON   (default) incremental validation, with fallback to full validation
+  cmake -DENABLE_VALIDATE_INCREMENTAL=OFF  every edit is validated in full
+
+There is no environment variable and no run-time switch. Changing it needs a rebuild of sysrepo and a new image.
+
+Preferred: Yocto layer (other server has meta-xpon)
+
+  cd <meta-xpon>
+  git apply -p1 /path/to/meta-xpon-incremental-validation.patch
+
+  bitbake -c cleansstate libyang libyang-native sysrepo sysrepo-native netconf-polt netopeer2
+  bitbake xpon-olt-image
+
+The patch adds libyang 0001-0006 and sysrepo 0004-0006 to the two bbappends. It does not touch the service
+files. To ship the image with full validation, add EXTRA_OECMAKE:append = " -DENABLE_VALIDATE_INCREMENTAL=OFF"
+to sysrepo_%.bbappend and rebuild.
+
+The component patches alone, for `git am` on a clean tree:
+
+  libyang-incremental-validation.patch   on libyang 3.9.13  (6 patches)
+  sysrepo-incremental-validation.patch   on sysrepo 3.7.11 + the meta-xpon 0001-0003 patches (3 patches)
+
+The sysrepo 0005 patch needs libyang 0005 (lyd_validate_incr_late_stats), so take both series together.
+
+After boot, check which validator a process uses, in the journal of any sysrepo user:
+
+  journalctl -u netconf-polt | grep "Incremental YANG validation"
+
+Expected once per process, at the first connect:
+  Incremental YANG validation: compiled in (ENABLE_VALIDATE_INCREMENTAL=ON).
+or, for a full-validation image:
+  Incremental YANG validation: not compiled in (ENABLE_VALIDATE_INCREMENTAL=OFF).
+
+On disconnect (INFO when there were no fallbacks, WARNING otherwise):
+  Incremental validation: N calls, M fallbacks (x%), L late.
+
+L counts the fallbacks that came after the incremental passes, because the validation deleted a node
+itself. A high L means a rule deletes data on most edits.
+
+Benchmarks (scripts/scale_cfg): the full-validation arm needs a second sysrepo runtime built with
+-DENABLE_VALIDATE_INCREMENTAL=OFF, see scripts/scale_cfg/env_host.sh (SCALECFG_RUNTIME_DIR_FULL).

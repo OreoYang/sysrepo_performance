@@ -32,9 +32,9 @@ STAGE=provision ./run_smoke_remote.sh
 
 ## What it tests
 
-1. `SR_VALIDATE_INCREMENTAL=1` on netconf-polt / netopeer2 (and export the same on any `sysrepocfg` shell)
+1. An image built with incremental validation (`-DENABLE_VALIDATE_INCREMENTAL=ON`, the default); nothing to export. Older images read `SR_VALIDATE_INCREMENTAL=1` on netconf-polt / netopeer2 and on any `sysrepocfg` shell
 2. Keep **netconf-polt** and **protocol-handler** running for paired scale (`run_work_paired_remote.sh` starts them if down; it does not stop them)
-2. First validate logs `Incremental YANG validation is enabled`
+2. First connect of each process logs `Incremental YANG validation: compiled in (ENABLE_VALIDATE_INCREMENTAL=ON)`
 3. NETCONF `edit-config` provision + service (`netopeer2-cli` on OLT → `127.0.0.1:830`)
 4. Negative edit (bad template) must fail
 5. Times in `/root/chicago_smoke/work/times.csv`

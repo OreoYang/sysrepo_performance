@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Product-pin copy-config A/B: each ONU XML is merged into running then sr_replace_config.
-# Same N list and SR_VALIDATE_INCREMENTAL switch as the edit-config harness.
+# Same N list and runtime switch (SCALECFG_RUNTIME_DIR / SCALECFG_RUNTIME_DIR_FULL) as the edit-config harness.
 #
 # Env: AB_N_LIST (default "1022 1522"), AB_MODE (default both)
 set -euo pipefail

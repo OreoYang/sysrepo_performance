@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# A/B: full-module YANG validation vs SR_VALIDATE_INCREMENTAL=1 (same binary).
+# A/B: full-module YANG validation vs incremental validation. The validator is chosen at build time, so the two
+# arms run from two staged runtimes (SCALECFG_RUNTIME_DIR incremental, SCALECFG_RUNTIME_DIR_FULL full, see env_host.sh).
 #
 # Default: serial N=40 provision+service, plus late single service edit at N=50 and N=100.
 # Env: N_SERIAL (default 40), N_LATE (default 50), N_LATE2 (default 100)
@@ -49,7 +50,7 @@ if [[ -z "${AB_APPEND:-}" ]]; then
     echo "timestamp,mode,kind,n,ok,fail,seconds,first_s,mid_s,last_s,status" > "${CSV}"
 fi
 
-log "=== A/B full validate vs SR_VALIDATE_INCREMENTAL=1 ==="
+log "=== A/B full validate vs incremental validate ==="
 log "started: $(date -Iseconds)"
 log "sysrepocfg: ${SYSREPOCFG_EXECUTABLE}"
 "${SYSREPOCFG_EXECUTABLE}" --version | head -1 | tee -a "${LOG}"
@@ -110,14 +111,11 @@ import_base() {
 }
 
 set_mode() {
-    local mode="$1"
-    if [[ "${mode}" == "editdiff" ]]; then
-        export SR_VALIDATE_INCREMENTAL=1
-        log "  mode=editdiff SR_VALIDATE_INCREMENTAL=1"
-    else
-        unset SR_VALIDATE_INCREMENTAL
-        log "  mode=full (SR_VALIDATE_INCREMENTAL unset)"
-    fi
+    local mode="$1" want=full
+    [[ "${mode}" == "editdiff" ]] && want=incr
+    # no pipe here: the exports must stay in this shell
+    sr_use_build "${want}" >> "${LOG}" 2>&1 || die "cannot select the ${want} build, see ${LOG}"
+    log "  mode=${mode} sysrepocfg: ${SYSREPOCFG_EXECUTABLE}"
 }
 
 parse_serial() {
@@ -250,12 +248,12 @@ run_late() {
     [[ "${n1}" -ge 1 ]] || n1=1
     [[ "${n}" -le "${#SVC_FILES[@]}" ]] || die "N=${n} > service files"
     log "--- late service #${n} mode=${mode} (serial editdiff populate ${n} provision + ${n1} service) ---"
-    unset SR_VALIDATE_INCREMENTAL
+    set_mode full
     fresh_repo "ab_late_${mode}_${n}"
     import_base
     python3 "${SCRIPT_DIR}/verify_base_ready.py" --configs "${CONFIGS_DIR}" >> "${LOG}" 2>&1 \
         || die "base preflight failed"
-    export SR_VALIDATE_INCREMENTAL=1
+    set_mode editdiff
     log "  serial provision 1..${n} (editdiff populate)"
     "${SR_EDIT_FILES}" ${SR_EDIT_EXTRA} "${PROV_FILES[@]:0:${n}}" >> "${LOG}" 2>&1 || die "serial provision populate failed"
     log "  serial service 1..${n1} (editdiff populate)"
