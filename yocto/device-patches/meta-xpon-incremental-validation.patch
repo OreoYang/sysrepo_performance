@@ -1,11 +1,11 @@
 diff --git a/recipes-extended/libyang/libyang/0001-validation-FEATURE-incremental-validation-driven-by-.patch b/recipes-extended/libyang/libyang/0001-validation-FEATURE-incremental-validation-driven-by-.patch
 new file mode 100644
-index 0000000..bb85e6c
+index 0000000..6609c2e
 --- /dev/null
 +++ b/recipes-extended/libyang/libyang/0001-validation-FEATURE-incremental-validation-driven-by-.patch
 @@ -0,0 +1,4726 @@
-+From 3b89b1c4c74e65a70f99d2b76ebe24789fffe313 Mon Sep 17 00:00:00 2001
-+From: "Oreo.Yang" <2167young@163.com>
++From 6eb316fbb6ba01ca25ddebc7338f5d813331b719 Mon Sep 17 00:00:00 2001
++From: OreoYang <oreo.yang@vecima.com>
 +Date: Mon, 26 Oct 2026 10:46:42 +0800
 +Subject: [PATCH] validation FEATURE incremental validation driven by an edit
 + diff
@@ -4742,12 +4742,12 @@ index 0b85734..53d59ce 100644
  "
 diff --git a/recipes-extended/sysrepo/sysrepo/0004-validation-FEATURE-use-the-incremental-validator-whe.patch b/recipes-extended/sysrepo/sysrepo/0004-validation-FEATURE-use-the-incremental-validator-whe.patch
 new file mode 100644
-index 0000000..b17f2c6
+index 0000000..afcc063
 --- /dev/null
 +++ b/recipes-extended/sysrepo/sysrepo/0004-validation-FEATURE-use-the-incremental-validator-whe.patch
 @@ -0,0 +1,361 @@
-+From bb48430f48e885de24b50cc71175208269339f2c Mon Sep 17 00:00:00 2001
-+From: "Oreo.Yang" <2167young@163.com>
++From 4e7da39376a1b5c1f56a27fb36cfd19cb387d2ec Mon Sep 17 00:00:00 2001
++From: OreoYang <oreo.yang@vecima.com>
 +Date: Mon, 26 Oct 2026 10:46:43 +0800
 +Subject: [PATCH] validation FEATURE use the incremental validator when the
 + diff is complete
