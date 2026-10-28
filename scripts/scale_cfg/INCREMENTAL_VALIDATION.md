@@ -207,3 +207,83 @@ Do **not** treat bumping `PREFERRED_VERSION_LIBYANG` to 3.13.5 as done until `LY
 - Compile-time dependency graph; skip unchanged `when "derived-from-or-self(if:type,…)`.
 - `lyd_validate_module_edit` fallback to full module when analysis is unknown.
 - On dirty list instances, still enforce mandatory `if:type` and `when` (fix N≥200 false negative).
+
+---
+
+## Production tag vs latest tag (host, 2026-10-26)
+
+Same host, same Release flags, same ONU workload, serial one apply per ONU, runs one after another.
+
+| Stack | sysrepo | libyang | Source |
+|-------|---------|---------|--------|
+| prod | 3.7.11 | 3.9.13 | `~/works/private/sysrepo-3.7.11`, `libyang-3.9.13` (branch `Oreo/incremental-stale-index-3.9.13`) |
+| latest | v5.2.27 | v6.4.13 (reports `LY_VERSION` 5.11.11) | `~/works/private/sysrepo` `Oreo/incremental-validation-v5.2.27` (`b6feee7c`), `libyang` `Oreo/incremental-validation-v6.4.13` (`8826cf748`) |
+
+Each stack has two builds that differ only by `-DENABLE_VALIDATE_INCREMENTAL=ON|OFF`. Reproduce:
+
+```bash
+# stage: LY_PREFIX=<libyang install> SR_PREFIX=<sysrepo install> SCALECFG_RUNTIME_DIR=$PWD/.local/runtime-<stack>-<incr|full> ./stage_from_private_3x.sh
+# helper: gcc sr_edit_files.c against .local/runtime-<stack>-incr -> .local/bin/sr_edit_files_<stack>
+AB_N_LIST="40 1022" ./run_stack_compare.sh latest      # results/stack_cmp_latest*.csv
+AB_N_LIST="40 1022" ./run_stack_compare.sh prod        # results/stack_cmp_prod*.csv
+```
+
+### N=1022 (CSV `results/stack_cmp_{prod,latest}.csv`)
+
+| Stack | Validator | Provision | Service | Total | Last service apply |
+|-------|-----------|-----------|---------|-------|--------------------|
+| prod | full | 197.6 s | 1363.8 s | 26.0 min | 2.88 s |
+| prod | incremental | 28.3 s | 131.6 s | 2.7 min | 0.244 s |
+| latest | full | 102.8 s | 1007.4 s | 18.5 min | 1.91 s |
+| latest | incremental | 27.7 s | 130.9 s | 2.6 min | 0.238 s |
+
+- Version upgrade alone (full vs full): total **1.41x** faster (provision 1.9x, service 1.35x).
+- Incremental validation on the same stack: prod **9.8x**, latest **7.0x** (total).
+- Production full vs latest incremental: **9.9x** (26.0 min to 2.6 min).
+- With the incremental validator both stacks end at the same time (158.5 s vs 159.9 s). Re-running the two
+  incremental arms gave 142.5 s and 171.7 s, so differences below about 10 percent are noise.
+- N=40: prod full 4.2 s, prod incremental 1.3 s, latest full 2.2 s, latest incremental 1.1 s.
+
+### Correctness and fallbacks
+
+- Final running datastore exported after the service phase (85,543 nodes) is identical for all four runs
+  (canonical XML hash equal), at N=40 and N=1022.
+- The same 6 service files (`SCLE00000001` to `06`) are rejected with "Validation failed" in all four runs, as in earlier
+  product-pin runs: they fail on the data, not on the validator.
+- Incremental validator fallbacks on this workload: **0 of 19,424** calls (10,220 provision, 9,204 service) on both
+  stacks. The 12.4 percent seen in `tests/test_validation_incr` comes from a toy schema built to force fallbacks.
+- Nested default under a cross-instance `when` (fixed 2026-10-28, libyang `Oreo/incremental-stale-index-3.9.13`):
+  when an edit changes what such a `when` reads, the default can appear in list instances the edit did not touch,
+  and the incremental pass never created or checked it there (wrong accept if the default breaks a `must`). These
+  edits now fall back to full validation. In the 211 product modules with all features on, only
+  `bbf-voip-sip:.../authentication/aka-secret-key` has this shape, and its feature
+  `authentication-and-key-agreement` is not enabled by `setup_datastore.sh`, so the product workload is not affected.
+
+### Assumption: stored data is valid
+
+Incremental validation checks only what the edit can break. It trusts that the data in the datastore was valid
+before the edit. Full validation checks everything, so it also reports old errors that the edit did not cause.
+
+| Where invalid stored data can come from | Covered? |
+|---|---|
+| Module install, update, feature change | Yes. sysrepo fully validates startup, running and factory-default (`sr_lycc_update_data`). |
+| Boot: running is copied from startup | No. `sr_shmmod_reboot_init` copies without validation. |
+| Startup file or datastore written outside sysrepo | No. |
+| A datastore plugin or validator bug | No. |
+
+What happens if stored data is invalid:
+
+- Incremental: an edit that does not touch the invalid part is accepted. The error stays until an edit touches that
+  part, which is then rejected with an error about data the user did not change.
+- Full: every edit to that module is rejected until the old error is fixed.
+
+With stock sysrepo the first edit after boot runs a full validation and finds bad startup data. With incremental
+validation that check is gone. If this matters, add one full validation per module on the first edit after boot
+(not implemented). `sr_validate()` does not help: on running with no pending edit it validates no module.
+
+### Caveats
+
+- Host Release builds, not the Yocto image: earlier Yocto-native product numbers are slower (service 1901 s at N=1022).
+- N=1522 not rerun on the new stack.
+- `sr_edit_files.c`: `SR_EDIT_LOG_WRN=1` prints sysrepo info and warning logs (fallback counter).
+  `ab_validate_edit_diff.sh`: `AB_EXPORT_AFTER=1` exports running after the service phase for state comparison.
