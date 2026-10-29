@@ -1,0 +1,3 @@
+timestamp,mode,kind,n,ok,fail,seconds,first_s,mid_s,last_s,status
+2026-10-29T17:02:41+08:00,editdiff,serial_provision,1022,,,31.309,0.0153,0.0341,0.0432,ok
+2026-10-29T17:02:41+08:00,editdiff,serial_service,1022,,,146.493,0.0404,0.1580,0.2689,fail

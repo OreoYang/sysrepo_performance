@@ -287,3 +287,121 @@ validation that check is gone. If this matters, add one full validation per modu
 - N=1522 not rerun on the new stack.
 - `sr_edit_files.c`: `SR_EDIT_LOG_WRN=1` prints sysrepo info and warning logs (fallback counter).
   `ab_validate_edit_diff.sh`: `AB_EXPORT_AFTER=1` exports running after the service phase for state comparison.
+
+---
+
+## Deletes: shallow scope (2026-10-29)
+
+### Why deletes did not get faster
+
+A deleted node is no longer in the tree, so the incremental pass starts from its closest surviving parent and widens
+that to the outermost list instance, or to the whole top-level node when no list is above it. Deleting
+`/interfaces/interface[X]` therefore revalidated all of `/interfaces` (every `when`, type and `must` of every
+interface). The classifier (local, list-scope, bounded, unbounded) was not the cause; the root choice was.
+
+### Change
+
+libyang option `LYD_VALIDATE_INCR_SHALLOW_DELETE` (pass it to `lyd_validate_module_incr()` and
+`lyd_validate_module_incr_final()`). A deleted list or leaf-list instance checks only its parent instead of the
+whole top-level subtree when all of these hold:
+
+| Condition | Why |
+|---|---|
+| The deleted node is a list or leaf-list instance and its parent survived | Anything bigger keeps the old scope. |
+| No list instance at or above the parent | A rule confined to that instance could read the deleted one without being cross-instance. |
+| No rule outside every list reads anything in the deleted subtree (top-level atoms) | Such a rule is only found by the wide scope. |
+| No rule under the parent has unknown atoms | The extra node search cannot find it. |
+
+What still runs for the parent: its own `must`, min-elements and mandatory checks (the parent stays on the path), and
+defaults or a default case that may appear in it (`lyd_new_implicit()`, new nodes become scope roots). Rules in sibling
+instances that read the deleted instance are cross-instance and are rechecked as extra nodes, as before.
+
+sysrepo: no separate switch. Whenever `ENABLE_VALIDATE_INCREMENTAL` is on, the option is passed to both calls. The
+stats line counts "shallow deletes". (The scale runs below compared a build with a temporary separate flag, since removed.)
+
+### Safety checks
+
+- libyang `utest_validation_incr`: `check_same()` now runs the incremental side twice, without and with the option,
+  and each run must match full validation (verdict, resulting tree, fallback rule). All 31 existing tests run both
+  ways. Two new tests cover leafref targets in a sibling list, leaf-list and nested container deletes, min-elements,
+  a count in a sibling list, a default case coming back, a `when` that reads the deleted instance, and the gate
+  refusing (rule of the parent container, rule with no atoms, instance inside a list).
+- Random edit tests at 20,000 seeds each (both random tests, both option sets): no mismatch. The random tests now chain
+  the fully validated tree into the next step, as a datastore would store it; chaining the raw edited tree left
+  stale new flags that made full validation recheck nodes of earlier edits.
+- Full libyang ctest (118 tests, valgrind included) passes.
+- sysrepo `test_validation_incr`, `test_validation`, `test_edit` pass with the option OFF and ON (ON takes the shallow
+  scope 7 and 4 times).
+- `.probe/real.c` on product YANG, cases 1 to 5: verdict and final tree match full validation with and without the option.
+
+### Scale results (prod stack, incremental build, serial one apply per ONU)
+
+CSV `results/shallow_{noshallow,shallow}_{400,1022}.csv`; exports in `results/shallow_exports/`.
+
+| N | Phase | Without option | With option | Speed-up |
+|---|---|---|---|---|
+| 400 | delete-service | 155.9 s | 26.8 s | 5.8x |
+| 400 | delete-provision | 42.4 s | 9.5 s | 4.5x |
+| 1022 | delete-service | 1197.7 s | 160.4 s | 7.5x |
+| 1022 | delete-provision | 217.2 s | 36.4 s | 6.0x |
+
+- First delete-service apply: 0.756 s to 0.127 s at N=400, 2.647 s to 0.329 s at N=1022.
+- Provision and service phases are unchanged (same code path, within noise).
+- Running datastore exported after the service phase and after the delete phases is byte-identical between the two
+  arms at N=400 and N=1022, and the post-delete export equals the base export. Both arms apply all delete edits
+  (800 and 2044) and reject the same service files (5 and 6, no matching provision or known bad data).
+
+### Remaining limits
+
+- A port deleted from the shared N:1 forwarder sits inside the `forwarder` list instance, so the whole forwarder is
+  still revalidated (all ports of all ONUs). This is likely the main remaining cost of delete-service, not yet
+  measured per rule (proposal B, not done).
+- When the deleted instance was the last child of a non-presence container, the container becomes an empty default
+  node and the diff deletes the container itself; that delete keeps the old scope.
+
+### Fixed hole: a rule that reads a whole ancestor container (2026-10-29)
+
+A rule that reads a container as a whole, for example its string value, was missed when an edit deleted or changed
+something below that container. Full validation rejected the edit, incremental validation accepted it, and the stored
+datastore then violated the rule.
+
+- Example: `must "contains(string(../../inner), 'x1')"` in a sibling list, and a delete of `inner/x[name='x1']`.
+- Scope of the hole, found by the new tests:
+  - Shallow delete scope (`LYD_VALIDATE_INCR_SHALLOW_DELETE`), rule in the same top-level subtree: missed.
+  - Rule in another module (`contains(string(/dl:top/dl:inner), 'x1')`): missed **without** the option too, for a
+    delete and for a modify of `inner/a`. So it was a hole of incremental validation itself, not only of the shallow
+    scope.
+  - Modify of a leaf below the container, rule in the same top-level subtree: caught, the wide root covers it.
+- Cause: an edit touches the edited schema node and everything below it, never its ancestors. The atoms of such a
+  rule were only the container, which is above the edited node, so no atom matched and the cross-instance rule was not
+  rechecked; the shallow gate (C4) did not see it either.
+- Fix (`libyang src/validation_deps.c`, `lyd_val_dep_atoms_store()`): a container or list atom with no other atom of
+  the same rule below it is read as a whole, so all its schema descendants become atoms of the rule too. The class,
+  `unit` and `creation_safe` of a rule are computed before this step and do not change. The top-level atom set gets the
+  same expansion, so the gate and the scope root see it.
+- Tests: libyang `test_del_ancestor_reader` (5 cases: count of children, string value, string value from another
+  module, modify, modify read from another module) and the per-reader delete sweep, now with the `r-manc` reader;
+  sysrepo `test_delete_ancestor_reader` with the same 5 cases. All pass with incremental on; sysrepo also passes with
+  `ENABLE_VALIDATE_INCREMENTAL=OFF`. With the expansion switched off, `test_del_ancestor_reader` and
+  `test_del_sweep_by_reader` fail. Full libyang ctest (118, valgrind included) passes. The earlier mutation check gives
+  the same result as before the fix.
+- Product YANG (classifier report on the prod module set, old against new `validation_deps.c`): the 529 constraints
+  keep the same class, unit and creation-safe flag, and the scope is still widened by 3 schema nodes. The atom total
+  grows from 1791 to 3627, in 53 rules. 42 of them are local or list-scope, whose atoms are not used at run time. The
+  11 cross-instance ones are mostly correct additions (`boolean(.../single-token-bucket)` tests a non-presence
+  container, which exists only while it has children); the `bbf-xpon-onu-state` `when` rules (8 to 72 atoms) grow
+  because the context node itself is a container, which only costs an extra recheck.
+- Exposure before the fix (offline scan of the 317 must/when constraints of the installed module set, plus a text
+  scan of 954 must/when statements in 801 files under `works/yang`): no expression reads the string value of a
+  container. Seven expressions use a string function and all of them read leaves. 39 constraints (29 distinct) end on a
+  container or list, all of them existence or count tests.
+- 400 ONUs, prod stack, shallow option on, same session, only libyang swapped (`results/shallowfix_400.csv` against
+  `results/shallowbase_400.csv`):
+
+| Phase | Before fix | With fix |
+|---|---|---|
+| delete-service | 23.5 s | 24.2 s |
+| delete-provision | 8.9 s | 8.2 s |
+
+  Both arms do the same 698,018 and 238,000 must evaluations, and the three exports (base, after service, after
+  delete) are byte-identical between them, so the difference is noise.
