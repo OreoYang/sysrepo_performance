@@ -402,6 +402,11 @@ main(int argc, char **argv)
     double t0, t_all;
     int nfiles = 0, nfail = 0;
 
+    /* SR_EDIT_LOG_WRN=1: show sysrepo info and warnings, e.g. the incremental validator fallback count printed at disconnect */
+    if (getenv("SR_EDIT_LOG_WRN")) {
+        sr_log_stderr(SR_LL_INF);
+    }
+
     first_file = 1;
     for (i = 1; i < argc; ++i) {
         if (!strcmp(argv[i], "--batch")) {

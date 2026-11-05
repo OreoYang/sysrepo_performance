@@ -1,3 +1,6 @@
 scripts/scale_cfg/work/
 scripts/scale_cfg/results/*.log
 scripts/scale_cfg/.local/
+scripts/scale_cfg/tools/incr_sweep/out/
+scripts/scale_cfg/tools/incr_sweep/bin/
+scripts/scale_cfg/tools/incr_sweep/__pycache__/

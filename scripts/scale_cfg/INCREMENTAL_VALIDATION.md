@@ -353,9 +353,18 @@ CSV `results/shallow_{noshallow,shallow}_{400,1022}.csv`; exports in `results/sh
 
 ### Remaining limits
 
-- A port deleted from the shared N:1 forwarder sits inside the `forwarder` list instance, so the whole forwarder is
-  still revalidated (all ports of all ONUs). This is likely the main remaining cost of delete-service, not yet
-  measured per rule (proposal B, not done).
+- A port deleted from the shared N:1 forwarder sits below the `forwarder` list, so shallow delete is refused and the
+  scope root is that one `forwarder` row (not all forwarders). The ports of the row are walked, but the value-keyed
+  `must count(...) < 2` is skipped for them. Measured on the unit-test schema `a` (same rule shapes), 1000 ports
+  per forwarder, Debug build (2026-11-05): `scope_roots=1`, `must_evals=0`, 0.4 to 0.7 ms incremental against 0.9
+  to 3.7 s full. Not measured: the other rules of the production forwarder and the sysrepo N=1022 delete phase, so
+  nothing shows yet that this is a cost worth proposal B (narrow the root to the port).
+- Delete takes the narrow path only when all of these hold (`lyd_val_incr_shallow_ok`, and sysrepo sets the option
+  only on the incremental path): the deleted node is a list or leaf-list; the diff names only that instance; no
+  list or leaf-list is the parent or above it; no rule that no list confines reads the node or anything below it;
+  no rule with unknown atoms sits at or below the parent. On the production schemas (`tools/incr_sweep/shallow.c`,
+  177 config lists and leaf-lists) 84 qualify (for example `interface`, `forwarder`, `transport-profile`), 93 do not because a list sits
+  above (for example `port`).
 - When the deleted instance was the last child of a non-presence container, the container becomes an empty default
   node and the diff deletes the container itself; that delete keeps the old scope.
 

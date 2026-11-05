@@ -199,6 +199,12 @@ run_serial() {
     svc_s=$(awk -v s="${t0}" -v e="${t1}" 'BEGIN { printf "%.3f", e-s }')
     log "serial service N=${n} svc_files=${svc_n} mode=${mode} total=${svc_s}s rc=${svc_ok}"
     rm -f "${tmp}"
+    if [[ "${AB_EXPORT_AFTER:-0}" == "1" ]]; then
+        # state check only: the exports of two validators on the same input must be equal
+        mkdir -p "${AB_EXPORT_DIR}"
+        "${SYSREPOCFG_EXECUTABLE}" --export="${AB_EXPORT_DIR}/after_service_${mode}_${n}.xml" -d running -f xml \
+            >> "${LOG}" 2>&1 || log "warn: export after service failed"
+    fi
 
     st_p=$([ "${prov_ok}" -eq 0 ] && echo ok || echo fail)
     st_s=$([ "${svc_ok}" -eq 0 ] && echo ok || echo fail)
