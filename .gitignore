@@ -35,6 +35,9 @@ scripts/scale_cfg/results/shallowfix_exports/
 scripts/scale_cfg/results/stack_cmp_exports/
 scripts/scale_cfg/results/*.log.prev
 scripts/scale_cfg/results/*.out
+scripts/scale_cfg/results/*_pairs.txt
+scripts/scale_cfg/results/*.bak
+scripts/scale_cfg/results/*.n40.bak
 scripts/scale_cfg/results/profile_summary.txt
 scripts/scale_cfg/results/yang_dep_report*.csv
 
