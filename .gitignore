@@ -1,6 +1,61 @@
+# Local sysrepo runtrees and shm (never commit runtime state)
 scripts/scale_cfg/work/
-scripts/scale_cfg/results/*.log
+scripts/scale_cfg/work_voip/
 scripts/scale_cfg/.local/
+scripts/scale_cfg/chicago_smoke/.pack_n1022/
+scripts/scale_cfg/chicago_smoke/work_n1022.tar
+scripts/scale_cfg/db_*.tar
+scripts/scale_cfg/largescaleDb.tar
+
+# Harness scratch and caches
+scripts/scale_cfg/--help
+scripts/scale_cfg/__pycache__/
 scripts/scale_cfg/tools/incr_sweep/out/
 scripts/scale_cfg/tools/incr_sweep/bin/
 scripts/scale_cfg/tools/incr_sweep/__pycache__/
+
+# Benchmark outputs (keep a few checked-in baselines under results/; everything else is local)
+scripts/scale_cfg/results/*.log
+scripts/scale_cfg/results/export.xml
+scripts/scale_cfg/results/ab_validate_*.csv
+scripts/scale_cfg/results/ab_copycfg_*.csv
+scripts/scale_cfg/results/chicago_*.csv
+scripts/scale_cfg/results/copycfg_*.csv
+scripts/scale_cfg/results/cost_*.csv
+scripts/scale_cfg/results/incr_*.csv
+scripts/scale_cfg/results/jobs_*.csv
+scripts/scale_cfg/results/voip_*.csv
+scripts/scale_cfg/results/shallow_*.csv
+scripts/scale_cfg/results/stack_cmp*.csv
+scripts/scale_cfg/results/*_per_edit.csv
+scripts/scale_cfg/results/delexp_*/
+scripts/scale_cfg/results/shallow_exports/
+scripts/scale_cfg/results/shallowbase_exports/
+scripts/scale_cfg/results/shallowfix_exports/
+scripts/scale_cfg/results/stack_cmp_exports/
+scripts/scale_cfg/results/*.log.prev
+scripts/scale_cfg/results/*.out
+scripts/scale_cfg/results/profile_summary.txt
+scripts/scale_cfg/results/yang_dep_report*.csv
+
+# Confluence / wiki edit scratch (repo root)
+.confluence-*
+.confluence-body.html
+.full-update-args.json
+.invoke-update.json
+.mcp-*.json
+call
+updateConfluencePage
+plugin-atlassian-atlassian
+
+# Diagram and doc generation scratch
+.drawio-work/
+.probe/
+docs/archify/
+docs/confluence-charts/
+docs/confluence-page-body.html
+docs/confluence-update-payload.json
+docs/conf-patched.html
+docs/chicago_bench_section.html
+docs/incr-validation/
+incr_validation_flow.excalidraw
