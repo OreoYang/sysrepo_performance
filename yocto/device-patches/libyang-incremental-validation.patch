@@ -1,17 +1,45 @@
 From 39cbdc60c05ddbe44ad51bc174bcf182750c5a5c Mon Sep 17 00:00:00 2001
 From: OreoYang <oreo.yang@vecima.com>
 Date: Mon, 9 Nov 2026 14:31:22 +0800
-Subject: [PATCH] validation FEATURE incremental YANG validation for product libyang 3.9.13
+Subject: [PATCH] validation FEATURE incremental validation driven by an edit diff
 
-Product delivery: incremental YANG validation for libyang 3.9.13 (Yocto
-libyang_3.13.5, SRCREV efe43e3790822a3dc64d7d28db935d03fff8b81f).
+Validating a whole module after every edit is quadratic in the size of the
+datastore, which dominates the cost of provisioning thousands of instances.
 
-Squashed export of Oreo/incremental-stale-index-3.9.13 at 39cbdc60c for
-git am on a tree checked out at the product base. Ships with the matching
-unit tests and bugfix commits on that branch.
+Add lyd_validate_module_incr(): every when/must/leafref/unique constraint is
+classified by how far its dependencies reach (local, list-scope, bounded,
+unbounded) and cached per context. Given a diff that describes every change
+since the data were last valid, only the subtrees the diff can invalidate are
+revalidated. Whatever cannot be reduced to a finite set of paths falls back to
+full validation, so the verdict always equals validating the whole module. A
+late fallback is taken when validation itself deletes a node. Counters are
+exposed by lyd_validate_incr_stats() and lyd_validate_incr_late_stats().
 
-Install path: meta-xpon recipe patch 0001 (see yocto/device-patches/APPLY.txt).
-Unproven edits still use full module validation (libyang fallback).
+Later fixes in this series: dependency index rebuilt after schema changes,
+default nodes appearing in untouched list instances, mandatory/min-elements
+nodes behind a remote when, relative negation/count/arithmetic reading sibling
+instances, deep delete chains, and shallow scope for list deletes
+(LYD_VALIDATE_INCR_SHALLOW_DELETE). Differential unit tests compare every case
+against full validation.
+
+Squash of Oreo/incremental-stale-index-3.9.13 (39cbdc60c) on the product base
+efe43e379082 (Yocto libyang_3.13.5). Commits:
+  496d4864b validation FEATURE incremental validation driven by an edit diff
+  b80bb3aec validation FEATURE skip value-keyed uniqueness-count musts
+  cc0780a43 validation BUGFIX incremental validation misses
+  c02e70bc1 validation BUGFIX do not trust create on implicit defaults
+  13320e991 validation BUGFIX harden incremental validation corners
+  af470a99b validation BUGFIX arithmetic reads the first node of a node-set
+  3f1c70846 validation BUGFIX rebuild stale incremental dependency indexes
+  2ef4aba30 validation BUGFIX fall back when a default may appear in untouched instances
+  60d8871b5 validation FEATURE shallow scope for list deletes, rules reading whole containers
+  380f162fb validation BUGFIX relative negation or count leaving the list instance
+  cc2b2c822 validation OPTIMIZE avoid quadratic set dedup in incremental validation
+  800f68a45 validation FEATURE gap-shape tests for production rule coverage
+  f3b6af6a5 validation BUGFIX recheck absent mandatory nodes after remote when flips
+  325e5cafa validation FEATURE exact-shape tests for cross-module when, absolute leafref and value-keyed must
+  32c6990be validation BUGFIX shallow delete through LOCAL rules with empty atoms
+  39cbdc60c validation FEATURE structural constraint rows and misc schema checks in incr UT
 ---
  CMakeLists.txt                           |    2 +
  src/context.c                            |    8 +

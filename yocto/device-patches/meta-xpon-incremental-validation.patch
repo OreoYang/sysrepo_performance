@@ -1,23 +1,51 @@
 diff --git a/recipes-extended/libyang/libyang/0001-validation-FEATURE-incremental-validation-driven-by-.patch b/recipes-extended/libyang/libyang/0001-validation-FEATURE-incremental-validation-driven-by-.patch
 new file mode 100644
-index 0000000..17e51b5
+index 0000000..a318028
 --- /dev/null
 +++ b/recipes-extended/libyang/libyang/0001-validation-FEATURE-incremental-validation-driven-by-.patch
-@@ -0,0 +1,8070 @@
+@@ -0,0 +1,8098 @@
 +From 39cbdc60c05ddbe44ad51bc174bcf182750c5a5c Mon Sep 17 00:00:00 2001
 +From: OreoYang <oreo.yang@vecima.com>
 +Date: Mon, 9 Nov 2026 14:31:22 +0800
 +Subject: [PATCH] validation FEATURE incremental validation driven by an edit diff
 +
-+Squashed incremental validation on product libyang 3.9.13 (Yocto SRCREV
-+efe43e37) through the current Oreo/incremental-stale-index-3.9.13 tip.
-+Applies with git am on a clean checkout at the base revision.
++Validating a whole module after every edit is quadratic in the size of the
++datastore, which dominates the cost of provisioning thousands of instances.
 +
-+Validate only what an edit diff can have changed instead of the whole module.
-+lyd_validate_module_incr() builds a scope from the diff, checked against a
-+per-context dependency index (validation_deps.c), with fallback to full
-+lyd_validate_module() when safety cannot be proved (including late fallback
-+when validation deletes nodes). See tests/utests/data/test_validation_incr.c.
++Add lyd_validate_module_incr(): every when/must/leafref/unique constraint is
++classified by how far its dependencies reach (local, list-scope, bounded,
++unbounded) and cached per context. Given a diff that describes every change
++since the data were last valid, only the subtrees the diff can invalidate are
++revalidated. Whatever cannot be reduced to a finite set of paths falls back to
++full validation, so the verdict always equals validating the whole module. A
++late fallback is taken when validation itself deletes a node. Counters are
++exposed by lyd_validate_incr_stats() and lyd_validate_incr_late_stats().
++
++Later fixes in this series: dependency index rebuilt after schema changes,
++default nodes appearing in untouched list instances, mandatory/min-elements
++nodes behind a remote when, relative negation/count/arithmetic reading sibling
++instances, deep delete chains, and shallow scope for list deletes
++(LYD_VALIDATE_INCR_SHALLOW_DELETE). Differential unit tests compare every case
++against full validation.
++
++Squash of Oreo/incremental-stale-index-3.9.13 (39cbdc60c) on the product base
++efe43e379082 (Yocto libyang_3.13.5). Commits:
++  496d4864b validation FEATURE incremental validation driven by an edit diff
++  b80bb3aec validation FEATURE skip value-keyed uniqueness-count musts
++  cc0780a43 validation BUGFIX incremental validation misses
++  c02e70bc1 validation BUGFIX do not trust create on implicit defaults
++  13320e991 validation BUGFIX harden incremental validation corners
++  af470a99b validation BUGFIX arithmetic reads the first node of a node-set
++  3f1c70846 validation BUGFIX rebuild stale incremental dependency indexes
++  2ef4aba30 validation BUGFIX fall back when a default may appear in untouched instances
++  60d8871b5 validation FEATURE shallow scope for list deletes, rules reading whole containers
++  380f162fb validation BUGFIX relative negation or count leaving the list instance
++  cc2b2c822 validation OPTIMIZE avoid quadratic set dedup in incremental validation
++  800f68a45 validation FEATURE gap-shape tests for production rule coverage
++  f3b6af6a5 validation BUGFIX recheck absent mandatory nodes after remote when flips
++  325e5cafa validation FEATURE exact-shape tests for cross-module when, absolute leafref and value-keyed must
++  32c6990be validation BUGFIX shallow delete through LOCAL rules with empty atoms
++  39cbdc60c validation FEATURE structural constraint rows and misc schema checks in incr UT
 +---
 + CMakeLists.txt                           |    2 +
 + src/context.c                            |    8 +
@@ -8086,23 +8114,46 @@ index 0b85734..53d59ce 100644
  "
 diff --git a/recipes-extended/sysrepo/sysrepo/0004-validation-FEATURE-use-the-incremental-validator-whe.patch b/recipes-extended/sysrepo/sysrepo/0004-validation-FEATURE-use-the-incremental-validator-whe.patch
 new file mode 100644
-index 0000000..75354ef
+index 0000000..deab952
 --- /dev/null
 +++ b/recipes-extended/sysrepo/sysrepo/0004-validation-FEATURE-use-the-incremental-validator-whe.patch
-@@ -0,0 +1,2016 @@
+@@ -0,0 +1,2039 @@
 +From f9bacbf38f9e58235a23f548342a238a80fd407c Mon Sep 17 00:00:00 2001
 +From: OreoYang <oreo.yang@vecima.com>
 +Date: Mon, 9 Nov 2026 14:31:22 +0800
 +Subject: [PATCH] validation FEATURE use the incremental validator when the diff is complete
 +
-+Squashed incremental validation on product sysrepo 3.7.11 (Yocto SRCREV
-+1b720b19) through the current Oreo/incremental-validation-3.7.11 tip.
-+Applies with git am on a clean checkout at the base revision (after meta-xpon
-+patches 0001-0003).
++sr_apply_changes() and the copy-config/replace-config path reach
++sr_changes_notify_store() with a notify_diff that describes every change made
++to the stored data, which is the precondition of libyang's incremental
++validator. Validate changed modules with lyd_validate_module_incr() instead of
++in full; whenever libyang cannot prove the edit safe, the module is validated
++in full as before.
 +
-+sr_modinfo_validate() uses lyd_validate_module_incr() when the edit diff is
-+complete (build option ENABLE_VALIDATE_INCREMENTAL, default ON). See
-+tests/test_validation_incr.c.
++Incremental validation is a build option: cmake -DENABLE_VALIDATE_INCREMENTAL=ON
++(default) or OFF (every edit validated in full). Each process logs once, at its
++first sr_connect, which one it was built with. At sr_disconnect the call,
++fallback and late-fallback counters are logged, as a warning only when there
++were fallbacks. The shallow delete option is passed from modinfo, and the
++assumption that the stored data was valid before the edit is documented.
++
++Tests: end-to-end sr_apply_changes cases (cross-module leafref, must, when,
++cascades, replaced default case), delete matrix, and add/modify/product-shape
++differential cases that expect the same verdict as full validation.
++
++Requires the libyang incremental validation patch. Squash of
++Oreo/incremental-validation-3.7.11 (f9bacbf3) on the product base
++1b720b196f63 (Yocto sysrepo_3.7.11). Commits:
++  e9851f81 validation FEATURE use the incremental validator when the diff is complete
++  6c8c533e validation FEATURE log incremental enablement at warning level
++  5f0a6171 tests FEATURE incremental validation end-to-end test
++  4cd88709 validation FEATURE log late incremental validation fallbacks
++  ef14d144 validation FEATURE incremental validation is a build option, on by default
++  e9676d58 validation BUGFIX document the valid stored data assumption of incremental validation
++  1c896bf9 validation FEATURE shallow delete scope, delete safety matrix
++  a89d3a5c validation FEATURE add, modify and product-shape differential cases
++  65acc42b validation FEATURE gap-shape tests for production rule coverage
++  f9bacbf3 validation FEATURE mirror structural YANG constraint rows in incr differential tests
 +---
 + CMakeLists.txt               |    1 +
 + src/config.h.in              |    3 +

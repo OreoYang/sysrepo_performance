@@ -45,28 +45,58 @@ trap 'rm -f "$BODY_LY" "$BODY_SR"' EXIT
 LY_HEAD="$(git -C "$LIBYANG_DIR" rev-parse --short HEAD)"
 SR_HEAD="$(git -C "$SYSREPO_DIR" rev-parse --short HEAD)"
 
+commit_list() {
+  git -C "$1" log --reverse --format='  %h %s' "$2..HEAD"
+}
+
 cat >"$BODY_LY" <<EOF
-Product delivery: incremental YANG validation for libyang 3.9.13 (Yocto
-libyang_3.13.5, SRCREV ${LIBYANG_BASE}).
+Validating a whole module after every edit is quadratic in the size of the
+datastore, which dominates the cost of provisioning thousands of instances.
 
-Squashed export of Oreo/incremental-stale-index-3.9.13 at ${LY_HEAD} for
-git am on a tree checked out at the product base. Ships with the matching
-unit tests and bugfix commits on that branch.
+Add lyd_validate_module_incr(): every when/must/leafref/unique constraint is
+classified by how far its dependencies reach (local, list-scope, bounded,
+unbounded) and cached per context. Given a diff that describes every change
+since the data were last valid, only the subtrees the diff can invalidate are
+revalidated. Whatever cannot be reduced to a finite set of paths falls back to
+full validation, so the verdict always equals validating the whole module. A
+late fallback is taken when validation itself deletes a node. Counters are
+exposed by lyd_validate_incr_stats() and lyd_validate_incr_late_stats().
 
-Install path: meta-xpon recipe patch 0001 (see yocto/device-patches/APPLY.txt).
-Unproven edits still use full module validation (libyang fallback).
+Later fixes in this series: dependency index rebuilt after schema changes,
+default nodes appearing in untouched list instances, mandatory/min-elements
+nodes behind a remote when, relative negation/count/arithmetic reading sibling
+instances, deep delete chains, and shallow scope for list deletes
+(LYD_VALIDATE_INCR_SHALLOW_DELETE). Differential unit tests compare every case
+against full validation.
+
+Squash of Oreo/incremental-stale-index-3.9.13 (${LY_HEAD}) on the product base
+${LIBYANG_BASE:0:12} (Yocto libyang_3.13.5). Commits:
+$(commit_list "$LIBYANG_DIR" "$LIBYANG_BASE")
 EOF
 
 cat >"$BODY_SR" <<EOF
-Product delivery: sysrepo 3.7.11 integration for libyang incremental validation
-(Yocto sysrepo_3.7.11, SRCREV ${SYSREPO_BASE}).
+sr_apply_changes() and the copy-config/replace-config path reach
+sr_changes_notify_store() with a notify_diff that describes every change made
+to the stored data, which is the precondition of libyang's incremental
+validator. Validate changed modules with lyd_validate_module_incr() instead of
+in full; whenever libyang cannot prove the edit safe, the module is validated
+in full as before.
 
-Squashed export of Oreo/incremental-validation-3.7.11 at ${SR_HEAD} for
-git am on the product base after Vecima recipe patches 0001-0003.
-ENABLE_VALIDATE_INCREMENTAL defaults to ON at build time.
+Incremental validation is a build option: cmake -DENABLE_VALIDATE_INCREMENTAL=ON
+(default) or OFF (every edit validated in full). Each process logs once, at its
+first sr_connect, which one it was built with. At sr_disconnect the call,
+fallback and late-fallback counters are logged, as a warning only when there
+were fallbacks. The shallow delete option is passed from modinfo, and the
+assumption that the stored data was valid before the edit is documented.
 
-Install path: meta-xpon recipe patch 0004; requires libyang patch 0001 from
-the same device-patches set.
+Tests: end-to-end sr_apply_changes cases (cross-module leafref, must, when,
+cascades, replaced default case), delete matrix, and add/modify/product-shape
+differential cases that expect the same verdict as full validation.
+
+Requires the libyang incremental validation patch. Squash of
+Oreo/incremental-validation-3.7.11 (${SR_HEAD}) on the product base
+${SYSREPO_BASE:0:12} (Yocto sysrepo_3.7.11). Commits:
+$(commit_list "$SYSREPO_DIR" "$SYSREPO_BASE")
 EOF
 
 for d in "$LIBYANG_DIR" "$SYSREPO_DIR"; do
@@ -75,12 +105,12 @@ done
 
 gen_squash_patch "$LIBYANG_DIR" "$LIBYANG_BASE" \
   "$OUT/libyang-incremental-validation.patch" \
-  "validation FEATURE incremental YANG validation for product libyang 3.9.13" \
+  "validation FEATURE incremental validation driven by an edit diff" \
   "$BODY_LY"
 
 gen_squash_patch "$SYSREPO_DIR" "$SYSREPO_BASE" \
   "$OUT/sysrepo-incremental-validation.patch" \
-  "validation FEATURE sysrepo integration for incremental validation 3.7.11" \
+  "validation FEATURE use the incremental validator when the diff is complete" \
   "$BODY_SR"
 
 if git -C "$META_XPON_DIR" rev-parse HEAD >/dev/null 2>&1; then
