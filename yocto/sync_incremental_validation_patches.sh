@@ -45,10 +45,6 @@ trap 'rm -f "$BODY_LY" "$BODY_SR"' EXIT
 LY_HEAD="$(git -C "$LIBYANG_DIR" rev-parse --short HEAD)"
 SR_HEAD="$(git -C "$SYSREPO_DIR" rev-parse --short HEAD)"
 
-commit_list() {
-  git -C "$1" log --reverse --format='  %h %s' "$2..HEAD"
-}
-
 cat >"$BODY_LY" <<EOF
 Validating a whole module after every edit is quadratic in the size of the
 datastore, which dominates the cost of provisioning thousands of instances.
@@ -68,10 +64,6 @@ nodes behind a remote when, relative negation/count/arithmetic reading sibling
 instances, deep delete chains, and shallow scope for list deletes
 (LYD_VALIDATE_INCR_SHALLOW_DELETE). Differential unit tests compare every case
 against full validation.
-
-Squash of Oreo/incremental-stale-index-3.9.13 (${LY_HEAD}) on the product base
-${LIBYANG_BASE:0:12} (Yocto libyang_3.13.5). Commits:
-$(commit_list "$LIBYANG_DIR" "$LIBYANG_BASE")
 EOF
 
 cat >"$BODY_SR" <<EOF
@@ -93,10 +85,7 @@ Tests: end-to-end sr_apply_changes cases (cross-module leafref, must, when,
 cascades, replaced default case), delete matrix, and add/modify/product-shape
 differential cases that expect the same verdict as full validation.
 
-Requires the libyang incremental validation patch. Squash of
-Oreo/incremental-validation-3.7.11 (${SR_HEAD}) on the product base
-${SYSREPO_BASE:0:12} (Yocto sysrepo_3.7.11). Commits:
-$(commit_list "$SYSREPO_DIR" "$SYSREPO_BASE")
+Requires the libyang incremental validation patch.
 EOF
 
 for d in "$LIBYANG_DIR" "$SYSREPO_DIR"; do
