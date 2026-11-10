@@ -21,7 +21,19 @@ Tests: end-to-end sr_apply_changes cases (cross-module leafref, must, when,
 cascades, replaced default case), delete matrix, and add/modify/product-shape
 differential cases that expect the same verdict as full validation.
 
-Requires the libyang incremental validation patch.
+Requires the libyang incremental validation patch. Squash of
+Oreo/incremental-validation-3.7.11 (f9bacbf3) on the product base
+1b720b196f63 (Yocto sysrepo_3.7.11). Commits:
+  e9851f81 validation FEATURE use the incremental validator when the diff is complete
+  6c8c533e validation FEATURE log incremental enablement at warning level
+  5f0a6171 tests FEATURE incremental validation end-to-end test
+  4cd88709 validation FEATURE log late incremental validation fallbacks
+  ef14d144 validation FEATURE incremental validation is a build option, on by default
+  e9676d58 validation BUGFIX document the valid stored data assumption of incremental validation
+  1c896bf9 validation FEATURE shallow delete scope, delete safety matrix
+  a89d3a5c validation FEATURE add, modify and product-shape differential cases
+  65acc42b validation FEATURE gap-shape tests for production rule coverage
+  f9bacbf3 validation FEATURE mirror structural YANG constraint rows in incr differential tests
 ---
  CMakeLists.txt               |    1 +
  src/config.h.in              |    3 +
