@@ -24,7 +24,7 @@ Product pin lives in `~/works/repo/vcmos/meta-xpon/conf/distro/include/xpon-oss-
 | `PREFERRED_VERSION_LIBYANG` | **3.13.5** |
 | netopeer2 / libnetconf2 | 2.4.5 / 3.7.10 |
 
-`meta-xpon/recipes-extended/libyang/libyang_%.bbappend` has an empty `SRC_URI`: **no validation patches**. sysrepo bbappend is SHM / sort / factory-reset only.
+`meta-xpon/recipes-extended/libyang/libyang_%.bbappend` adds libyang **0001** (incremental validation). Sysrepo bbappend adds **0004** on top of Vecima 0001–0003 (SHM / sort / factory-reset). See `yocto/device-patches/meta-xpon-incremental-validation.patch`.
 
 **Important:** Yocto `libyang_3.13.5.bb` (`SRCREV efe43e37…`) still compiles **`LY_VERSION "3.9.13"`** (`version.h` + `libyang.so.3.9.13`). pkgconfig `Version: 3.13.5` is the recipe `PV`, not CESNET 3.13.5. The “product 3.13.5” native sysroot **is libyang 3.9.13**.
 
