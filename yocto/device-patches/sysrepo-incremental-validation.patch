@@ -1,16 +1,17 @@
 From f9bacbf38f9e58235a23f548342a238a80fd407c Mon Sep 17 00:00:00 2001
 From: OreoYang <oreo.yang@vecima.com>
 Date: Mon, 9 Nov 2026 14:31:22 +0800
-Subject: [PATCH] validation FEATURE use the incremental validator when the diff is complete
+Subject: [PATCH] validation FEATURE sysrepo integration for incremental validation 3.7.11
 
-Squashed incremental validation on product sysrepo 3.7.11 (Yocto SRCREV
-1b720b19) through the current Oreo/incremental-validation-3.7.11 tip.
-Applies with git am on a clean checkout at the base revision (after meta-xpon
-patches 0001-0003).
+Product delivery: sysrepo 3.7.11 integration for libyang incremental validation
+(Yocto sysrepo_3.7.11, SRCREV 1b720b196f630f348d9e0c131d326b3fb8c6aca7).
 
-sr_modinfo_validate() uses lyd_validate_module_incr() when the edit diff is
-complete (build option ENABLE_VALIDATE_INCREMENTAL, default ON). See
-tests/test_validation_incr.c.
+Squashed export of Oreo/incremental-validation-3.7.11 at f9bacbf3 for
+git am on the product base after Vecima recipe patches 0001-0003.
+ENABLE_VALIDATE_INCREMENTAL defaults to ON at build time.
+
+Install path: meta-xpon recipe patch 0004; requires libyang patch 0001 from
+the same device-patches set.
 ---
  CMakeLists.txt               |    1 +
  src/config.h.in              |    3 +

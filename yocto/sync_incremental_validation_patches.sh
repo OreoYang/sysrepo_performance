@@ -42,27 +42,31 @@ BODY_LY="$(mktemp)"
 BODY_SR="$(mktemp)"
 trap 'rm -f "$BODY_LY" "$BODY_SR"' EXIT
 
-cat >"$BODY_LY" <<EOF
-Squashed incremental validation on product libyang 3.9.13 (Yocto SRCREV
-${LIBYANG_BASE:0:8}) through the current Oreo/incremental-stale-index-3.9.13 tip.
-Applies with git am on a clean checkout at the base revision.
+LY_HEAD="$(git -C "$LIBYANG_DIR" rev-parse --short HEAD)"
+SR_HEAD="$(git -C "$SYSREPO_DIR" rev-parse --short HEAD)"
 
-Validate only what an edit diff can have changed instead of the whole module.
-lyd_validate_module_incr() builds a scope from the diff, checked against a
-per-context dependency index (validation_deps.c), with fallback to full
-lyd_validate_module() when safety cannot be proved (including late fallback
-when validation deletes nodes). See tests/utests/data/test_validation_incr.c.
+cat >"$BODY_LY" <<EOF
+Product delivery: incremental YANG validation for libyang 3.9.13 (Yocto
+libyang_3.13.5, SRCREV ${LIBYANG_BASE}).
+
+Squashed export of Oreo/incremental-stale-index-3.9.13 at ${LY_HEAD} for
+git am on a tree checked out at the product base. Ships with the matching
+unit tests and bugfix commits on that branch.
+
+Install path: meta-xpon recipe patch 0001 (see yocto/device-patches/APPLY.txt).
+Unproven edits still use full module validation (libyang fallback).
 EOF
 
 cat >"$BODY_SR" <<EOF
-Squashed incremental validation on product sysrepo 3.7.11 (Yocto SRCREV
-${SYSREPO_BASE:0:8}) through the current Oreo/incremental-validation-3.7.11 tip.
-Applies with git am on a clean checkout at the base revision (after meta-xpon
-patches 0001-0003).
+Product delivery: sysrepo 3.7.11 integration for libyang incremental validation
+(Yocto sysrepo_3.7.11, SRCREV ${SYSREPO_BASE}).
 
-sr_modinfo_validate() uses lyd_validate_module_incr() when the edit diff is
-complete (build option ENABLE_VALIDATE_INCREMENTAL, default ON). See
-tests/test_validation_incr.c.
+Squashed export of Oreo/incremental-validation-3.7.11 at ${SR_HEAD} for
+git am on the product base after Vecima recipe patches 0001-0003.
+ENABLE_VALIDATE_INCREMENTAL defaults to ON at build time.
+
+Install path: meta-xpon recipe patch 0004; requires libyang patch 0001 from
+the same device-patches set.
 EOF
 
 for d in "$LIBYANG_DIR" "$SYSREPO_DIR"; do
@@ -71,12 +75,12 @@ done
 
 gen_squash_patch "$LIBYANG_DIR" "$LIBYANG_BASE" \
   "$OUT/libyang-incremental-validation.patch" \
-  "validation FEATURE incremental validation driven by an edit diff" \
+  "validation FEATURE incremental YANG validation for product libyang 3.9.13" \
   "$BODY_LY"
 
 gen_squash_patch "$SYSREPO_DIR" "$SYSREPO_BASE" \
   "$OUT/sysrepo-incremental-validation.patch" \
-  "validation FEATURE use the incremental validator when the diff is complete" \
+  "validation FEATURE sysrepo integration for incremental validation 3.7.11" \
   "$BODY_SR"
 
 if git -C "$META_XPON_DIR" rev-parse HEAD >/dev/null 2>&1; then
@@ -94,8 +98,6 @@ else
   echo "META_XPON_DIR not found; skipped meta-xpon-incremental-validation.patch" >&2
 fi
 
-LY_HEAD="$(git -C "$LIBYANG_DIR" rev-parse --short HEAD)"
-SR_HEAD="$(git -C "$SYSREPO_DIR" rev-parse --short HEAD)"
 if grep -q 'Squash tips' "$OUT/APPLY.txt" 2>/dev/null; then
   sed -i "s/^Squash tips.*/Squash tips: libyang ${LY_HEAD} on base ${LIBYANG_BASE:0:8}; sysrepo ${SR_HEAD} on base ${SYSREPO_BASE:0:8}./" \
     "$OUT/APPLY.txt"

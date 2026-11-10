@@ -1,17 +1,17 @@
 From 39cbdc60c05ddbe44ad51bc174bcf182750c5a5c Mon Sep 17 00:00:00 2001
 From: OreoYang <oreo.yang@vecima.com>
 Date: Mon, 9 Nov 2026 14:31:22 +0800
-Subject: [PATCH] validation FEATURE incremental validation driven by an edit diff
+Subject: [PATCH] validation FEATURE incremental YANG validation for product libyang 3.9.13
 
-Squashed incremental validation on product libyang 3.9.13 (Yocto SRCREV
-efe43e37) through the current Oreo/incremental-stale-index-3.9.13 tip.
-Applies with git am on a clean checkout at the base revision.
+Product delivery: incremental YANG validation for libyang 3.9.13 (Yocto
+libyang_3.13.5, SRCREV efe43e3790822a3dc64d7d28db935d03fff8b81f).
 
-Validate only what an edit diff can have changed instead of the whole module.
-lyd_validate_module_incr() builds a scope from the diff, checked against a
-per-context dependency index (validation_deps.c), with fallback to full
-lyd_validate_module() when safety cannot be proved (including late fallback
-when validation deletes nodes). See tests/utests/data/test_validation_incr.c.
+Squashed export of Oreo/incremental-stale-index-3.9.13 at 39cbdc60c for
+git am on a tree checked out at the product base. Ships with the matching
+unit tests and bugfix commits on that branch.
+
+Install path: meta-xpon recipe patch 0001 (see yocto/device-patches/APPLY.txt).
+Unproven edits still use full module validation (libyang fallback).
 ---
  CMakeLists.txt                           |    2 +
  src/context.c                            |    8 +
