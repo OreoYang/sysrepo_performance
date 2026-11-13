@@ -1,30 +1,65 @@
-From 4e7da39376a1b5c1f56a27fb36cfd19cb387d2ec Mon Sep 17 00:00:00 2001
+From d887153b66d01ac8a1efd707212dd7bf211dd7c0 Mon Sep 17 00:00:00 2001
 From: OreoYang <oreo.yang@vecima.com>
-Date: Mon, 26 Oct 2026 10:46:43 +0800
-Subject: [PATCH] validation FEATURE use the incremental validator when the
- diff is complete
+Date: Fri, 13 Nov 2026 09:54:33 +0800
+Subject: [PATCH] validation FEATURE use the incremental validator when the diff is complete
 
-sr_modinfo_validate() validates each module with libyang's
-lyd_validate_module_incr() when the edit diff is complete and the datastore
-is a conventional one; otherwise, and whenever libyang cannot prove the
-change safe, the module is validated in full as before.
+sr_apply_changes() and the copy-config/replace-config path reach
+sr_changes_notify_store() with a notify_diff that describes every change made
+to the stored data, which is the precondition of libyang's incremental
+validator. Validate changed modules with lyd_validate_module_incr() instead of
+in full; whenever libyang cannot prove the edit safe, the module is validated
+in full as before.
 
-It is a build option: cmake -DENABLE_VALIDATE_INCREMENTAL=ON (default) or
-OFF, where OFF validates every edit in full. Each process logs which one it
-was built with once, at its first sr_connect. At sr_disconnect the
-incremental counters are logged: a warning when there were fallbacks,
-otherwise INFO.
+Incremental validation is a build option: cmake -DENABLE_VALIDATE_INCREMENTAL=ON
+(default) or OFF (every edit validated in full). Each process logs once, at its
+first sr_connect, which one it was built with. At sr_disconnect the call,
+fallback and late-fallback counters are logged, as a warning only when there
+were fallbacks. The shallow delete option is passed from modinfo, and the
+assumption that the stored data was valid before the edit is documented.
 
-Needs the libyang incremental validation patch.
+Tests: end-to-end sr_apply_changes cases (cross-module leafref, must, when,
+cascades, replaced default case), delete matrix, and add/modify/product-shape
+differential cases that expect the same verdict as full validation.
+
+Requires the libyang incremental validation patch. Squash of
+Oreo/incremental-validation-3.7.11 (d887153b) on the product base
+1b720b196f63 (Yocto sysrepo_3.7.11). Commits:
+  e9851f81 validation FEATURE use the incremental validator when the diff is complete
+  6c8c533e validation FEATURE log incremental enablement at warning level
+  5f0a6171 tests FEATURE incremental validation end-to-end test
+  4cd88709 validation FEATURE log late incremental validation fallbacks
+  ef14d144 validation FEATURE incremental validation is a build option, on by default
+  e9676d58 validation BUGFIX document the valid stored data assumption of incremental validation
+  1c896bf9 validation FEATURE shallow delete scope, delete safety matrix
+  a89d3a5c validation FEATURE add, modify and product-shape differential cases
+  65acc42b validation FEATURE gap-shape tests for production rule coverage
+  f9bacbf3 validation FEATURE mirror structural YANG constraint rows in incr differential tests
+  2c054c01 validation: establish full validation baseline
+  09ca0a2b test: cover incremental validation connection baselines
+  011676cc test: cover per-module full validation baselines across modules
+  d887153b test: simulate SIGKILL during apply_changes for crash recovery
 ---
- CMakeLists.txt  |  1 +
- src/config.h.in |  3 ++
- src/ly_wrap.c   | 47 ++++++++++++++++++++++++++
- src/ly_wrap.h   | 28 ++++++++++++++++
- src/modinfo.c   | 87 +++++++++++++++++++++++++++++++++++++++++++++----
- src/modinfo.h   | 16 +++++++--
- src/sysrepo.c   | 11 +++++--
- 7 files changed, 181 insertions(+), 12 deletions(-)
+ CMakeLists.txt                     |    1 +
+ src/common.c                       |   16 +
+ src/common_types.h                 |    4 +
+ src/config.h.in                    |    3 +
+ src/ly_wrap.c                      |   47 +
+ src/ly_wrap.h                      |   28 +
+ src/modinfo.c                      |  143 ++-
+ src/modinfo.h                      |   26 +-
+ src/sysrepo.c                      |   23 +-
+ tests/CMakeLists.txt               |    2 +-
+ tests/files/dl.yang                |  274 +++++
+ tests/files/dm.yang                |   28 +
+ tests/files/dz.yang                |   15 +
+ tests/files/incr-a.yang            |   17 +
+ tests/files/incr-b.yang            |   47 +
+ tests/files/incr-c.yang            |   28 +
+ tests/files/incr-u@2026-01-01.yang |   15 +
+ tests/files/incr-u@2026-02-01.yang |   19 +
+ tests/files/incr-ud.yang           |   13 +
+ tests/test_validation_incr.c       | 1974 ++++++++++++++++++++++++++++++++++++
+ 20 files changed, 2710 insertions(+), 13 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 9b36de44..d0a5789e 100644
@@ -38,6 +73,55 @@ index 9b36de44..d0a5789e 100644
  option(ENABLE_EXAMPLES "Build examples." ON)
  option(ENABLE_COVERAGE "Build code coverage report from tests" OFF)
  option(ENABLE_COMMON_TARGETS "Define common custom target names such as 'doc' or 'uninstall', may cause conflicts when using add_subdirectory() to build this project" ON)
+diff --git a/src/common.c b/src/common.c
+index 25fe186c..0271e733 100644
+--- a/src/common.c
++++ b/src/common.c
+@@ -3380,6 +3380,8 @@ sr_conn_ctx_switch(sr_conn_ctx_t *conn, struct ly_ctx **new_ctx, struct ly_ctx *
+ {
+     sr_error_info_t *err_info = NULL;
+     struct lyd_node *new_ext_data = NULL;
++    uint32_t i;
++    int locked;
+ 
+     assert(new_ctx);
+ 
+@@ -3396,6 +3398,20 @@ sr_conn_ctx_switch(sr_conn_ctx_t *conn, struct ly_ctx **new_ctx, struct ly_ctx *
+     sr_conn_run_cache_flush(conn);
+     sr_conn_oper_cache_flush(conn);
+ 
++    /* the modules belong to the old context, and the stored data must be validated in full again; no validation runs
++     * while the context is being switched, so the sets are erased even if the lock cannot be taken */
++    locked = 1;
++    if ((err_info = sr_mlock(&conn->val_full_lock, -1, __func__, NULL, NULL))) {
++        sr_errinfo_free(&err_info);
++        locked = 0;
++    }
++    for (i = 0; i < SR_DS_READ_COUNT; ++i) {
++        ly_set_erase(&conn->val_full[i], NULL);
++    }
++    if (locked) {
++        sr_munlock(&conn->val_full_lock);
++    }
++
+     /* update content ID */
+     conn->content_id = SR_CONN_MAIN_SHM(conn)->content_id;
+ 
+diff --git a/src/common_types.h b/src/common_types.h
+index fa35b2ad..3cb95def 100644
+--- a/src/common_types.h
++++ b/src/common_types.h
+@@ -168,6 +168,10 @@ struct sr_conn_ctx_s {
+     } *oper_caches;                 /**< Operational get subscription data caches. */
+     uint32_t oper_cache_count;      /**< Operational get subscription data cache count. */
+     sr_rwlock_t oper_cache_lock;    /**< Operational get subscription data cache lock. */
++
++    struct ly_set val_full[SR_DS_READ_COUNT];   /**< Modules whose stored data this connection validated in full and
++                                                     stored since its context was created, per datastore. */
++    pthread_mutex_t val_full_lock;  /**< Session-shared lock for accessing ::sr_conn_ctx_s.val_full. */
+ };
+ 
+ /**
 diff --git a/src/config.h.in b/src/config.h.in
 index 2fa895c0..7d534649 100644
 --- a/src/config.h.in
@@ -148,10 +232,10 @@ index 83097b4e..e02b6954 100644
   * @brief Finish validation of data of a single module.
   *
 diff --git a/src/modinfo.c b/src/modinfo.c
-index f448835c..9663f064 100644
+index f448835c..4065dc93 100644
 --- a/src/modinfo.c
 +++ b/src/modinfo.c
-@@ -3353,14 +3353,72 @@ cleanup:
+@@ -3353,14 +3353,117 @@ cleanup:
      return err_info;
  }
  
@@ -174,6 +258,48 @@ index f448835c..9663f064 100644
 +#endif
 +}
 +
++/**
++ * @brief Whether this connection already validated the stored data of a module in full since its context was created.
++ *
++ * Incremental validation trusts the stored data. Running copied from startup on boot, data written around sysrepo
++ * and data left by an interrupted process have never been validated, so the first change of every module after
++ * a context is created is validated in full.
++ */
++static int
++sr_modinfo_val_full_known(sr_conn_ctx_t *conn, const struct lys_module *ly_mod, sr_datastore_t ds)
++{
++    sr_error_info_t *err_info = NULL;
++    int known;
++
++    if ((err_info = sr_mlock(&conn->val_full_lock, -1, __func__, NULL, NULL))) {
++        sr_errinfo_free(&err_info);
++        return 0;
++    }
++    known = ly_set_contains(&conn->val_full[ds], (void *)ly_mod, NULL);
++    sr_munlock(&conn->val_full_lock);
++
++    return known;
++}
++
++void
++sr_modinfo_val_full_stored(struct sr_mod_info_s *mod_info)
++{
++    sr_error_info_t *err_info = NULL;
++    uint32_t i;
++
++    if ((err_info = sr_mlock(&mod_info->conn->val_full_lock, -1, __func__, NULL, NULL))) {
++        sr_errinfo_free(&err_info);
++        return;
++    }
++    for (i = 0; i < mod_info->mod_count; ++i) {
++        if (mod_info->mods[i].state & MOD_INFO_VAL_FULL) {
++            /* not remembering it only costs another full validation */
++            ly_set_add(&mod_info->conn->val_full[mod_info->ds], (void *)mod_info->mods[i].ly_mod, 0, NULL);
++        }
++    }
++    sr_munlock(&mod_info->conn->val_full_lock);
++}
++
 +void
 +sr_validate_incr_status_log(void)
 +{
@@ -193,11 +319,12 @@ index f448835c..9663f064 100644
 +void
 +sr_validate_incr_stats_log(void)
 +{
-+    uint64_t calls = 0, fallbacks = 0, late = 0;
++    uint64_t calls = 0, fallbacks = 0, late = 0, shallow = 0;
 +
 +    /* process totals: sysrepo drops the context on every schema change, per-context counters would not survive */
 +    lyd_validate_incr_stats(NULL, &calls, &fallbacks);
 +    lyd_validate_incr_late_stats(NULL, &late);
++    lyd_validate_incr_shallow_stats(NULL, &shallow);
 +    if (!calls) {
 +        return;
 +    }
@@ -205,10 +332,12 @@ index f448835c..9663f064 100644
 +    /* the fallback rate decides whether the incremental validator is actually doing anything, the late ones are
 +     * a rule that deletes data on most edits; it is on by default, so only a fallback is worth a warning */
 +    if (fallbacks) {
-+        SR_LOG_WRN("Incremental validation: %" PRIu64 " calls, %" PRIu64 " fallbacks (%.1f%%), %" PRIu64 " late.",
-+                calls, fallbacks, (100.0 * (double)fallbacks) / (double)calls, late);
++        SR_LOG_WRN("Incremental validation: %" PRIu64 " calls, %" PRIu64 " fallbacks (%.1f%%), %" PRIu64 " late, %"
++                PRIu64 " shallow deletes.", calls, fallbacks, (100.0 * (double)fallbacks) / (double)calls, late,
++                shallow);
 +    } else {
-+        SR_LOG_INF("Incremental validation: %" PRIu64 " calls, 0 fallbacks.", calls);
++        SR_LOG_INF("Incremental validation: %" PRIu64 " calls, 0 fallbacks, %" PRIu64 " shallow deletes.", calls,
++                shallow);
 +    }
 +}
 +
@@ -226,19 +355,30 @@ index f448835c..9663f064 100644
  
      assert(!mod_info->data_cached);
      assert(SR_IS_CONVENTIONAL_DS(mod_info->ds) || !finish_diff);
-@@ -3371,12 +3429,21 @@ sr_modinfo_validate(struct sr_mod_info_s *mod_info, uint32_t mod_state, int fini
+@@ -3371,12 +3474,32 @@ sr_modinfo_validate(struct sr_mod_info_s *mod_info, uint32_t mod_state, int fini
      } else {
          val_opts = LYD_VALIDATE_OPERATIONAL | LYD_VALIDATE_NO_DEFAULTS | LYD_VALIDATE_MULTI_ERROR;
      }
 +    incr = sr_modinfo_validate_incr(mod_info, diff_is_complete, finish_diff);
++    if (incr) {
++        /* both the incremental and the final calls must see it */
++        val_opts |= LYD_VALIDATE_INCR_SHALLOW_DELETE;
++    }
 +
      for (i = 0; i < mod_info->mod_count; ++i) {
          mod = &mod_info->mods[i];
          if (mod->state & mod_state) {
++            if (incr && !sr_modinfo_val_full_known(mod_info->conn, mod->ly_mod, mod_info->ds)) {
++                /* Stored data may have been loaded from startup or written outside sysrepo without validation. */
++                mod->state |= MOD_INFO_VAL_FULL;
++                SR_LOG_DBG("Full validation baseline for module \"%s\" in \"%s\" datastore.",
++                        mod->ly_mod->name, sr_ds2str(mod_info->ds));
++            }
++
              /* validate this module */
 -            if ((tmp_err = sr_lyd_validate_module(&mod_info->data, mod->ly_mod, val_opts | LYD_VALIDATE_NOT_FINAL,
 -                    finish_diff ? &diff : NULL))) {
-+            if (incr) {
++            if (incr && !(mod->state & MOD_INFO_VAL_FULL)) {
 +                /* re-read the diff every time, merging the validation diff into it can move its first sibling */
 +                tmp_err = sr_lyd_validate_module_incr(&mod_info->data, mod->ly_mod, mod_info->notify_diff,
 +                        val_opts | LYD_VALIDATE_NOT_FINAL, &diff);
@@ -250,12 +390,12 @@ index f448835c..9663f064 100644
                  sr_errinfo_merge(val_err_info, tmp_err);
              }
  
-@@ -3410,7 +3477,12 @@ sr_modinfo_validate(struct sr_mod_info_s *mod_info, uint32_t mod_state, int fini
+@@ -3410,7 +3533,12 @@ sr_modinfo_validate(struct sr_mod_info_s *mod_info, uint32_t mod_state, int fini
      for (i = 0; i < mod_info->mod_count; ++i) {
          mod = &mod_info->mods[i];
          if (mod->state & mod_state) {
 -            if ((tmp_err = sr_lyd_validate_module_final(mod_info->data, mod->ly_mod, val_opts))) {
-+            if (incr) {
++            if (incr && !(mod->state & MOD_INFO_VAL_FULL)) {
 +                tmp_err = sr_lyd_validate_module_incr_final(mod_info->data, mod->ly_mod, mod_info->notify_diff, val_opts);
 +            } else {
 +                tmp_err = sr_lyd_validate_module_final(mod_info->data, mod->ly_mod, val_opts);
@@ -264,7 +404,7 @@ index f448835c..9663f064 100644
                  sr_errinfo_merge(val_err_info, tmp_err);
              }
          }
-@@ -3822,8 +3894,9 @@ sr_modinfo_change_notify_update(struct sr_mod_info_s *mod_info, sr_session_ctx_t
+@@ -3822,8 +3950,9 @@ sr_modinfo_change_notify_update(struct sr_mod_info_s *mod_info, sr_session_ctx_t
                  goto cleanup;
              }
  
@@ -277,10 +417,18 @@ index f448835c..9663f064 100644
              }
              break;
 diff --git a/src/modinfo.h b/src/modinfo.h
-index 2f62f0e2..93688dae 100644
+index 2f62f0e2..ff36ee72 100644
 --- a/src/modinfo.h
 +++ b/src/modinfo.h
-@@ -270,12 +270,24 @@ sr_error_info_t *sr_modinfo_consolidate(struct sr_mod_info_s *mod_info, sr_lock_
+@@ -37,6 +37,7 @@
+ 
+ #define MOD_INFO_DATA       0x0100 /* module data were loaded */
+ #define MOD_INFO_CHANGED    0x0200 /* module data were changed */
++#define MOD_INFO_VAL_FULL   0x0400 /* module data were validated in full, not incrementally */
+ 
+ /**
+  * @brief Mod info structure, used for keeping all relevant modules for a data operation.
+@@ -270,12 +271,33 @@ sr_error_info_t *sr_modinfo_consolidate(struct sr_mod_info_s *mod_info, sr_lock_
   *
   * @param[in] mod_info Mod info to use.
   * @param[in] mod_state Bitmask of state flags, module with at least one matching bit will be validated.
@@ -304,14 +452,50 @@ index 2f62f0e2..93688dae 100644
 +
 +sr_error_info_t *sr_modinfo_validate(struct sr_mod_info_s *mod_info, uint32_t mod_state, int diff_is_complete,
 +        int finish_diff, sr_error_info_t **val_err_info);
++
++/**
++ * @brief Remember the modules validated in full, once their data are stored, so that later changes of them may be
++ * validated incrementally. The baseline is established lazily on the first relevant commit for each module and
++ * datastore on a connection.
++ *
++ * @param[in] mod_info Mod info with stored data.
++ */
++void sr_modinfo_val_full_stored(struct sr_mod_info_s *mod_info);
  
  /**
   * @brief Add default values into data for modules in mod info.
 diff --git a/src/sysrepo.c b/src/sysrepo.c
-index 068585d7..a15b885a 100644
+index 068585d7..6017dba5 100644
 --- a/src/sysrepo.c
 +++ b/src/sysrepo.c
-@@ -308,6 +308,7 @@ sr_connect(const sr_conn_options_t opts, sr_conn_ctx_t **conn_p)
+@@ -117,10 +117,15 @@ sr_conn_new(const sr_conn_options_t opts, sr_conn_ctx_t **conn_p)
+     if ((err_info = sr_rwlock_init(&conn->oper_cache_lock, 0))) {
+         goto error10;
+     }
++    if ((err_info = sr_mutex_init(&conn->val_full_lock, 0))) {
++        goto error11;
++    }
+ 
+     *conn_p = conn;
+     return NULL;
+ 
++error11:
++    sr_rwlock_destroy(&conn->oper_cache_lock);
+ error10:
+     sr_ntf_handle_free(conn->ntf_handles, conn->ntf_handle_count);
+ error9:
+@@ -192,6 +197,10 @@ sr_conn_free(sr_conn_ctx_t *conn)
+     sr_rwlock_destroy(&conn->run_cache_lock);
+     sr_ntf_handle_free(conn->ntf_handles, conn->ntf_handle_count);
+     sr_rwlock_destroy(&conn->oper_cache_lock);
++    for (i = 0; i < SR_DS_READ_COUNT; ++i) {
++        ly_set_erase(&conn->val_full[i], NULL);
++    }
++    pthread_mutex_destroy(&conn->val_full_lock);
+ 
+     free(conn);
+ }
+@@ -308,6 +317,7 @@ sr_connect(const sr_conn_options_t opts, sr_conn_ctx_t **conn_p)
      }
  
      SR_LOG_INF("Connection %" PRIu32 " created.", conn->cid);
@@ -319,7 +503,7 @@ index 068585d7..a15b885a 100644
  
  cleanup_unlock:
      /* CREATE UNLOCK */
-@@ -351,6 +352,8 @@ sr_disconnect(sr_conn_ctx_t *conn)
+@@ -351,6 +361,8 @@ sr_disconnect(sr_conn_ctx_t *conn)
          return sr_api_ret(NULL, NULL);
      }
  
@@ -328,7 +512,7 @@ index 068585d7..a15b885a 100644
      /* stop all session notification buffer threads, they use read lock so they need conn state in SHM */
      for (i = 0; i < conn->session_count; ++i) {
          if ((err_info = sr_session_notif_buf_stop(conn->sessions[i]))) {
-@@ -4277,14 +4280,14 @@ sr_validate(sr_session_ctx_t *session, const char *module_name, uint32_t timeout
+@@ -4277,14 +4289,14 @@ sr_validate(sr_session_ctx_t *session, const char *module_name, uint32_t timeout
      case SR_DS_STARTUP:
      case SR_DS_RUNNING:
          /* validate only changed modules and any that can become invalid because of the changes */
@@ -345,17 +529,2527 @@ index 068585d7..a15b885a 100644
              goto cleanup;
          }
          break;
-@@ -4375,7 +4378,9 @@ sr_changes_notify_store(struct sr_mod_info_s *mod_info, sr_session_ctx_t *sessio
+@@ -4375,7 +4387,11 @@ sr_changes_notify_store(struct sr_mod_info_s *mod_info, sr_session_ctx_t *sessio
  
          /* finish on validation errors */
          err_count = *err_info2 ? (*err_info2)->err_count : 0;
 -        if ((err_info = sr_modinfo_validate(mod_info, MOD_INFO_CHANGED | MOD_INFO_INV_DEP, 1, err_info2))) {
 +
-+        /* the stored data were valid and the diff describes every change made to them since */
++        /* the stored data were valid and the diff describes every change made to them since, incremental validation
++         * relies on both; stored data this connection has not validated yet, such as running copied from startup on
++         * boot (sr_shmmod_reboot_init()), are validated in full first */
 +        if ((err_info = sr_modinfo_validate(mod_info, MOD_INFO_CHANGED | MOD_INFO_INV_DEP, 1, 1, err_info2))) {
              goto cleanup;
          } else if (*err_info2 && ((*err_info2)->err_count > err_count)) {
              goto cleanup;
--- 
-2.47.3
-
+@@ -4463,6 +4479,7 @@ store:
+     if ((err_info = sr_modinfo_data_store(mod_info, session, shmmod_session_del, 1))) {
+         goto cleanup;
+     }
++    sr_modinfo_val_full_stored(mod_info);
+ 
+     /* MODULES READ LOCK (downgrade) */
+     if ((err_info = sr_shmmod_modinfo_wrlock_downgrade(mod_info, sid, timeout_ms))) {
+diff --git a/tests/CMakeLists.txt b/tests/CMakeLists.txt
+index 349e9804..09e4dc5d 100644
+--- a/tests/CMakeLists.txt
++++ b/tests/CMakeLists.txt
+@@ -55,7 +55,7 @@ if(ENABLE_TESTS)
+     endif()
+ 
+     # lists of all the tests
+-    set(tests test_modules test_context_change test_validation test_edit test_candidate test_oper_pull test_oper_push
++    set(tests test_modules test_context_change test_validation test_validation_incr test_edit test_candidate test_oper_pull test_oper_push
+         test_lock test_apply_changes test_copy_config test_rpc_action test_notif test_get test_process
+         test_multi_connection test_nacm test_rotation test_sub_notif test_plugin test_rwlock)
+ 
+diff --git a/tests/files/dl.yang b/tests/files/dl.yang
+new file mode 100644
+index 00000000..f9d2b9af
+--- /dev/null
++++ b/tests/files/dl.yang
+@@ -0,0 +1,274 @@
++module dl {
++    namespace urn:tests:dl;
++    prefix dl;
++    yang-version 1.1;
++
++    container top {
++        list item {
++            key name;
++            leaf name { type string; }
++            leaf val { type string; }
++            leaf dd { type string; default "d"; }
++        }
++        leaf-list tag { type string; }
++        leaf-list num { type uint32; }
++        list ou {
++            ordered-by user;
++            key name;
++            leaf name { type string; }
++        }
++        container inner {
++            leaf a { type string; }
++            list x { key name; leaf name { type string; } leaf chk { type string; must "count(../../x) >= 2"; } }
++        }
++        leaf-list dtag { type string; default "d1"; }
++        list pos { key name; leaf name { type string; }
++            leaf pp { type string; must "count(../preceding-sibling::pos) >= 1"; } }
++        list grp {
++            key name;
++            leaf name { type string; }
++            list mem { key name; leaf name { type string; } }
++            leaf need { type string; must "count(../mem) >= 2"; }
++            leaf xr { type string; must "count(../../grp/mem) >= 3"; }
++            leaf want { type string; }
++            leaf other { type string; }
++            leaf lv { type string; }
++            leaf nx { type string; must "not(../../grp[name = current()/../other]/mem[name = current()/../want])"; }
++            leaf nc { type string; must "count(../../grp[name = current()/../other]/mem[name = current()/../want]) = 0"; }
++            leaf nf { type string; must "contains(../../grp[name = 'g2']/lv, 'ok')"; }
++            leaf mv { type string; must "../../grp[name = 'g2']/lv = 'ok'"; }
++            leaf wn { type string; when "not(../../grp[name = current()/../other]/mem[name = current()/../want])"; }
++            container pc { leaf np { type string; must "count(../../mem[name = 'x']/../../grp[name = current()/../../other]/mem[name = current()/../../want]) = 0"; } }
++        }
++        list tpl {
++            key name;
++            leaf name { type string; }
++            list comp { key name; leaf name { type string; } leaf cls { type string; } }
++            list ifc {
++                key name;
++                leaf name { type string; }
++                leaf hw { type string; must "../../comp[name = current()]/cls = 'ok'"; }
++            }
++        }
++        list kr {
++            key k;
++            leaf k { type leafref { path "../../item/name"; } }
++        }
++        list wr {
++            key name;
++            leaf name { type string; }
++            leaf wref { type leafref { path "../../r/w-on"; } }
++        }
++        choice wc {
++            case wcase {
++                when "item[name = 'gate']";
++                leaf wc-v { type string; }
++            }
++            case oc { leaf oc-v { type string; } }
++        }
++        leaf wcr { type leafref { path "../wc-v"; } }
++        list r {
++            key name;
++            leaf name { type string; }
++            leaf sel { type string; }
++            leaf lref { type leafref { path "../../item/name"; } }
++            leaf tref { type leafref { path "../../tag"; } }
++            leaf uref {
++                type union {
++                    type leafref { path "../../item/name"; }
++                    type enumeration { enum none; }
++                }
++            }
++            leaf-list lrefs { type leafref { path "../../item/name"; } }
++            leaf dref { type leafref { path "../../item[name = current()/../sel]/val"; } }
++            leaf m-exist { type string; must "../../item[name = current()/../sel]"; }
++            leaf m-val { type string; must "../../item[name = current()/../sel]/val = 'good'"; }
++            leaf m-count { type string; must "count(../../item) >= 2"; }
++            leaf m-sum { type string; must "sum(../../num) >= 5"; }
++            leaf m-first { type string; must "contains(../../item/val, 'k')"; }
++            leaf m-ou1 { type string; must "../../ou[1]/name = 'first'"; }
++            leaf m-oul { type string; must "../../ou[last()]/name = 'tail'"; }
++            leaf m-dd { type string; must "../../item[name = 'i1']/dd = 'z'"; }
++            leaf m-np { type string; must "/dl:c-np/dl:l"; }
++            leaf m-desc { type string; must "count(../../inner//dl:name) >= 2"; }
++            leaf lrf { type leafref { path "../../item/name"; require-instance false; } }
++            leaf m-der { type string; must "deref(../lrf)/../val = 'good'"; }
++            leaf m-dflt { type string; must "../../dtag = 'x'"; }
++            leaf m-fs { type string; must "count(../following-sibling::r) >= 1"; }
++            leaf m-ttag { type string; must "count(../../tag[. = 't1']) = 1"; }
++            leaf m-alln { type string; must "count(/dl:top/*) >= 7"; }
++            leaf m-anc { type string; must "contains(string(../../inner), 'x1')"; }
++            leaf m-anc2 { type string; must "count(../../inner/*) >= 3"; }
++            leaf m-anc3 { type string; must "not(contains(string(../../inner), 'bad'))"; }
++            leaf m-cap { type string; must "count(/dl:top/dl:item) <= 3"; }
++            leaf sw { type string; }
++            leaf dep { type string; when "../sw = 'on'"; }
++            leaf m-dep { type string; must "../dep"; }
++            leaf w-on { type string; when "../../item[name = 'gate']"; }
++            leaf dw { type string; default "d"; when "../w-on"; }
++        }
++    }
++
++    container c-mn { presence "p"; leaf keep { type string; } list mn { min-elements 2; key name; leaf name { type string; } } }
++    container c-mt { presence "p"; leaf keep { type string; } leaf-list mt { min-elements 1; type string; } }
++    container c-mp { presence "p"; leaf m { type string; mandatory true; } list l { key name; leaf name { type string; } } }
++    container c-mc {
++        presence "p";
++        leaf keep { type string; }
++        choice k {
++            mandatory true;
++            case ca { list la { key name; leaf name { type string; } } }
++            case cb { leaf-list lb { type string; } }
++        }
++    }
++    container c-dc {
++        leaf keep { type string; }
++        choice mode {
++            default auto;
++            case auto { leaf auto { type string; default "on"; } }
++            case manual { list rule { key id; leaf id { type uint32; } } }
++        }
++    }
++    container c-pc { presence "p"; list l { key name; leaf name { type string; } } }
++    container c-np { list l { key name; leaf name { type string; } } }
++    container c-vk {
++        list vk {
++            key name;
++            leaf name { type string; }
++            leaf grp { type string; must "count(../../vk[grp = current()]) >= 2"; }
++        }
++    }
++    container c-neg {
++        list un { key name; unique u; max-elements 3; leaf name { type string; } leaf u { type string; } }
++        leaf-list mx { max-elements 3; type string; }
++    }
++    container lone { list li { key name; leaf name { type string; } } }
++    container st {
++        config false;
++        list s { key name; leaf name { type string; } leaf sref { type leafref { path "/dl:top/dl:item/dl:name"; } } }
++    }
++identity cap-base;
++identity cap-download { base cap-base; }
++identity cap-sub { base cap-download; }
++identity cap-other { base cap-base; }
++identity fmt-base;
++identity fmt-ssh { base fmt-base; }
++identity fmt-other { base fmt-base; }
++
++container pr {
++    list shaper { key name; leaf name { type string; } leaf single { type string; } leaf two { type string; } }
++    list qprof {
++        key name;
++        leaf name { type string; }
++        container queues {
++            list queue {
++                key name;
++                leaf name { type string; }
++                leaf dual { type string; }
++                leaf shaper-name {
++                    type leafref { path "/dl:pr/dl:shaper/dl:name"; }
++                    must "(not(boolean(current()/../dual)) and boolean(/dl:pr/dl:shaper[dl:name=current()]/dl:single)) or (boolean(current()/../dual) and boolean(/dl:pr/dl:shaper[dl:name=current()]/dl:two))";
++                }
++            }
++        }
++    }
++    list bq {
++        key name;
++        leaf name { type string; }
++        leaf sref { type leafref { path "/dl:pr/dl:shaper/dl:name"; } }
++        leaf burst { type string; when "boolean(/dl:pr/dl:shaper[dl:name=current()/../sref]/dl:single)"; }
++    }
++    list tmpl { key name; leaf name { type string; } list ifc { key name; leaf name { type string; } leaf v4 { type string; } leaf v6 { type string; } } }
++    list onu {
++        key name;
++        leaf name { type string; }
++        leaf tref { type string; }
++        list term {
++            key name;
++            leaf name { type string; }
++            leaf peer { type leafref { path "../../term/name"; } }
++            leaf ipif {
++                type string;
++                must "boolean(/dl:pr/dl:tmpl[dl:name=current()/ancestor::dl:onu/dl:tref]/dl:ifc[dl:name=current()]/dl:v4) or boolean(/dl:pr/dl:tmpl[dl:name=current()/ancestor::dl:onu/dl:tref]/dl:ifc[dl:name=current()]/dl:v6)";
++            }
++        }
++    }
++    list comp {
++        key name;
++        leaf name { type string; }
++        container revs {
++            leaf cap { type string; }
++            leaf dcap { type identityref { base cap-base; } }
++            list rev {
++                key name;
++                leaf name { type string; }
++                leaf state { type string; }
++                leaf alias { type string; when "boolean(../../cap='alias')"; }
++                leaf act { type string; when "boolean(../../cap='act') and (../state='available' or ../state='in-use')"; }
++                leaf fin { type string; when "derived-from(../../dcap, 'dl:cap-download') and ../state != 'downloading'"; }
++            }
++            leaf download { type string; when "derived-from(../dcap, 'dl:cap-download') and count(../rev[state='downloading'])=0"; }
++        }
++    }
++    list tp {
++        key name;
++        leaf name { type string; }
++        container tcs {
++            must "not(boolean(tc)) or tc[not(../tc/position > position)]/position <= count(current()/tc)";
++            list tc { key position; leaf position { type uint32; } leaf duration { type string; } }
++            leaf rb { type string; when "(count(../tc) > 1) and ../tc[position=count(../tc)]/duration != 'continuous'"; }
++        }
++    }
++    list tsb { key name; leaf name { type string; } list pk { key name; leaf name { type string; } leaf fmt { type identityref { base fmt-base; } } } }
++    list usr {
++        key name;
++        leaf name { type string; }
++        leaf ref {
++            type leafref { path "/dl:pr/dl:tsb/dl:name"; }
++            must "not(deref(.)/../dl:pk/dl:fmt[not(derived-from-or-self(., 'dl:fmt-ssh'))])";
++        }
++    }
++}
++container gp {
++    list g {
++        key name;
++        leaf name { type string; }
++        leaf b { type string; }
++        leaf d { type string; }
++        leaf s { type string; }
++        leaf peer { type string; }
++        list c { key name; leaf name { type string; } }
++        list lst { key name; leaf name { type string; } leaf tag { type string; } leaf kind { type identityref { base cap-base; } } }
++        leaf la1 { type string; must "not(../b)"; }
++        leaf la2 { type string; must "count(../c) >= 1"; }
++        leaf la3 { type string; must "string-length(../s) > 2"; }
++        leaf la4 { type string; must "string-length(.) > 2"; }
++        leaf la5 { type string; must "../d"; }
++        leaf la6 { type string; must ". = 'ok'"; }
++        leaf lr1 { type leafref { path "../d"; } }
++        leaf lr2 { type leafref { path "../lst/tag"; } }
++        leaf ls1 { type string; must "count(../lst[tag = 'x']) >= 1"; }
++        leaf wl1 { type string; when "../lst[tag = 'on']"; }
++        leaf wl2 { type string; when "not(../b)"; }
++        leaf bd { type string; must "count(../../g[name = current()/../peer]/lst) >= 1"; }
++        leaf bq { type string; must "not(boolean(../b)) and boolean(/dl:gp/dl:u[dl:name = current()]/dl:tag)"; }
++        leaf cq { type string; must "count(/dl:gp/dl:u[dl:tag = current()]) < 2"; }
++        leaf gk { type identityref { base cap-base; } }
++        leaf pp { type string; }
++        leaf pk { type string; must "derived-from-or-self(/dl:gp/dl:g[dl:name = current()]/dl:gk, 'dl:cap-sub') and /dl:gp/dl:g[dl:name = current()]/dl:d = ../d and (not(../pp) or (current() != ../pp))"; }
++        leaf pc { type string; must "derived-from-or-self(/dl:gp/dl:g[dl:name = current()]/dl:gk, 'dl:cap-sub') and not(/dl:gp/dl:uq[dl:name = current()])"; }
++        leaf ld { type string; must "derived-from-or-self(../lst[name = current()]/kind, 'dl:cap-sub')"; }
++    }
++    list u { key name; leaf name { type string; } leaf tag { type string; } leaf r { type leafref { path "../../u/tag"; } } }
++    list uq { key name; unique tag; leaf name { type string; } leaf tag { type string; } }
++    leaf wu { type string; when "/dl:gp/dl:u/dl:tag = 'on'"; }
++    leaf wb { type string; when "not(/dl:gp/dl:u[dl:name = 'z'])"; }
++}
++container gs {
++    presence "x";
++    list mcl { key name; leaf name { type string; } choice ch { mandatory true; case a { leaf ca { type string; } } case b { leaf cb { type string; } } } }
++    list mml { key name; leaf name { type string; } leaf mand { type string; mandatory true; } }
++    list mxl { key name; max-elements 2; leaf name { type string; } }
++    list mnl { key name; min-elements 2; leaf name { type string; } }
++}
++}
+diff --git a/tests/files/dm.yang b/tests/files/dm.yang
+new file mode 100644
+index 00000000..3b315f8b
+--- /dev/null
++++ b/tests/files/dm.yang
+@@ -0,0 +1,28 @@
++module dm {
++    namespace urn:tests:dm;
++    prefix dm;
++    yang-version 1.1;
++    import dl { prefix dl; }
++
++    container mtop {
++        list mr {
++            key name;
++            leaf name { type string; }
++            leaf iref { type leafref { path "/dl:top/dl:item/dl:name"; } }
++            leaf lone-ref { type leafref { path "/dl:lone/dl:li/dl:name"; } }
++            leaf mcnt { type string; must "count(/dl:top/dl:tag) >= 1"; }
++            leaf manc { type string; must "contains(string(/dl:top/dl:inner), 'x1')"; }
++            leaf manc2 { type string; must "not(contains(string(/dl:top/dl:inner), 'bad'))"; }
++        }
++    }
++    augment "/dl:top/dl:item" {
++        leaf aug-ref { type leafref { path "/dl:top/dl:tag"; } }
++    }
++    augment "/dl:gp/dl:g" {
++        leaf xw-when { type string; when "../dl:b"; }
++        leaf xn-when { type string; when "not(../dl:b)"; }
++        leaf xm-must { type string; must "not(../dl:b)"; }
++        leaf xc-must { type string; must "count(../dl:c) >= 1"; }
++        leaf xl-ref { type leafref { path "../dl:d"; } }
++    }
++}
+diff --git a/tests/files/dz.yang b/tests/files/dz.yang
+new file mode 100644
+index 00000000..fdb14ea3
+--- /dev/null
++++ b/tests/files/dz.yang
+@@ -0,0 +1,15 @@
++module dz {
++    namespace urn:tests:dz;
++    prefix dz;
++    yang-version 1.1;
++    import dl { prefix dl; }
++
++    container zt {
++        list zr {
++            key name;
++            leaf name { type string; }
++            leaf dgate { type string; default "d"; when "/dl:top/dl:item[dl:name = 'gate']"; }
++            leaf dopen { type string; default "d"; when "not(/dl:top/dl:item[dl:name = 'gate'])"; }
++        }
++    }
++}
+diff --git a/tests/files/incr-a.yang b/tests/files/incr-a.yang
+new file mode 100644
+index 00000000..9eba1fe8
+--- /dev/null
++++ b/tests/files/incr-a.yang
+@@ -0,0 +1,17 @@
++module incr-a {
++    namespace urn:tests:incr-a;
++    prefix a;
++    yang-version 1.1;
++
++    identity base-t;
++    identity eth { base base-t; }
++    identity ani { base base-t; }
++
++    container ifs {
++        list if {
++            key name;
++            leaf name { type string; }
++            leaf type { type identityref { base base-t; } }
++        }
++    }
++}
+diff --git a/tests/files/incr-b.yang b/tests/files/incr-b.yang
+new file mode 100644
+index 00000000..b39dfe3d
+--- /dev/null
++++ b/tests/files/incr-b.yang
+@@ -0,0 +1,47 @@
++module incr-b {
++    namespace urn:tests:incr-b;
++    prefix b;
++    yang-version 1.1;
++
++    import incr-a { prefix a; }
++
++    augment "/a:ifs/a:if" {
++        container b-cfg {
++            when "derived-from-or-self(../a:type, 'a:eth')";
++            leaf speed { type uint32; default 100; }
++            leaf mtu { type uint32; must "../speed <= ."; }
++            /* creating the m2 case makes the validation delete the default m1 case */
++            choice mode {
++                default m1;
++                case m1 { leaf m1-val { type uint32; default 1; } }
++                case m2 { leaf m2-val { type uint32; } }
++            }
++        }
++        /* a leafref of one interface into the when-guarded container of another one */
++        leaf peer-speed { type leafref { path "/a:ifs/a:if/b:b-cfg/b:speed"; } }
++        list b-addr {
++            key id;
++            unique ip;
++            leaf id { type uint32; }
++            leaf ip { type string; }
++        }
++    }
++
++    augment "/a:ifs/a:if" {
++        when "derived-from-or-self(a:type, 'a:ani')";
++        container b-ani { leaf serial { type string; } }
++    }
++
++    /* the rule lives in this module, the data it reads lives in incr-a */
++    container b-top {
++        list b-chk {
++            key name;
++            leaf name { type string; }
++            leaf ifname { type leafref { path "/a:ifs/a:if/a:name"; } }
++            leaf need {
++                type string;
++                must "derived-from-or-self(/a:ifs/a:if[a:name = current()/../ifname]/a:type, 'a:eth')";
++            }
++        }
++    }
++}
+diff --git a/tests/files/incr-c.yang b/tests/files/incr-c.yang
+new file mode 100644
+index 00000000..5c9d0e18
+--- /dev/null
++++ b/tests/files/incr-c.yang
+@@ -0,0 +1,28 @@
++module incr-c {
++    namespace urn:tests:incr-c;
++    prefix c;
++    yang-version 1.1;
++
++    import incr-a { prefix a; }
++    import incr-b { prefix b; }
++
++    container c-refs {
++        list c-ref {
++            key name;
++            leaf name { type string; }
++            leaf ifname { type leafref { path "/a:ifs/a:if/a:name"; } }
++            leaf addr-id {
++                type leafref { path "/a:ifs/a:if[a:name = current()/../ifname]/b:b-addr/b:id"; }
++            }
++            leaf fast {
++                type string;
++                must "/a:ifs/a:if[a:name = current()/../ifname]/b:b-cfg/b:speed >= 1000";
++            }
++            /* fails once the default m1 case of the interface is replaced */
++            leaf m1need {
++                type string;
++                must "/a:ifs/a:if[a:name = current()/../ifname]/b:b-cfg/b:m1-val = 1";
++            }
++        }
++    }
++}
+diff --git a/tests/files/incr-u@2026-01-01.yang b/tests/files/incr-u@2026-01-01.yang
+new file mode 100644
+index 00000000..567d98a3
+--- /dev/null
++++ b/tests/files/incr-u@2026-01-01.yang
+@@ -0,0 +1,15 @@
++module incr-u {
++    namespace urn:tests:incr-u;
++    prefix iu;
++    yang-version 1.1;
++
++    revision 2026-01-01;
++
++    container u {
++        list item {
++            key name;
++            leaf name { type string; }
++            leaf val { type string; }
++        }
++    }
++}
+diff --git a/tests/files/incr-u@2026-02-01.yang b/tests/files/incr-u@2026-02-01.yang
+new file mode 100644
+index 00000000..11d4d740
+--- /dev/null
++++ b/tests/files/incr-u@2026-02-01.yang
+@@ -0,0 +1,19 @@
++module incr-u {
++    namespace urn:tests:incr-u;
++    prefix iu;
++    yang-version 1.1;
++
++    revision 2026-02-01;
++    revision 2026-01-01;
++
++    container u {
++        list item {
++            key name;
++            leaf name { type string; }
++            leaf val {
++                type string;
++                must "count(../../item[val = current()]) = 1";
++            }
++        }
++    }
++}
+diff --git a/tests/files/incr-ud.yang b/tests/files/incr-ud.yang
+new file mode 100644
+index 00000000..1b8b210d
+--- /dev/null
++++ b/tests/files/incr-ud.yang
+@@ -0,0 +1,13 @@
++module incr-ud {
++    namespace urn:tests:incr-ud;
++    prefix iud;
++    yang-version 1.1;
++
++    import incr-u { prefix iu; }
++
++    deviation "/iu:u/iu:item/iu:val" {
++        deviate add {
++            must "string-length(.) <= 3";
++        }
++    }
++}
+diff --git a/tests/test_validation_incr.c b/tests/test_validation_incr.c
+new file mode 100644
+index 00000000..5099002c
+--- /dev/null
++++ b/tests/test_validation_incr.c
+@@ -0,0 +1,1974 @@
++/**
++ * @file test_validation_incr.c
++ * @brief end to end test of edits over augmented modules, meant to be run with the incremental validator on (the
++ * default) and off (cmake -DENABLE_VALIDATE_INCREMENTAL=OFF) so that both validators must give the same answers
++ *
++ * Module incr-b augments incr-a and carries a rule that reads incr-a, incr-c reads both, so an edit of one module
++ * can be rejected by a rule of another one.
++ *
++ *  * Copyright (c) 2026 Vecima Networks Inc.
++ *
++ * This source code is licensed under BSD 3-Clause License (the "License").
++ * You may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     https://opensource.org/licenses/BSD-3-Clause
++ */
++
++#define _GNU_SOURCE
++
++#include <setjmp.h>
++#include <signal.h>
++#include <stdarg.h>
++#include <stdint.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sys/wait.h>
++#include <unistd.h>
++
++#include <cmocka.h>
++#include <libyang/libyang.h>
++
++#include "config.h"
++#include "sysrepo.h"
++#include "tests/tcommon.h"
++
++struct state {
++    sr_conn_ctx_t *conn;
++    sr_session_ctx_t *sess;
++};
++
++static int
++setup_f(void **state)
++{
++    struct state *st;
++    const char *schema_paths[] = {
++        TESTS_SRC_DIR "/files/incr-a.yang",
++        TESTS_SRC_DIR "/files/incr-b.yang",
++        TESTS_SRC_DIR "/files/incr-c.yang",
++        TESTS_SRC_DIR "/files/dl.yang",
++        TESTS_SRC_DIR "/files/dz.yang",
++        TESTS_SRC_DIR "/files/dm.yang",
++        NULL
++    };
++
++    st = calloc(1, sizeof *st);
++    *state = st;
++
++    if (sr_connect(0, &st->conn) != SR_ERR_OK) {
++        return 1;
++    }
++    if (sr_install_modules(st->conn, schema_paths, TESTS_SRC_DIR "/files", NULL) != SR_ERR_OK) {
++        return 1;
++    }
++    if (sr_session_start(st->conn, SR_DS_RUNNING, &st->sess) != SR_ERR_OK) {
++        return 1;
++    }
++
++    return 0;
++}
++
++static int
++teardown_f(void **state)
++{
++    struct state *st = (struct state *)*state;
++    const char *module_names[] = {"dz", "dm", "dl", "incr-c", "incr-b", "incr-a", NULL};
++
++    sr_remove_modules(st->conn, module_names, 0);
++    sr_disconnect(st->conn);
++    free(st);
++    return 0;
++}
++
++static int
++clear_data(void **state)
++{
++    struct state *st = (struct state *)*state;
++
++    sr_discard_changes(st->sess);
++    sr_delete_item(st->sess, "/incr-c:c-refs", 0);
++    sr_delete_item(st->sess, "/incr-b:b-top", 0);
++    sr_delete_item(st->sess, "/incr-a:ifs", 0);
++    sr_apply_changes(st->sess, 0);
++
++    return 0;
++}
++
++static void
++set_item(struct state *st, const char *path, const char *value)
++{
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(st->sess, path, value, NULL, 0));
++}
++
++/**
++ * @brief Whether @p path exists in the running datastore, the pending edit is not looked at.
++ */
++static int
++exists(struct state *st, const char *path)
++{
++    sr_session_ctx_t *sess;
++    sr_val_t *val = NULL;
++    int ret;
++
++    assert_int_equal(SR_ERR_OK, sr_session_start(st->conn, SR_DS_RUNNING, &sess));
++    ret = sr_get_item(sess, path, 0, &val);
++    if (ret == SR_ERR_OK) {
++        sr_free_val(val);
++    } else {
++        assert_int_equal(SR_ERR_NOT_FOUND, ret);
++    }
++    sr_session_stop(sess);
++
++    return ret == SR_ERR_OK;
++}
++
++/**
++ * @brief Print everything stored in datastore @p ds, the pending edit is not looked at.
++ */
++static char *
++stored_xml(struct state *st, sr_datastore_t ds)
++{
++    sr_session_ctx_t *sess;
++    sr_data_t *data = NULL;
++    char *str = NULL;
++
++    assert_int_equal(SR_ERR_OK, sr_session_start(st->conn, ds, &sess));
++    assert_int_equal(SR_ERR_OK, sr_get_data(sess, "/*", 0, 0, 0, &data));
++    if (data) {
++        assert_int_equal(LY_SUCCESS, lyd_print_mem(&str, data->tree, LYD_XML, LYD_PRINT_WITHSIBLINGS));
++        sr_release_data(data);
++    }
++    sr_session_stop(sess);
++
++    return str ? str : strdup("");
++}
++
++/**
++ * @brief Valid starting data: e1 is an 'eth' with an explicit b-cfg and one address, x1 is a plain 'eth' read by the
++ * rule of b-chk, and c-ref r1 reads the speed and the address of e1.
++ */
++static void
++load_base(struct state *st)
++{
++    set_item(st, "/incr-a:ifs/if[name='e1']/type", "incr-a:eth");
++    set_item(st, "/incr-a:ifs/if[name='e1']/incr-b:b-cfg/speed", "1000");
++    set_item(st, "/incr-a:ifs/if[name='e1']/incr-b:b-cfg/mtu", "1500");
++    set_item(st, "/incr-a:ifs/if[name='e1']/incr-b:b-addr[id='1']/ip", "10.0.0.1");
++    set_item(st, "/incr-a:ifs/if[name='x1']/type", "incr-a:eth");
++    set_item(st, "/incr-b:b-top/b-chk[name='k2']/ifname", "x1");
++    set_item(st, "/incr-b:b-top/b-chk[name='k2']/need", "y");
++    set_item(st, "/incr-c:c-refs/c-ref[name='r1']/ifname", "e1");
++    set_item(st, "/incr-c:c-refs/c-ref[name='r1']/addr-id", "1");
++    set_item(st, "/incr-c:c-refs/c-ref[name='r1']/fast", "y");
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(st->sess, 0));
++}
++
++/**
++ * @brief Apply the pending edit and require it to be rejected without touching the datastore.
++ */
++static void
++apply_rejected(struct state *st)
++{
++    assert_int_equal(SR_ERR_VALIDATION_FAILED, sr_apply_changes(st->sess, 0));
++    assert_int_equal(SR_ERR_OK, sr_discard_changes(st->sess));
++}
++
++static void
++test_add(void **state)
++{
++    struct state *st = (struct state *)*state;
++
++    load_base(st);
++
++    /* a valid augmented list entry and a valid new target instance */
++    set_item(st, "/incr-a:ifs/if[name='e1']/incr-b:b-addr[id='2']/ip", "10.0.0.2");
++    set_item(st, "/incr-a:ifs/if[name='e2']/type", "incr-a:eth");
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(st->sess, 0));
++    assert_true(exists(st, "/incr-a:ifs/if[name='e1']/incr-b:b-addr[id='2']/ip"));
++    assert_true(exists(st, "/incr-a:ifs/if[name='e2']/type"));
++
++    /* a duplicate ip in the same list breaks the unique */
++    set_item(st, "/incr-a:ifs/if[name='e1']/incr-b:b-addr[id='3']/ip", "10.0.0.1");
++    apply_rejected(st);
++    assert_false(exists(st, "/incr-a:ifs/if[name='e1']/incr-b:b-addr[id='3']/ip"));
++
++    /* the same ip under another interface does not */
++    set_item(st, "/incr-a:ifs/if[name='x1']/incr-b:b-addr[id='1']/ip", "10.0.0.1");
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(st->sess, 0));
++
++    /* the must of the augment reads the sibling speed, from both sides, and the must of c-ref reads it as well */
++    set_item(st, "/incr-a:ifs/if[name='e1']/incr-b:b-cfg/mtu", "500");
++    apply_rejected(st);
++    set_item(st, "/incr-a:ifs/if[name='e1']/incr-b:b-cfg/speed", "2000");
++    apply_rejected(st);
++    set_item(st, "/incr-a:ifs/if[name='e1']/incr-b:b-cfg/speed", "900");
++    apply_rejected(st);
++    set_item(st, "/incr-a:ifs/if[name='e1']/incr-b:b-cfg/speed", "1200");
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(st->sess, 0));
++    assert_true(exists(st, "/incr-a:ifs/if[name='e1']/incr-b:b-cfg/speed"));
++}
++
++static void
++test_delete(void **state)
++{
++    struct state *st = (struct state *)*state;
++
++    load_base(st);
++
++    /* the referenced address and the referenced interface cannot go */
++    assert_int_equal(SR_ERR_OK, sr_delete_item(st->sess, "/incr-a:ifs/if[name='e1']/incr-b:b-addr[id='1']", 0));
++    apply_rejected(st);
++    assert_true(exists(st, "/incr-a:ifs/if[name='e1']/incr-b:b-addr[id='1']/ip"));
++
++    assert_int_equal(SR_ERR_OK, sr_delete_item(st->sess, "/incr-a:ifs/if[name='e1']", 0));
++    apply_rejected(st);
++    assert_true(exists(st, "/incr-a:ifs/if[name='e1']/type"));
++
++    /* the rule of b-chk only needs x1 to exist and to be an 'eth' */
++    assert_int_equal(SR_ERR_OK, sr_delete_item(st->sess, "/incr-a:ifs/if[name='x1']", 0));
++    apply_rejected(st);
++    assert_true(exists(st, "/incr-a:ifs/if[name='x1']/type"));
++
++    /* the explicit container goes and a default one comes back, which is too slow for c-ref/fast */
++    assert_int_equal(SR_ERR_OK, sr_delete_item(st->sess, "/incr-a:ifs/if[name='e1']/incr-b:b-cfg", 0));
++    apply_rejected(st);
++    assert_true(exists(st, "/incr-a:ifs/if[name='e1']/incr-b:b-cfg/speed"));
++
++    /* with the referrer deleted in the same edit nothing dangles any more */
++    assert_int_equal(SR_ERR_OK, sr_delete_item(st->sess, "/incr-a:ifs/if[name='x1']", 0));
++    assert_int_equal(SR_ERR_OK, sr_delete_item(st->sess, "/incr-b:b-top/b-chk[name='k2']", 0));
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(st->sess, 0));
++    assert_false(exists(st, "/incr-a:ifs/if[name='x1']/type"));
++    assert_false(exists(st, "/incr-b:b-top/b-chk[name='k2']/ifname"));
++    assert_true(exists(st, "/incr-a:ifs/if[name='e1']/type"));
++    assert_true(exists(st, "/incr-a:ifs/if[name='e1']/incr-b:b-addr[id='1']/ip"));
++    assert_true(exists(st, "/incr-c:c-refs/c-ref[name='r1']/fast"));
++}
++
++static void
++test_cross_module(void **state)
++{
++    struct state *st = (struct state *)*state;
++
++    load_base(st);
++
++    /* only incr-a is edited, the rule that breaks is in incr-b */
++    set_item(st, "/incr-a:ifs/if[name='x1']/type", "incr-a:ani");
++    apply_rejected(st);
++    assert_true(exists(st, "/incr-b:b-top/b-chk[name='k2']/need"));
++
++    /* same flip once the rule of b-chk is gone: the b-cfg that is only a default simply disappears */
++    assert_int_equal(SR_ERR_OK, sr_delete_item(st->sess, "/incr-b:b-top/b-chk[name='k2']", 0));
++    set_item(st, "/incr-a:ifs/if[name='x1']/type", "incr-a:ani");
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(st->sess, 0));
++
++    /* only incr-b and incr-c are edited, they read incr-a */
++    set_item(st, "/incr-c:c-refs/c-ref[name='r2']/ifname", "x1");
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(st->sess, 0));
++    set_item(st, "/incr-c:c-refs/c-ref[name='r1']/addr-id", "9");
++    apply_rejected(st);
++}
++
++/**
++ * @brief Flipping the type removes the explicit b-cfg through its when, the edit does not mention it, and
++ * c-ref/fast reads its speed. Full validation rejects the edit.
++ *
++ * The same scenario at libyang level (test_aug_when_cascade in test_validation_incr.c there) is accepted by the
++ * incremental validator, here it is rejected in both modes, so this stays as a guard for the sysrepo flow.
++ */
++static void
++test_when_cascade(void **state)
++{
++    struct state *st = (struct state *)*state;
++
++    load_base(st);
++    assert_int_equal(SR_ERR_OK, sr_delete_item(st->sess, "/incr-b:b-top/b-chk[name='k2']", 0));
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(st->sess, 0));
++
++    set_item(st, "/incr-a:ifs/if[name='e1']/type", "incr-a:ani");
++    apply_rejected(st);
++    assert_true(exists(st, "/incr-a:ifs/if[name='e1']/incr-b:b-cfg/speed"));
++}
++
++/**
++ * @brief The same cascade caught by a leafref: x1 points at the speed of e1, the flip of e1 removes it.
++ *
++ * Leafrefs are resolved in the first validation pass, before sysrepo merges the validation diff, so only the
++ * fallback of the incremental validator on deletions made by the validation itself catches this.
++ */
++static void
++test_when_cascade_leafref(void **state)
++{
++    struct state *st = (struct state *)*state;
++
++    load_base(st);
++    assert_int_equal(SR_ERR_OK, sr_delete_item(st->sess, "/incr-c:c-refs/c-ref[name='r1']", 0));
++    set_item(st, "/incr-a:ifs/if[name='x1']/incr-b:peer-speed", "1000");
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(st->sess, 0));
++
++    set_item(st, "/incr-a:ifs/if[name='e1']/type", "incr-a:ani");
++    apply_rejected(st);
++    assert_true(exists(st, "/incr-a:ifs/if[name='e1']/incr-b:b-cfg/speed"));
++    assert_true(exists(st, "/incr-a:ifs/if[name='x1']/incr-b:peer-speed"));
++}
++
++/**
++ * @brief Creating the m2 case replaces the default m1 case, and c-ref/m1need reads m1-val.
++ *
++ * On x1 the whole b-cfg only exists as a default. The libyang-level test (test_aug_dflt_case_in_dflt) shows the
++ * incremental validator accepting this when the edit diff calls that b-cfg created; the sysrepo edit diff matches the
++ * existing default container instead, so here both modes reject. On e1 b-cfg is explicit.
++ */
++static void
++test_dflt_case_replace(void **state)
++{
++    struct state *st = (struct state *)*state;
++
++    load_base(st);
++    set_item(st, "/incr-c:c-refs/c-ref[name='r4']/ifname", "x1");
++    set_item(st, "/incr-c:c-refs/c-ref[name='r4']/m1need", "y");
++    set_item(st, "/incr-c:c-refs/c-ref[name='r5']/ifname", "e1");
++    set_item(st, "/incr-c:c-refs/c-ref[name='r5']/m1need", "y");
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(st->sess, 0));
++
++    set_item(st, "/incr-a:ifs/if[name='e1']/incr-b:b-cfg/m2-val", "5");
++    apply_rejected(st);
++    assert_false(exists(st, "/incr-a:ifs/if[name='e1']/incr-b:b-cfg/m2-val"));
++
++    set_item(st, "/incr-a:ifs/if[name='x1']/incr-b:b-cfg/m2-val", "5");
++    apply_rejected(st);
++    assert_false(exists(st, "/incr-a:ifs/if[name='x1']/incr-b:b-cfg/m2-val"));
++}
++
++/*
++ * Delete matrix. The same cases as the libyang test test_del_cases, which has the full validation as its oracle: every
++ * reader a deletion can break (leafref, must, when, in this and in another module), every rule of the structure that
++ * stays (min-elements, mandatory, choice, defaults, emptied containers), and edits that delete several things or
++ * delete and create at once. Each case only needs the verdict, the same one in both validators, and a rejected edit
++ * has to leave the datastore as it was.
++ */
++
++#define DL_T(x) "<top xmlns=\"urn:tests:dl\">" x "</top>"
++#define DL_C(c, x) "<" c " xmlns=\"urn:tests:dl\">" x "</" c ">"
++#define DL_I(n, v) "<item><name>" n "</name><val>" v "</val></item>"
++#define DL_R(n, x) "<r><name>" n "</name>" x "</r>"
++#define DL_GATE "<item><name>gate</name></item>"
++#define DM_M(x) "<mtop xmlns=\"urn:tests:dm\"><mr><name>m1</name>" x "</mr></mtop>"
++#define DZ_Z "<zt xmlns=\"urn:tests:dz\"><zr><name>z</name></zr></zt>"
++#define DL_G1 "<grp><name>g1</name><want>w1</want><other>g2</other>"
++#define DL_LONE DL_C("lone", "<li><name>l1</name></li>")
++
++
++/**
++ * @brief One delete edit with the verdict it must get.
++ *
++ * @p edits is in the format of aug_apply(): a path starting with '-' deletes it, any other path is set to the
++ * value next to it, and a NULL path ends the list.
++ */
++struct dl_case {
++    const char *name;
++    const char *xml;
++    const char *edits[9];
++    LY_ERR expected;
++};
++
++#define DL_P "/dl:top/"
++#define E_BAD LY_EVALID
++#define E_OK LY_SUCCESS
++
++static const struct dl_case dl_cases[] = {
++    /* leafrefs: the one the deleted instance is the target of, and one it is not */
++    {"leafref target", DL_T(DL_I("i1", "a") DL_I("i2", "b") DL_R("r", "<lref>i1</lref>")),
++        {"-" DL_P "item[name='i1']"}, E_BAD},
++    {"leafref other instance", DL_T(DL_I("i1", "a") DL_I("i2", "b") DL_R("r", "<lref>i1</lref>")),
++        {"-" DL_P "item[name='i2']"}, E_OK},
++    {"leafref to a leaf-list instance", DL_T("<tag>t1</tag><tag>t2</tag>" DL_R("r", "<tref>t1</tref>")),
++        {"-" DL_P "tag[.='t1']"}, E_BAD},
++    {"leafref to another leaf-list instance", DL_T("<tag>t1</tag><tag>t2</tag>" DL_R("r", "<tref>t1</tref>")),
++        {"-" DL_P "tag[.='t2']"}, E_OK},
++    {"union leafref member", DL_T(DL_I("i1", "a") DL_I("i2", "b") DL_R("r", "<uref>i1</uref>")),
++        {"-" DL_P "item[name='i1']"}, E_BAD},
++    {"union enum member", DL_T(DL_I("i1", "a") DL_I("i2", "b") DL_R("r", "<uref>none</uref>")),
++        {"-" DL_P "item[name='i1']"}, E_OK},
++    {"key leafref", DL_T(DL_I("i1", "a") DL_I("i2", "b") "<kr><k>i1</k></kr>"),
++        {"-" DL_P "item[name='i1']"}, E_BAD},
++    {"leaf-list of leafrefs, one target", DL_T(DL_I("i1", "a") DL_I("i2", "b") DL_R("r", "<lrefs>i1</lrefs><lrefs>i2</lrefs>")),
++        {"-" DL_P "item[name='i2']"}, E_BAD},
++    {"leaf-list of leafrefs, not a target", DL_T(DL_I("i1", "a") DL_I("i2", "b") DL_I("i3", "c")
++        DL_R("r", "<lrefs>i1</lrefs><lrefs>i2</lrefs>")), {"-" DL_P "item[name='i3']"}, E_OK},
++    {"leafref picked by current(), the instance", DL_T(DL_I("i1", "a") DL_I("i2", "good")
++        DL_R("r", "<sel>i2</sel><dref>good</dref>")), {"-" DL_P "item[name='i2']"}, E_BAD},
++    {"leafref picked by current(), the target leaf", DL_T(DL_I("i1", "a") DL_I("i2", "good")
++        DL_R("r", "<sel>i2</sel><dref>good</dref>")), {"-" DL_P "item[name='i2']/val"}, E_BAD},
++    {"leafref picked by current(), another instance", DL_T(DL_I("i1", "a") DL_I("i2", "good")
++        DL_R("r", "<sel>i2</sel><dref>good</dref>")), {"-" DL_P "item[name='i1']"}, E_OK},
++
++    /* must: existence, value, counts, the first node, positions */
++    {"must needs the instance", DL_T(DL_I("i1", "a") DL_I("i3", "c") DL_R("r", "<sel>i3</sel><m-exist>y</m-exist>")),
++        {"-" DL_P "item[name='i3']"}, E_BAD},
++    {"must needs the instance, another one goes", DL_T(DL_I("i1", "a") DL_I("i3", "c")
++        DL_R("r", "<sel>i3</sel><m-exist>y</m-exist>")), {"-" DL_P "item[name='i1']"}, E_OK},
++    {"must compares the value", DL_T(DL_I("i2", "good") DL_R("r", "<sel>i2</sel><m-val>y</m-val>") "<tag>t</tag>"),
++        {"-" DL_P "item[name='i2']"}, E_BAD},
++    {"count falls below the bound", DL_T(DL_I("i1", "a") DL_I("i2", "b") DL_R("r", "<m-count>y</m-count>")),
++        {"-" DL_P "item[name='i1']"}, E_BAD},
++    {"count stays above the bound", DL_T(DL_I("i1", "a") DL_I("i2", "b") DL_I("i3", "c") DL_R("r", "<m-count>y</m-count>")),
++        {"-" DL_P "item[name='i1']"}, E_OK},
++    {"sum falls below the bound", DL_T("<num>3</num><num>4</num>" DL_R("r", "<m-sum>y</m-sum>")),
++        {"-" DL_P "num[.='3']"}, E_BAD},
++    {"sum stays above the bound", DL_T("<num>3</num><num>4</num><num>5</num>" DL_R("r", "<m-sum>y</m-sum>")),
++        {"-" DL_P "num[.='5']"}, E_OK},
++    {"first node changes the string value", DL_T(DL_I("i1", "k1") DL_I("i2", "zz") DL_R("r", "<m-first>y</m-first>")),
++        {"-" DL_P "item[name='i1']"}, E_BAD},
++    {"first node changes but the value holds", DL_T(DL_I("i1", "k1") DL_I("i2", "k2") DL_R("r", "<m-first>y</m-first>")),
++        {"-" DL_P "item[name='i1']"}, E_OK},
++    {"a later node goes, the first one stays", DL_T(DL_I("i1", "k1") DL_I("i2", "zz") DL_R("r", "<m-first>y</m-first>")),
++        {"-" DL_P "item[name='i2']"}, E_OK},
++    {"first of an ordered-by-user list goes", DL_T("<ou><name>first</name></ou><ou><name>mid</name></ou>"
++        "<ou><name>tail</name></ou>" DL_R("r", "<m-ou1>y</m-ou1>")), {"-" DL_P "ou[name='first']"}, E_BAD},
++    {"middle of an ordered-by-user list goes", DL_T("<ou><name>first</name></ou><ou><name>mid</name></ou>"
++        "<ou><name>tail</name></ou>" DL_R("r", "<m-ou1>y</m-ou1>")), {"-" DL_P "ou[name='mid']"}, E_OK},
++    {"last of an ordered-by-user list goes", DL_T("<ou><name>first</name></ou><ou><name>mid</name></ou>"
++        "<ou><name>tail</name></ou>" DL_R("r", "<m-oul>y</m-oul>")), {"-" DL_P "ou[name='tail']"}, E_BAD},
++    {"middle goes, the last one stays", DL_T("<ou><name>first</name></ou><ou><name>mid</name></ou>"
++        "<ou><name>tail</name></ou>" DL_R("r", "<m-oul>y</m-oul>")), {"-" DL_P "ou[name='mid']"}, E_OK},
++
++    /* when: becoming false takes the node away, becoming true brings a default in */
++    {"when turns true to false", DL_T(DL_GATE DL_R("r", "<w-on>v1</w-on>")), {"-" DL_P "item[name='gate']"}, E_OK},
++    {"when turns false, a leafref reads the dropped node", DL_T(DL_GATE DL_R("r", "<w-on>v1</w-on>")
++        "<wr><name>w1</name><wref>v1</wref></wr>"), {"-" DL_P "item[name='gate']"}, E_BAD},
++    {"when turns false to true, a default appears", DL_T(DL_GATE DL_R("r", "<sel>x</sel>")) DZ_Z,
++        {"-" DL_P "item[name='gate']"}, E_OK},
++    {"default node whose when reads the deleted instance", DL_T(DL_GATE DL_R("r", "<sel>x</sel>")) DZ_Z,
++        {"-" DL_P "item[name='gate']"}, E_OK},
++    {"default node whose when reads a node the validation drops", DL_T(DL_GATE DL_R("r", "<w-on>v1</w-on>")) DZ_Z,
++        {"-" DL_P "item[name='gate']"}, E_OK},
++    {"when of a case turns false", DL_T(DL_GATE "<wc-v>cv</wc-v>") DL_LONE, {"-" DL_P "item[name='gate']"}, E_OK},
++    {"when of a case turns false, a leafref reads it", DL_T(DL_GATE "<wc-v>cv</wc-v><wcr>cv</wcr>"),
++        {"-" DL_P "item[name='gate']"}, E_BAD},
++
++    /* the reader is in another module, or the data is */
++    {"other module leafref", DL_T(DL_I("i1", "a") DL_I("i2", "b")) DM_M("<iref>i1</iref>"),
++        {"-" DL_P "item[name='i1']"}, E_BAD},
++    {"other module leafref, another instance", DL_T(DL_I("i1", "a") DL_I("i2", "b")) DM_M("<iref>i1</iref>"),
++        {"-" DL_P "item[name='i2']"}, E_OK},
++    {"other module leafref to a top-level list", DL_LONE DL_T(DL_I("i1", "a")) DM_M("<lone-ref>l1</lone-ref>"),
++        {"-/dl:lone/li[name='l1']"}, E_BAD},
++    {"other module leafref to a whole top-level container", DL_LONE DL_T(DL_I("i1", "a")) DM_M("<lone-ref>l1</lone-ref>"),
++        {"-/dl:lone"}, E_BAD},
++    {"a top-level container nobody reads", DL_LONE DL_T(DL_I("i1", "a")), {"-/dl:lone"}, E_OK},
++    {"other module count", DL_T("<tag>t1</tag>") DM_M("<mcnt>y</mcnt>"), {"-" DL_P "tag[.='t1']"}, E_BAD},
++    {"other module count, one left", DL_T("<tag>t1</tag><tag>t2</tag>") DM_M("<mcnt>y</mcnt>"),
++        {"-" DL_P "tag[.='t1']"}, E_OK},
++    {"augmented leaf reads the deleted instance", DL_T("<tag>t1</tag><tag>t2</tag><item><name>i1</name>"
++        "<aug-ref xmlns=\"urn:tests:dm\">t1</aug-ref></item>"), {"-" DL_P "tag[.='t1']"}, E_BAD},
++    {"augmented list instance is the one deleted", DL_T("<tag>t1</tag><item><name>i1</name>"
++        "<aug-ref xmlns=\"urn:tests:dm\">t1</aug-ref></item>" DL_I("i2", "b")), {"-" DL_P "item[name='i1']"}, E_OK},
++    {"a whole top-level container read from outside", DL_LONE DL_T(DL_I("i1", "a")) DM_M("<iref>i1</iref>"),
++        {"-/dl:top"}, E_BAD},
++    {"the reader of that container goes with it", DL_LONE DL_T(DL_I("i1", "a")) DM_M("<iref>i1</iref>"),
++        {"-/dl:top", NULL, "-/dm:mtop"}, E_OK},
++    {"state data reads the deleted instance", DL_T(DL_I("i1", "a") DL_I("i2", "b"))
++        DL_C("st", "<s><name>n1</name><sref>i2</sref></s>"), {"-" DL_P "item[name='i2']"}, E_BAD},
++
++    /* what the surviving structure demands */
++    {"min-elements of a list", DL_C("c-mn", "<keep>k</keep><mn><name>m1</name></mn><mn><name>m2</name></mn>"),
++        {"-/dl:c-mn/mn[name='m1']"}, E_BAD},
++    {"min-elements of a list, enough left", DL_C("c-mn", "<keep>k</keep><mn><name>m1</name></mn><mn><name>m2</name></mn>"
++        "<mn><name>m3</name></mn>"), {"-/dl:c-mn/mn[name='m1']"}, E_OK},
++    {"min-elements of a leaf-list", DL_C("c-mt", "<keep>k</keep><mt>t</mt>"), {"-/dl:c-mt/mt[.='t']"}, E_BAD},
++    {"min-elements of a leaf-list, enough left", DL_C("c-mt", "<keep>k</keep><mt>t</mt><mt>u</mt>"),
++        {"-/dl:c-mt/mt[.='t']"}, E_OK},
++    {"mandatory leaf", DL_C("c-mp", "<m>x</m><l><name>a</name></l>"), {"-/dl:c-mp/m"}, E_BAD},
++    {"list next to a mandatory leaf", DL_C("c-mp", "<m>x</m><l><name>a</name></l>"), {"-/dl:c-mp/l[name='a']"}, E_OK},
++    {"mandatory choice loses its only node", DL_C("c-mc", "<keep>k</keep><la><name>a1</name></la>"),
++        {"-/dl:c-mc/la[name='a1']"}, E_BAD},
++    {"mandatory choice keeps a node", DL_C("c-mc", "<keep>k</keep><la><name>a1</name></la><la><name>a2</name></la>"),
++        {"-/dl:c-mc/la[name='a1']"}, E_OK},
++    {"default case comes back", DL_C("c-dc", "<keep>k</keep><rule><id>1</id></rule>"), {"-/dl:c-dc/rule[id='1']"}, E_OK},
++    {"default case does not come back", DL_C("c-dc", "<keep>k</keep><rule><id>1</id></rule><rule><id>2</id></rule>"),
++        {"-/dl:c-dc/rule[id='1']"}, E_OK},
++    {"both rules of the other case go", DL_C("c-dc", "<keep>k</keep><rule><id>1</id></rule><rule><id>2</id></rule>"),
++        {"-/dl:c-dc/rule[id='1']", NULL, "-/dl:c-dc/rule[id='2']"}, E_OK},
++    {"presence container is emptied", DL_C("c-pc", "<l><name>a</name></l>") DL_LONE, {"-/dl:c-pc/l[name='a']"}, E_OK},
++    {"non-presence container is emptied and a rule reads it", DL_C("c-np", "<l><name>a</name></l>")
++        DL_T(DL_R("r", "<m-np>y</m-np>")), {"-/dl:c-np/l[name='a']"}, E_BAD},
++    {"non-presence container is emptied, nothing reads it", DL_C("c-np", "<l><name>a</name></l>") DL_LONE,
++        {"-/dl:c-np/l[name='a']"}, E_OK},
++    {"non-presence container keeps one", DL_C("c-np", "<l><name>a</name></l><l><name>b</name></l>")
++        DL_T(DL_R("r", "<m-np>y</m-np>")), {"-/dl:c-np/l[name='a']"}, E_OK},
++    {"explicit value goes back to its default", DL_T("<item><name>i1</name><dd>z</dd></item>"
++        DL_R("r", "<m-dd>y</m-dd>")), {"-" DL_P "item[name='i1']/dd"}, E_BAD},
++    {"explicit value goes back to its default, nobody reads it", DL_T("<item><name>i1</name><dd>z</dd></item>"),
++        {"-" DL_P "item[name='i1']/dd"}, E_OK},
++    {"count of one value breaks its partner", DL_C("c-vk", "<vk><name>v1</name><grp>g1</grp></vk>"
++        "<vk><name>v2</name><grp>g1</grp></vk>"), {"-/dl:c-vk/vk[name='v1']"}, E_BAD},
++    {"count of one value keeps enough", DL_C("c-vk", "<vk><name>v1</name><grp>g1</grp></vk>"
++        "<vk><name>v2</name><grp>g1</grp></vk><vk><name>v3</name><grp>g1</grp></vk>"), {"-/dl:c-vk/vk[name='v1']"}, E_OK},
++    {"unique and max-elements never break", DL_C("c-neg", "<un><name>a</name><u>u1</u></un><un><name>b</name><u>u2</u></un>"
++        "<mx>x</mx><mx>y</mx>"), {"-/dl:c-neg/un[name='a']"}, E_OK},
++    {"max-elements never breaks", DL_C("c-neg", "<un><name>a</name><u>u1</u></un><mx>x</mx><mx>y</mx>"),
++        {"-/dl:c-neg/mx[.='x']"}, E_OK},
++
++    /* the shape of the edit */
++    {"reader and target go together", DL_T(DL_I("i1", "a") DL_I("i2", "b") DL_R("r", "<lref>i1</lref>")),
++        {"-" DL_P "item[name='i1']", NULL, "-" DL_P "r[name='r']"}, E_OK},
++    {"target and an unrelated reader go", DL_T(DL_I("i1", "a") DL_I("i2", "b") DL_R("r1", "<lref>i1</lref>")
++        DL_R("r2", "<lref>i2</lref>")), {"-" DL_P "item[name='i1']", NULL, "-" DL_P "r[name='r2']"}, E_BAD},
++    {"target goes and the reader is repointed", DL_T(DL_I("i1", "a") DL_I("i2", "b") DL_R("r", "<lref>i1</lref>")),
++        {"-" DL_P "item[name='i1']", NULL, DL_P "r[name='r']/lref", "i2"}, E_OK},
++    {"target goes and the reader is repointed to a new one", DL_T(DL_I("i1", "a") DL_I("i2", "b")
++        DL_R("r", "<lref>i1</lref>")), {"-" DL_P "item[name='i1']", NULL, DL_P "item[name='i9']", NULL,
++        DL_P "r[name='r']/lref", "i9"}, E_OK},
++    {"one of two targets goes, the reader stays", DL_T(DL_I("i1", "a") DL_I("i2", "b") DL_R("r", "<lrefs>i1</lrefs>")),
++        {"-" DL_P "item[name='i2']"}, E_OK},
++    {"two targets go, one is read", DL_T(DL_I("i1", "a") DL_I("i2", "b") DL_I("i3", "c") DL_R("r", "<lrefs>i1</lrefs>")),
++        {"-" DL_P "item[name='i2']", NULL, "-" DL_P "item[name='i1']"}, E_BAD},
++    {"a whole subtree goes, only a descendant is read", DL_T("<inner><a>a</a><x><name>x1</name></x><x><name>x2</name></x></inner>"
++        DL_R("r", "<m-anc2>y</m-anc2>")), {"-" DL_P "inner"}, E_BAD},
++    {"a leaf reader is deleted", DL_T(DL_I("i1", "a") DL_R("r", "<lref>i1</lref>")), {"-" DL_P "r[name='r']/lref"}, E_OK},
++};
++
++static const char *const dl_roots[] = {
++    "/dz:zt", "/dm:mtop", "/dl:top", "/dl:lone", "/dl:c-mn", "/dl:c-mt", "/dl:c-mp", "/dl:c-mc", "/dl:c-dc", "/dl:c-pc",
++    "/dl:c-np", "/dl:c-vk", "/dl:c-neg", "/dl:pr", "/dl:gp", "/dl:gs", NULL
++};
++
++static void
++dl_clear(struct state *st)
++{
++    uint32_t i;
++
++    sr_discard_changes(st->sess);
++    for (i = 0; dl_roots[i]; ++i) {
++        sr_delete_item(st->sess, dl_roots[i], 0);
++    }
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(st->sess, 0));
++}
++
++/**
++ * @brief Store the starting data of a case, which must be valid.
++ */
++static void
++dl_load(struct state *st, const char *xml)
++{
++    const struct ly_ctx *ctx;
++    struct lyd_node *tree = NULL;
++
++    ctx = sr_acquire_context(st->conn);
++    assert_non_null(ctx);
++    assert_int_equal(LY_SUCCESS, lyd_parse_data_mem(ctx, xml, LYD_XML, LYD_PARSE_ONLY | LYD_PARSE_STRICT, 0, &tree));
++    assert_int_equal(SR_ERR_OK, sr_edit_batch(st->sess, tree, "merge"));
++    lyd_free_all(tree);
++    sr_release_context(st->conn);
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(st->sess, 0));
++}
++
++static void
++dl_run(struct state *st, const struct dl_case *cases, uint32_t count)
++{
++    const struct dl_case *c;
++    uint32_t i, e;
++    char *stored, *now;
++    int rc;
++
++    for (i = 0; i < count; ++i) {
++        c = &cases[i];
++        if (!strncmp(c->name, "state data", 10)) {
++            /* the running datastore holds no state data */
++            continue;
++        }
++        print_message("[  CASE    ] %s\n", c->name);
++
++        dl_clear(st);
++        dl_load(st, c->xml);
++        stored = stored_xml(st, SR_DS_RUNNING);
++
++        for (e = 0; c->edits[e]; e += 2) {
++            if (c->edits[e][0] == '-') {
++                assert_int_equal(SR_ERR_OK, sr_delete_item(st->sess, c->edits[e] + 1, 0));
++            } else {
++                assert_int_equal(SR_ERR_OK, sr_set_item_str(st->sess, c->edits[e], c->edits[e + 1], NULL, 0));
++            }
++        }
++
++        rc = sr_apply_changes(st->sess, 0);
++        if (rc != ((c->expected == E_OK) ? SR_ERR_OK : SR_ERR_VALIDATION_FAILED)) {
++            print_message("[  MSG     ] case \"%s\": expected %s, got %s\n", c->name,
++                    (c->expected == E_OK) ? "accepted" : "rejected", sr_strerror(rc));
++        }
++        if (c->expected == E_OK) {
++            assert_int_equal(SR_ERR_OK, rc);
++        } else {
++            assert_int_equal(SR_ERR_VALIDATION_FAILED, rc);
++            assert_int_equal(SR_ERR_OK, sr_discard_changes(st->sess));
++            /* nothing of the rejected edit was stored */
++            now = stored_xml(st, SR_DS_RUNNING);
++            assert_string_equal(stored, now);
++            free(now);
++        }
++        free(stored);
++    }
++    dl_clear(st);
++}
++
++static void
++test_delete_matrix(void **state)
++{
++    dl_run((struct state *)*state, dl_cases, sizeof dl_cases / sizeof *dl_cases);
++}
++
++/*
++ * A rule that reads the text of a container while the edit deletes or changes a descendant of it, see the libyang
++ * test of the same name.
++ */
++static const struct dl_case dl_ancestor_cases[] = {
++    {"must counts the children of a container", DL_T("<inner><a>a</a><x><name>x1</name></x><x><name>x2</name></x></inner>"
++        DL_R("r", "<m-anc2>y</m-anc2>")), {"-" DL_P "inner/x[name='x1']"}, E_BAD},
++    {"must reads the string value of a container", DL_T("<inner><a>a</a><x><name>x1</name></x><x><name>x2</name></x></inner>"
++        DL_R("r", "<m-anc>y</m-anc>")), {"-" DL_P "inner/x[name='x1']"}, E_BAD},
++    {"rule of another module reads the string value of a container", DL_T("<inner><a>a</a><x><name>x1</name></x>"
++        "<x><name>x2</name></x></inner>") DM_M("<manc>y</manc>"), {"-" DL_P "inner/x[name='x1']"}, E_BAD},
++    {"a leaf below a container changes its string value", DL_T("<inner><a>a</a><x><name>x1</name></x></inner>"
++        DL_R("r", "<m-anc3>y</m-anc3>")), {DL_P "inner/a", "bad"}, E_BAD},
++    {"a leaf below a container changes the string value another module reads", DL_T("<inner><a>a</a>"
++        "<x><name>x1</name></x></inner>") DM_M("<manc2>y</manc2>"), {DL_P "inner/a", "bad"}, E_BAD},
++};
++
++/*
++ * Constructs of the YANG language that no other case reads, each one a delete that full validation rejects.
++ * The deref and instance-identifier cases of the libyang test end in an error code other than a validation failure
++ * and are left there.
++ */
++static const struct dl_case dl_probe_cases[] = {
++    {"descendant axis counts the nodes below a container", DL_T("<inner><x><name>x1</name></x><x><name>x2</name></x></inner>"
++        DL_R("r", "<m-desc>y</m-desc>")), {"-" DL_P "inner/x[name='x1']"}, E_BAD},
++    {"a default leaf-list value appears when the explicit one goes", DL_T("<dtag>x</dtag>" DL_R("r", "<m-dflt>y</m-dflt>")),
++        {"-" DL_P "dtag[.='x']"}, E_BAD},
++    {"later sibling of the same list is read", DL_T(DL_R("r1", "<m-fs>y</m-fs>") DL_R("r2", "")),
++        {"-" DL_P "r[name='r2']"}, E_BAD},
++    {"earlier sibling is read by the preceding axis", DL_T("<pos><name>a</name></pos><pos><name>b</name><pp>y</pp></pos>"),
++        {"-" DL_P "pos[name='a']"}, E_BAD},
++    {"reader in the same list instance, member of a nested list", DL_T("<grp><name>g1</name><mem><name>a</name></mem>"
++        "<mem><name>b</name></mem><need>y</need></grp>"), {"-" DL_P "grp[name='g1']/mem[name='a']"}, E_BAD},
++    {"reader in another instance, member of a nested list", DL_T("<grp><name>g1</name><mem><name>a</name></mem>"
++        "<mem><name>b</name></mem></grp><grp><name>g2</name><mem><name>c</name></mem><xr>y</xr></grp>"),
++        {"-" DL_P "grp[name='g1']/mem[name='a']"}, E_BAD},
++    {"reader inside a sibling list instance reads the list", DL_T("<inner><x><name>x1</name></x><x><name>x2</name>"
++        "<chk>y</chk></x></inner>"), {"-" DL_P "inner/x[name='x1']"}, E_BAD},
++    {"count of one leaf-list value", DL_T("<tag>t1</tag><tag>t2</tag>" DL_R("r", "<m-ttag>y</m-ttag>")),
++        {"-" DL_P "tag[.='t1']"}, E_BAD},
++    {"count of every child of the container", DL_T("<tag>t1</tag><tag>t2</tag><num>1</num><num>2</num><inner/>"
++        DL_R("r", "<m-alln>y</m-alln>")), {"-" DL_P "tag[.='t1']"}, E_BAD},
++};
++
++/*
++ * Adds and modifies that full validation rejects, through a rule that reads another instance of the same list by a
++ * relative path, see the libyang test of the same name.
++ */
++static const struct dl_case dl_add_cases[] = {
++    /* LOCAL */
++    {"add: LOCAL leafref without target", DL_T(DL_I("i1", "a")), {DL_P "wcr", "x"}, E_BAD},
++    {"add: LOCAL leafref with target", DL_T(DL_GATE "<wc-v>x</wc-v>"), {DL_P "wcr", "x"}, E_OK},
++    /* LIST_SCOPE */
++    {"add: LIST_SCOPE must counts the children, too few", DL_T("<grp><name>g1</name><mem><name>a</name></mem></grp>"),
++        {DL_P "grp[name='g1']/need", "y"}, E_BAD},
++    {"add: LIST_SCOPE must counts the children, enough", DL_T("<grp><name>g1</name><mem><name>a</name></mem>"
++        "<mem><name>b</name></mem></grp>"), {DL_P "grp[name='g1']/need", "y"}, E_OK},
++    {"add: LIST_SCOPE reader of a template, component missing",
++        DL_T("<tpl><name>t1</name><comp><name>c1</name><cls>ok</cls></comp></tpl>"),
++        {DL_P "tpl[name='t1']/ifc[name='i1']/hw", "c9"}, E_BAD},
++    {"add: LIST_SCOPE reader of a template, component there",
++        DL_T("<tpl><name>t1</name><comp><name>c1</name><cls>ok</cls></comp></tpl>"),
++        {DL_P "tpl[name='t1']/ifc[name='i1']/hw", "c1"}, E_OK},
++    /* BOUNDED */
++    {"add: BOUNDED not() over a relative path finds what was added", DL_T(DL_G1 "<nx>y</nx></grp>"
++        "<grp><name>g2</name><mem><name>a</name></mem></grp>"), {DL_P "grp[name='g2']/mem[name='w1']", NULL}, E_BAD},
++    {"add: BOUNDED count() over a relative path finds what was added", DL_T(DL_G1 "<nc>y</nc></grp>"
++        "<grp><name>g2</name><mem><name>a</name></mem></grp>"), {DL_P "grp[name='g2']/mem[name='w1']", NULL}, E_BAD},
++    {"add: BOUNDED count() climbs on after a predicate, finds what was added", DL_T(DL_G1 "<mem><name>x</name></mem>"
++        "<pc><np>y</np></pc></grp><grp><name>g2</name><mem><name>a</name></mem></grp>"),
++        {DL_P "grp[name='g2']/mem[name='w1']", NULL}, E_BAD},
++    {"add: BOUNDED creation-safe reader, an unrelated instance is added",
++        DL_T(DL_I("i1", "good") DL_R("r", "<sel>i1</sel><m-val>y</m-val>")),
++        {DL_P "item[name='i2']/val", "bad"}, E_OK},
++    {"add: BOUNDED reader added, its target is missing", DL_T(DL_I("i1", "good")),
++        {DL_P "r[name='r2']/sel", "nope", DL_P "r[name='r2']/m-exist", "y"}, E_BAD},
++    /* UNBOUNDED */
++    {"add: UNBOUNDED upper bound count over an absolute path, one too many",
++        DL_T(DL_I("i1", "a") DL_I("i2", "a") DL_I("i3", "a") DL_R("r", "<m-cap>y</m-cap>")),
++        {DL_P "item[name='i4']/val", "a"}, E_BAD},
++    {"add: UNBOUNDED upper bound count over an absolute path, at the limit",
++        DL_T(DL_I("i1", "a") DL_I("i2", "a") DL_R("r", "<m-cap>y</m-cap>")), {DL_P "item[name='i3']/val", "a"}, E_OK},
++    {"add: UNBOUNDED lower bound count, an instance is added", DL_T(DL_I("i1", "a") DL_I("i2", "a")
++        DL_R("r", "<m-count>y</m-count>")), {DL_P "item[name='i3']/val", "a"}, E_OK},
++    {"add: UNBOUNDED reader added, leafref without target", DL_T(DL_I("i1", "a")), {DL_P "r[name='n']/lref", "nope"}, E_BAD},
++    {"add: UNBOUNDED when over another instance, the gate is missing", DL_T(DL_I("i1", "a") DL_R("r", "")),
++        {DL_P "r[name='r']/w-on", "v"}, E_BAD},
++    {"add: UNBOUNDED when over another instance, the gate is there", DL_T(DL_GATE DL_R("r", "")),
++        {DL_P "r[name='r']/w-on", "v"}, E_OK},
++    {"add: UNBOUNDED must counts the sibling instances, alone", DL_T("<inner><a>a</a></inner>"),
++        {DL_P "inner/x[name='x1']/chk", "y"}, E_BAD},
++    {"add: UNBOUNDED must counts the earlier siblings, first one", DL_T(DL_I("i1", "a")),
++        {DL_P "pos[name='a']/pp", "y"}, E_BAD},
++    {"add: structure, max-elements of a list", DL_C("c-neg", "<un><name>a</name></un><un><name>b</name></un>"
++        "<un><name>c</name></un>"), {"/dl:c-neg/un[name='d']", NULL}, E_BAD},
++    {"add: structure, unique value twice", DL_C("c-neg", "<un><name>a</name><u>1</u></un>"),
++        {"/dl:c-neg/un[name='b']/u", "1"}, E_BAD},
++    {"add: structure, max-elements of a list, at the limit", DL_C("c-neg", "<un><name>a</name></un><un><name>b</name></un>"),
++        {"/dl:c-neg/un[name='c']", NULL}, E_OK},
++    {"add: structure, max-elements of a leaf-list", DL_C("c-neg", "<mx>a</mx><mx>b</mx><mx>c</mx>"),
++        {"/dl:c-neg/mx[.='d']", NULL}, E_BAD},
++    {"add: structure, unique value is distinct", DL_C("c-neg", "<un><name>a</name><u>1</u></un>"),
++        {"/dl:c-neg/un[name='b']/u", "2"}, E_OK},
++    {"add: structure, mandatory leaf missing", DL_T(DL_I("i1", "a")), {"/dl:c-mp/l[name='a']", NULL}, E_BAD},
++    {"add: structure, mandatory leaf present", DL_T(DL_I("i1", "a")), {"/dl:c-mp/m", "x", "/dl:c-mp/l[name='a']", NULL}, E_OK},
++    {"add: structure, mandatory choice without a case", DL_T(DL_I("i1", "a")), {"/dl:c-mc/keep", "x"}, E_BAD},
++    {"add: structure, mandatory choice with a case", DL_T(DL_I("i1", "a")), {"/dl:c-mc/lb", "v"}, E_OK},
++    {"add: structure, min-elements too few", DL_T(DL_I("i1", "a")), {"/dl:c-mn/mn[name='a']", NULL}, E_BAD},
++    {"add: structure, min-elements enough", DL_T(DL_I("i1", "a")),
++        {"/dl:c-mn/mn[name='a']", NULL, "/dl:c-mn/mn[name='b']", NULL}, E_OK},
++    {"add: structure, min-elements of a leaf-list", DL_T(DL_I("i1", "a")), {"/dl:c-mt/keep", "x"}, E_BAD},
++    {"add: structure, default case gives way to the added one", DL_C("c-dc", "<keep>k</keep>"),
++        {"/dl:c-dc/rule[id='1']", NULL}, E_OK},
++    /* CASCADE */
++    {"add: CASCADE the when turns false, the node goes", DL_T(DL_G1 "<wn>y</wn></grp>"
++        "<grp><name>g2</name><mem><name>a</name></mem></grp>"), {DL_P "grp[name='g2']/mem[name='w1']", NULL}, E_OK},
++    {"add: CASCADE a default appears and another goes", DL_T(DL_I("i1", "a")) DZ_Z,
++        {DL_P "item[name='gate']/val", "a"}, E_OK},
++    /* the first adds, kept */
++    {"add a leaf in front of the one a rule reads", DL_T("<grp><name>g1</name><nf>y</nf></grp>"
++        "<grp><name>g2</name><lv>ok</lv></grp>"), {DL_P "grp[name='g2']/lv", "no"}, E_BAD},
++};
++
++static const struct dl_case dl_modify_cases[] = {
++    /* LOCAL */
++    {"modify: LOCAL leafref target changes", DL_T(DL_GATE "<wc-v>a</wc-v><wcr>a</wcr>"), {DL_P "wc-v", "b"}, E_BAD},
++    {"modify: LOCAL leafref and target change together", DL_T(DL_GATE "<wc-v>a</wc-v><wcr>a</wcr>"),
++        {DL_P "wc-v", "b", DL_P "wcr", "b"}, E_OK},
++    /* LIST_SCOPE */
++    {"modify: LIST_SCOPE component class changes, an interface uses it",
++        DL_T("<tpl><name>t1</name><comp><name>c1</name><cls>ok</cls></comp>"
++        "<ifc><name>i1</name><hw>c1</hw></ifc></tpl>"), {DL_P "tpl[name='t1']/comp[name='c1']/cls", "no"}, E_BAD},
++    {"modify: LIST_SCOPE component class changes, nothing uses it",
++        DL_T("<tpl><name>t1</name><comp><name>c1</name><cls>ok</cls></comp><comp><name>c2</name><cls>ok</cls></comp>"
++        "<ifc><name>i1</name><hw>c1</hw></ifc></tpl>"), {DL_P "tpl[name='t1']/comp[name='c2']/cls", "no"}, E_OK},
++    /* BOUNDED */
++    {"modify: BOUNDED must reads the value of the instance it picks",
++        DL_T(DL_I("i1", "good") DL_R("r", "<sel>i1</sel><m-val>y</m-val>")), {DL_P "item[name='i1']/val", "bad"}, E_BAD},
++    {"modify: BOUNDED must, an unrelated instance changes",
++        DL_T(DL_I("i1", "good") DL_I("i2", "x") DL_R("r", "<sel>i1</sel><m-val>y</m-val>")),
++        {DL_P "item[name='i2']/val", "bad"}, E_OK},
++    {"modify: BOUNDED leafref to the value of the instance it picks",
++        DL_T(DL_I("i1", "v1") DL_R("r", "<sel>i1</sel><dref>v1</dref>")), {DL_P "item[name='i1']/val", "v2"}, E_BAD},
++    {"modify: BOUNDED not() over a relative path, the leaf it names changes",
++        DL_T(DL_G1 "<nx>y</nx></grp><grp><name>g2</name><mem><name>a</name></mem></grp>"),
++        {DL_P "grp[name='g1']/want", "a"}, E_BAD},
++    /* UNBOUNDED */
++    {"modify: UNBOUNDED must reads a leaf of a named instance",
++        DL_T("<item><name>i1</name><dd>z</dd></item>" DL_R("r", "<m-dd>y</m-dd>")), {DL_P "item[name='i1']/dd", "y"}, E_BAD},
++    {"modify: UNBOUNDED must, another instance changes",
++        DL_T("<item><name>i1</name><dd>z</dd></item>" DL_I("i2", "a") DL_R("r", "<m-dd>y</m-dd>")),
++        {DL_P "item[name='i2']/dd", "y"}, E_OK},
++    {"modify: UNBOUNDED must reads a leaf of another list instance",
++        DL_T("<grp><name>g1</name><mv>y</mv></grp><grp><name>g2</name><lv>ok</lv></grp>"),
++        {DL_P "grp[name='g2']/lv", "no"}, E_BAD},
++    {"modify: UNBOUNDED must reads a leaf of another list instance, a different instance changes",
++        DL_T("<grp><name>g1</name><mv>y</mv><lv>a</lv></grp><grp><name>g2</name><lv>ok</lv></grp>"),
++        {DL_P "grp[name='g1']/lv", "b"}, E_OK},
++    {"modify: UNBOUNDED must reads the text of a container",
++        DL_T("<inner><a>a</a><x><name>x1</name></x></inner>" DL_R("r", "<m-anc3>y</m-anc3>")),
++        {DL_P "inner/a", "bad"}, E_BAD},
++    {"modify: UNBOUNDED value keyed count, a value leaves its group",
++        DL_C("c-vk", "<vk><name>a</name><grp>g</grp></vk><vk><name>b</name><grp>g</grp></vk>"
++        "<vk><name>c</name><grp>g</grp></vk>"), {"/dl:c-vk/vk[name='c']/grp", "h"}, E_BAD},
++    /* CASCADE */
++    {"modify: CASCADE the when turns false, the node is dropped, a reader needs it",
++        DL_T(DL_R("r", "<sw>on</sw><dep>x</dep><m-dep>y</m-dep>")), {DL_P "r[name='r']/sw", "off"}, E_BAD},
++    {"modify: CASCADE the when turns false, the node is dropped, nothing reads it",
++        DL_T(DL_R("r", "<sw>on</sw><dep>x</dep>")), {DL_P "r[name='r']/sw", "off"}, E_OK},
++    /* STRUCTURE */
++    {"modify: structure, unique value becomes a duplicate",
++        DL_C("c-neg", "<un><name>a</name><u>1</u></un><un><name>b</name><u>2</u></un>"),
++        {"/dl:c-neg/un[name='b']/u", "1"}, E_BAD},
++    {"modify: structure, unique value becomes another distinct one",
++        DL_C("c-neg", "<un><name>a</name><u>1</u></un><un><name>b</name><u>2</u></un>"),
++        {"/dl:c-neg/un[name='b']/u", "3"}, E_OK},
++    {"modify: structure, choice case switched, the old case is replaced",
++        DL_C("c-mc", "<la><name>a</name></la>"), {"/dl:c-mc/lb", "v"}, E_OK},
++    {"modify: structure, choice case switched in a default choice",
++        DL_C("c-dc", "<keep>k</keep><auto>x</auto>"), {"/dl:c-dc/rule[id='1']", NULL}, E_OK},
++    {"modify: structure, mandatory leaf value changes",
++        DL_C("c-mp", "<m>x</m>"), {"/dl:c-mp/m", "y"}, E_OK},
++};
++
++static void
++test_add_relative_readers(void **state)
++{
++    dl_run((struct state *)*state, dl_add_cases, sizeof dl_add_cases / sizeof *dl_add_cases);
++}
++
++static void
++test_modify_rules(void **state)
++{
++    dl_run((struct state *)*state, dl_modify_cases, sizeof dl_modify_cases / sizeof *dl_modify_cases);
++}
++
++/*
++ * A key cannot be modified, so a key change is a delete of the old instance and a create of the new one in the same
++ * edit. Each reader of the old key either is left behind or follows in the same edit.
++ */
++static const struct dl_case dl_key_cases[] = {
++    {"key change of a leafref target, the reader is left behind", DL_T(DL_I("i1", "a") DL_I("i2", "b")
++        DL_R("r", "<lref>i1</lref>")), {"-" DL_P "item[name='i1']", NULL, DL_P "item[name='i9']/val", "a"}, E_BAD},
++    {"key change of a leafref target, the reader follows", DL_T(DL_I("i1", "a") DL_I("i2", "b")
++        DL_R("r", "<lref>i1</lref>")), {"-" DL_P "item[name='i1']", NULL, DL_P "item[name='i9']/val", "a",
++        DL_P "r[name='r']/lref", "i9"}, E_OK},
++    {"key change of an instance no rule reads", DL_T(DL_I("i1", "a") DL_I("i2", "b") DL_R("r", "<lref>i1</lref>")),
++        {"-" DL_P "item[name='i2']", NULL, DL_P "item[name='i9']/val", "b"}, E_OK},
++    {"key change of a leaf-list leafref target", DL_T("<tag>t1</tag><tag>t2</tag>" DL_R("r", "<tref>t1</tref>")),
++        {"-" DL_P "tag[.='t1']", NULL, DL_P "tag[.='t9']", NULL}, E_BAD},
++    {"key change of a list keyed by a leafref, to an existing target", DL_T(DL_I("i1", "a") DL_I("i2", "b")
++        "<kr><k>i1</k></kr>"), {"-" DL_P "kr[k='i1']", NULL, DL_P "kr[k='i2']", NULL}, E_OK},
++    {"key change of a list keyed by a leafref, to a missing target", DL_T(DL_I("i1", "a") DL_I("i2", "b")
++        "<kr><k>i1</k></kr>"), {"-" DL_P "kr[k='i1']", NULL, DL_P "kr[k='i7']", NULL}, E_BAD},
++    {"key change of the target of a leafref key", DL_T(DL_I("i1", "a") "<kr><k>i1</k></kr>"),
++        {"-" DL_P "item[name='i1']", NULL, DL_P "item[name='i9']/val", "a"}, E_BAD},
++    {"key change keeps a unique value", DL_C("c-neg", "<un><name>a</name><u>u1</u></un><un><name>b</name><u>u2</u></un>"),
++        {"-/dl:c-neg/un[name='a']", NULL, "/dl:c-neg/un[name='c']/u", "u1"}, E_OK},
++    {"key change collides on a unique value", DL_C("c-neg", "<un><name>a</name><u>u1</u></un><un><name>b</name><u>u2</u></un>"),
++        {"-/dl:c-neg/un[name='a']", NULL, "/dl:c-neg/un[name='c']/u", "u2"}, E_BAD},
++    {"key change keeps a value-keyed count", DL_C("c-vk", "<vk><name>v1</name><grp>g1</grp></vk>"
++        "<vk><name>v2</name><grp>g1</grp></vk>"), {"-/dl:c-vk/vk[name='v1']", NULL, "/dl:c-vk/vk[name='v9']/grp", "g1"}, E_OK},
++    {"key change moves an instance to another value bucket", DL_C("c-vk", "<vk><name>v1</name><grp>g1</grp></vk>"
++        "<vk><name>v2</name><grp>g1</grp></vk><vk><name>v3</name><grp>g2</grp></vk><vk><name>v4</name><grp>g2</grp></vk>"),
++        {"-/dl:c-vk/vk[name='v1']", NULL, "/dl:c-vk/vk[name='v9']/grp", "g2"}, E_BAD},
++    {"key change of a must target picked by a key predicate", DL_T("<tpl><name>t1</name><comp><name>c1</name>"
++        "<cls>ok</cls></comp><ifc><name>i1</name><hw>c1</hw></ifc></tpl>"), {"-" DL_P "tpl[name='t1']/comp[name='c1']", NULL,
++        DL_P "tpl[name='t1']/comp[name='c9']/cls", "ok"}, E_BAD},
++    {"key change of a must target picked by a key predicate, the reader follows", DL_T("<tpl><name>t1</name><comp>"
++        "<name>c1</name><cls>ok</cls></comp><ifc><name>i1</name><hw>c1</hw></ifc></tpl>"),
++        {"-" DL_P "tpl[name='t1']/comp[name='c1']", NULL, DL_P "tpl[name='t1']/comp[name='c9']/cls", "ok",
++        DL_P "tpl[name='t1']/ifc[name='i1']/hw", "c9"}, E_OK},
++    {"key change of the instance a when reads", DL_T(DL_GATE DL_R("r", "<w-on>y</w-on>")),
++        {"-" DL_P "item[name='gate']", NULL, DL_P "item[name='gat2']", NULL}, E_OK},
++    {"key change of the instance a when reads, a leafref needs the guarded node", DL_T(DL_GATE DL_R("r", "<w-on>y</w-on>")
++        "<wr><name>w1</name><wref>y</wref></wr>"), {"-" DL_P "item[name='gate']", NULL, DL_P "item[name='gat2']", NULL}, E_BAD},
++    {"key change inside a nested list, a not() rule now matches", DL_T(DL_G1 "<nx>y</nx></grp>"
++        "<grp><name>g2</name><mem><name>m1</name></mem></grp>"), {"-" DL_P "grp[name='g2']/mem[name='m1']", NULL,
++        DL_P "grp[name='g2']/mem[name='w1']", NULL}, E_BAD},
++    {"key change inside a nested list, the not() rule still holds", DL_T(DL_G1 "<nx>y</nx></grp>"
++        "<grp><name>g2</name><mem><name>m1</name></mem></grp>"), {"-" DL_P "grp[name='g2']/mem[name='m1']", NULL,
++        DL_P "grp[name='g2']/mem[name='w2']", NULL}, E_OK},
++    {"key change of the list a rule points at by value", DL_T(DL_G1 "<nx>y</nx></grp>"
++        "<grp><name>g2</name><mem><name>m1</name></mem></grp>"), {"-" DL_P "grp[name='g2']", NULL,
++        DL_P "grp[name='g3']/mem[name='w1']", NULL}, E_OK},
++    {"key change of the list a rule points at by value, the pointer follows", DL_T(DL_G1 "<nx>y</nx></grp>"
++        "<grp><name>g2</name><mem><name>m1</name></mem></grp>"), {"-" DL_P "grp[name='g2']", NULL,
++        DL_P "grp[name='g3']/mem[name='w1']", NULL, DL_P "grp[name='g1']/other", "g3"}, E_BAD},
++    {"key change read by another module", DL_T(DL_I("i1", "a") DL_I("i2", "b")) DM_M("<iref>i1</iref>"),
++        {"-" DL_P "item[name='i1']", NULL, DL_P "item[name='i9']/val", "a"}, E_BAD},
++    {"key change read by another module, the reader follows", DL_T(DL_I("i1", "a") DL_I("i2", "b")) DM_M("<iref>i1</iref>"),
++        {"-" DL_P "item[name='i1']", NULL, DL_P "item[name='i9']/val", "a", "/dm:mtop/mr[name='m1']/iref", "i9"}, E_OK},
++};
++
++static void
++test_key_change(void **state)
++{
++    dl_run((struct state *)*state, dl_key_cases, sizeof dl_key_cases / sizeof *dl_key_cases);
++}
++
++/*
++ * The rules of the product schema, one shape each. The names are not the product names, the expressions are. Every
++ * case is an add or a modify, and the expectation is what full validation says.
++ */
++#define PR_P "/dl:pr/"
++#define PR_T(x) DL_C("pr", x)
++#define PR_SH "<shaper><name>s1</name><single>y</single></shaper><shaper><name>s2</name><two>y</two></shaper>"
++#define PR_Q(d, sh) "<qprof><name>q1</name><queues><queue><name>a</name>" d "<shaper-name>" sh "</shaper-name></queue></queues></qprof>"
++#define PR_TM "<tmpl><name>t1</name><ifc><name>i1</name><v4>y</v4></ifc></tmpl><tmpl><name>t2</name><ifc><name>i1</name><v4>y</v4></ifc>" \
++        "<ifc><name>i2</name><v4>y</v4></ifc></tmpl><tmpl><name>t3</name><ifc><name>i9</name><v4>y</v4></ifc></tmpl>"
++#define PR_ONU(x) "<onu><name>o1</name><tref>t1</tref><term><name>x</name>" x "</term></onu>"
++#define PR_REV(c, r) "<comp><name>c1</name><revs>" c r "</revs></comp>"
++#define PR_TP(x) "<tp><name>p1</name><tcs>" x "</tcs></tp>"
++#define PR_TC(n, d) "<tc><position>" n "</position><duration>" d "</duration></tc>"
++#define PR_TS "<tsb><name>b1</name><pk><name>k1</name><fmt xmlns:dl=\"urn:tests:dl\">dl:fmt-ssh</fmt></pk></tsb><tsb><name>b2</name><pk><name>k2</name><fmt xmlns:dl=\"urn:tests:dl\">dl:fmt-other</fmt></pk></tsb>"
++static const struct dl_case dl_prod_cases[] = {
++    /* the queue shaper must: not(boolean(dual)) and boolean(shaper/single), or the same with dual and two */
++    {"product QoS: dual added, the shaper has only a single bucket", PR_T(PR_SH PR_Q("", "s1")),
++        {PR_P "qprof[name='q1']/queues/queue[name='a']/dual", "y"}, E_BAD},
++    {"product QoS: dual added and the shaper moved to the two bucket one", PR_T(PR_SH PR_Q("", "s1")),
++        {PR_P "qprof[name='q1']/queues/queue[name='a']/dual", "y", PR_P "qprof[name='q1']/queues/queue[name='a']/shaper-name", "s2"}, E_OK},
++    {"product QoS: dual removed, the shaper has only a two bucket", PR_T(PR_SH PR_Q("<dual>y</dual>", "s2")),
++        {"-" PR_P "qprof[name='q1']/queues/queue[name='a']/dual"}, E_BAD},
++    {"product QoS: single bucket removed from the shaper in use", PR_T(PR_SH PR_Q("", "s1")),
++        {"-" PR_P "shaper[name='s1']/single"}, E_BAD},
++    {"product QoS: two bucket added to the shaper in use, the single one stays", PR_T(PR_SH PR_Q("", "s1")),
++        {PR_P "shaper[name='s1']/two", "y"}, E_OK},
++    {"product QoS: shaper moved to one with only a two bucket", PR_T(PR_SH PR_Q("", "s1")),
++        {PR_P "qprof[name='q1']/queues/queue[name='a']/shaper-name", "s2"}, E_BAD},
++    {"product QoS: a shaper nobody uses gets a bucket", PR_T(PR_SH "<shaper><name>s3</name></shaper>" PR_Q("", "s1")),
++        {PR_P "shaper[name='s3']/two", "y"}, E_OK},
++    /* when over an absolute path, bounded and creation-safe */
++    {"product QoS: BOUNDED when, burst added, the shaper has a single bucket",
++        PR_T(PR_SH "<bq><name>b</name><sref>s1</sref></bq>"), {PR_P "bq[name='b']/burst", "y"}, E_OK},
++    {"product QoS: BOUNDED when, burst added, the shaper has no single bucket",
++        PR_T(PR_SH "<bq><name>b</name><sref>s2</sref></bq>"), {PR_P "bq[name='b']/burst", "y"}, E_BAD},
++    {"product QoS: CASCADE BOUNDED when, single bucket removed under a burst, the node is dropped",
++        PR_T(PR_SH "<bq><name>b</name><sref>s1</sref><burst>y</burst></bq>"), {"-" PR_P "shaper[name='s1']/single"}, E_OK},
++    {"product QoS: CASCADE BOUNDED when, sref moved under a burst, the node is dropped",
++        PR_T(PR_SH "<bq><name>b</name><sref>s1</sref><burst>y</burst></bq>"), {PR_P "bq[name='b']/sref", "s2"}, E_OK},
++    /* ancestor:: axis inside a predicate */
++    {"product ONU: interface not in the template of the ONU", PR_T(PR_TM PR_ONU("")),
++        {PR_P "onu[name='o1']/term[name='x']/ipif", "i2"}, E_BAD},
++    {"product ONU: interface in the template of the ONU", PR_T(PR_TM PR_ONU("")),
++        {PR_P "onu[name='o1']/term[name='x']/ipif", "i1"}, E_OK},
++    {"product ONU: the address of the interface is removed from the template", PR_T(PR_TM PR_ONU("<ipif>i1</ipif>")),
++        {"-" PR_P "tmpl[name='t1']/ifc[name='i1']/v4"}, E_BAD},
++    {"product ONU: the v4 address is removed, a v6 one stays", PR_T(PR_TM PR_ONU("<ipif>i1</ipif>")),
++        {PR_P "tmpl[name='t1']/ifc[name='i1']/v6", "y", "-" PR_P "tmpl[name='t1']/ifc[name='i1']/v4"}, E_OK},
++    {"product ONU: the ONU moves to a template without the interface", PR_T(PR_TM PR_ONU("<ipif>i1</ipif>")),
++        {PR_P "onu[name='o1']/tref", "t3"}, E_BAD},
++    {"product ONU: the ONU moves to a template with the interface", PR_T(PR_TM PR_ONU("<ipif>i1</ipif>")),
++        {PR_P "onu[name='o1']/tref", "t2"}, E_OK},
++    {"product ONU: LOCAL leafref to a sibling instance, missing", PR_T(PR_TM PR_ONU("")),
++        {PR_P "onu[name='o1']/term[name='y']/peer", "nope"}, E_BAD},
++    {"product ONU: LOCAL leafref to a sibling instance, there", PR_T(PR_TM PR_ONU("")),
++        {PR_P "onu[name='o1']/term[name='y']/peer", "x"}, E_OK},
++    /* when with boolean(), derived-from() and count() over the siblings */
++    {"product SWM: when boolean(capability=x), the leaf is added and the capability fits",
++        PR_T(PR_REV("<cap>alias</cap>", "<rev><name>r1</name><state>available</state></rev>")),
++        {PR_P "comp[name='c1']/revs/rev[name='r1']/alias", "y"}, E_OK},
++    {"product SWM: when boolean(capability=x), the leaf is added and the capability does not fit",
++        PR_T(PR_REV("<cap>other</cap>", "<rev><name>r1</name><state>available</state></rev>")),
++        {PR_P "comp[name='c1']/revs/rev[name='r1']/alias", "y"}, E_BAD},
++    {"product SWM: CASCADE when boolean(capability=x), the capability changes under the leaf, the node is dropped",
++        PR_T(PR_REV("<cap>alias</cap>", "<rev><name>r1</name><state>available</state><alias>y</alias></rev>")),
++        {PR_P "comp[name='c1']/revs/cap", "other"}, E_OK},
++    {"product SWM: when with a state test, the state fits",
++        PR_T(PR_REV("<cap>act</cap>", "<rev><name>r1</name><state>in-use</state></rev>")),
++        {PR_P "comp[name='c1']/revs/rev[name='r1']/act", "y"}, E_OK},
++    {"product SWM: when with a state test, the state does not fit",
++        PR_T(PR_REV("<cap>act</cap>", "<rev><name>r1</name><state>new</state></rev>")),
++        {PR_P "comp[name='c1']/revs/rev[name='r1']/act", "y"}, E_BAD},
++    {"product SWM: CASCADE when with a state test, the state changes under the leaf, the node is dropped",
++        PR_T(PR_REV("<cap>act</cap>", "<rev><name>r1</name><state>available</state><act>y</act></rev>")),
++        {PR_P "comp[name='c1']/revs/rev[name='r1']/state", "new"}, E_OK},
++    {"product SWM: CASCADE plain derived-from(), capability changes under the leaf, the node is dropped",
++        PR_T(PR_REV("<dcap xmlns:dl=\"urn:tests:dl\">dl:cap-sub</dcap>", "<rev><name>r1</name><state>available</state><fin>y</fin></rev>")),
++        {PR_P "comp[name='c1']/revs/dcap", "cap-other"}, E_OK},
++    {"product SWM: derived-from() and count()=0, download added, nothing downloads",
++        PR_T(PR_REV("<dcap xmlns:dl=\"urn:tests:dl\">dl:cap-sub</dcap>", "<rev><name>r1</name><state>available</state></rev>")),
++        {PR_P "comp[name='c1']/revs/download", "y"}, E_OK},
++    {"product SWM: derived-from() and count()=0, download added while a revision downloads",
++        PR_T(PR_REV("<dcap xmlns:dl=\"urn:tests:dl\">dl:cap-sub</dcap>", "<rev><name>r1</name><state>downloading</state></rev>")),
++        {PR_P "comp[name='c1']/revs/download", "y"}, E_BAD},
++    {"product SWM: CASCADE count()=0, a revision starts to download under the leaf, the node is dropped",
++        PR_T(PR_REV("<dcap xmlns:dl=\"urn:tests:dl\">dl:cap-sub</dcap>", "<rev><name>r1</name><state>available</state></rev><download>y</download>")),
++        {PR_P "comp[name='c1']/revs/rev[name='r1']/state", "downloading"}, E_OK},
++    {"product SWM: CASCADE count()=0, a revision that downloads is added under the leaf, the node is dropped",
++        PR_T(PR_REV("<dcap xmlns:dl=\"urn:tests:dl\">dl:cap-sub</dcap>", "<rev><name>r1</name><state>available</state></rev><download>y</download>")),
++        {PR_P "comp[name='c1']/revs/rev[name='r2']/state", "downloading"}, E_OK},
++    {"product SWM: count()=0, a revision that does not download is added under the leaf",
++        PR_T(PR_REV("<dcap xmlns:dl=\"urn:tests:dl\">dl:cap-sub</dcap>", "<rev><name>r1</name><state>available</state></rev><download>y</download>")),
++        {PR_P "comp[name='c1']/revs/rev[name='r2']/state", "available"}, E_OK},
++    {"product SWM: CASCADE derived-from(), capability changes under the download leaf, the node is dropped",
++        PR_T(PR_REV("<dcap xmlns:dl=\"urn:tests:dl\">dl:cap-sub</dcap>", "<rev><name>r1</name><state>available</state></rev><download>y</download>")),
++        {PR_P "comp[name='c1']/revs/dcap", "cap-other"}, E_OK},
++    /* a list keyed by position, and rules that read the leaf named position */
++    {"product tone: the next position is added", PR_T(PR_TP(PR_TC("1", "a") PR_TC("2", "b"))),
++        {PR_P "tp[name='p1']/tcs/tc[position='3']/duration", "c"}, E_OK},
++    {"product tone: a position is added after a gap", PR_T(PR_TP(PR_TC("1", "a") PR_TC("2", "b"))),
++        {PR_P "tp[name='p1']/tcs/tc[position='5']/duration", "c"}, E_BAD},
++    {"product tone: repetition added, the last component is not continuous", PR_T(PR_TP(PR_TC("1", "a") PR_TC("2", "b"))),
++        {PR_P "tp[name='p1']/tcs/rb", "y"}, E_OK},
++    {"product tone: repetition added, the last component is continuous", PR_T(PR_TP(PR_TC("1", "a") PR_TC("2", "continuous"))),
++        {PR_P "tp[name='p1']/tcs/rb", "y"}, E_BAD},
++    {"product tone: repetition added, only one component", PR_T(PR_TP(PR_TC("1", "a"))),
++        {PR_P "tp[name='p1']/tcs/rb", "y"}, E_BAD},
++    {"product tone: CASCADE the last component becomes continuous under the repetition, the node is dropped",
++        PR_T(PR_TP(PR_TC("1", "a") PR_TC("2", "b") "<rb>y</rb>")),
++        {PR_P "tp[name='p1']/tcs/tc[position='2']/duration", "continuous"}, E_OK},
++    {"product tone: CASCADE a continuous component is added last under the repetition, the node is dropped",
++        PR_T(PR_TP(PR_TC("1", "a") PR_TC("2", "b") "<rb>y</rb>")),
++        {PR_P "tp[name='p1']/tcs/tc[position='3']/duration", "continuous"}, E_OK},
++    /* deref() with a predicate that has not(derived-from-or-self()) inside */
++    {"product truststore: the format of a key in use changes", PR_T(PR_TS "<usr><name>u1</name><ref>b1</ref></usr>"),
++        {PR_P "tsb[name='b1']/pk[name='k1']/fmt", "fmt-other"}, E_BAD},
++    {"product truststore: a key with another format is added to the bag in use", PR_T(PR_TS "<usr><name>u1</name><ref>b1</ref></usr>"),
++        {PR_P "tsb[name='b1']/pk[name='k3']/fmt", "fmt-other"}, E_BAD},
++    {"product truststore: a key with the right format is added to the bag in use", PR_T(PR_TS "<usr><name>u1</name><ref>b1</ref></usr>"),
++        {PR_P "tsb[name='b1']/pk[name='k3']/fmt", "fmt-ssh"}, E_OK},
++    {"product truststore: a bag with another format is not used, its key changes", PR_T(PR_TS "<usr><name>u1</name><ref>b1</ref></usr>"),
++        {PR_P "tsb[name='b2']/pk[name='k2']/fmt", "fmt-ssh"}, E_OK},
++    {"product truststore: a user is added on the good bag", PR_T(PR_TS "<usr><name>u1</name><ref>b1</ref></usr>"),
++        {PR_P "usr[name='u2']/ref", "b1"}, E_OK},
++    {"product truststore: a user is added on the bag with another format", PR_T(PR_TS "<usr><name>u1</name><ref>b1</ref></usr>"),
++        {PR_P "usr[name='u2']/ref", "b2"}, E_BAD},
++    {"product truststore: a user moves to the bag with another format", PR_T(PR_TS "<usr><name>u1</name><ref>b1</ref></usr>"),
++        {PR_P "usr[name='u1']/ref", "b2"}, E_BAD},
++};
++
++static void
++test_product_shapes(void **state)
++{
++    dl_run((struct state *)*state, dl_prod_cases, sizeof dl_prod_cases / sizeof *dl_prod_cases);
++}
++
++/*
++ * Rule shapes the production schemas use that no case above rejects an edit through. The comment of each group
++ * says which actions it covers: adding the rule node, replacing its value, and adding, deleting or replacing a
++ * node the rule reads.
++ */
++#define GP_P "/dl:gp/"
++#define GP_T(x) DL_C("gp", x)
++#define GP_G(n, x) "<g><name>" n "</name>" x "</g>"
++#define GP_U(n, t) "<u><name>" n "</name><tag>" t "</tag></u>"
++#define GP_G1 GP_P "g[name='g1']/"
++#define GS_P "/dl:gs/"
++#define GS_T(x) DL_C("gs", x)
++static const struct dl_case dl_gp_cases[] = {
++    /* LOCAL, negating or counting */
++    {"gap: LOCAL not() must, added while the atom exists", GP_T(GP_G("g1", "<b>y</b>")), {GP_G1 "la1", "x"}, E_BAD},
++    {"gap: LOCAL not() must, added without the atom", GP_T(GP_G("g1", "<d>y</d>")), {GP_G1 "la1", "x"}, E_OK},
++    {"gap: LOCAL not() must, the atom appears", GP_T(GP_G("g1", "<la1>x</la1>")), {GP_G1 "b", "y"}, E_BAD},
++    {"gap: LOCAL not() must, an unrelated leaf appears", GP_T(GP_G("g1", "<la1>x</la1>")), {GP_G1 "d", "y"}, E_OK},
++    {"gap: LOCAL count() must, the last counted node is deleted",
++        GP_T(GP_G("g1", "<c><name>c1</name></c><la2>x</la2>")), {"-" GP_G1 "c[name='c1']"}, E_BAD},
++    {"gap: LOCAL count() must, one of two counted nodes is deleted",
++        GP_T(GP_G("g1", "<c><name>c1</name></c><c><name>c2</name></c><la2>x</la2>")), {"-" GP_G1 "c[name='c1']"}, E_OK},
++    {"gap: LOCAL count() must, added with nothing to count", GP_T(GP_G("g1", "")), {GP_G1 "la2", "x"}, E_BAD},
++    {"gap: LOCAL string-length() must, the atom shortened", GP_T(GP_G("g1", "<s>abc</s><la3>x</la3>")),
++        {GP_G1 "s", "x"}, E_BAD},
++    {"gap: LOCAL string-length() must, the atom lengthened", GP_T(GP_G("g1", "<s>abc</s><la3>x</la3>")),
++        {GP_G1 "s", "abcd"}, E_OK},
++    {"gap: LOCAL string-length() must, the atom deleted", GP_T(GP_G("g1", "<s>abc</s><la3>x</la3>")),
++        {"-" GP_G1 "s"}, E_BAD},
++    {"gap: LOCAL string-length() must, added next to a short atom", GP_T(GP_G("g1", "<s>a</s>")),
++        {GP_G1 "la3", "x"}, E_BAD},
++    {"gap: LOCAL string-length() must on the node itself, value shortened", GP_T(GP_G("g1", "<la4>abc</la4>")),
++        {GP_G1 "la4", "x"}, E_BAD},
++    {"gap: LOCAL string-length() must on the node itself, value lengthened", GP_T(GP_G("g1", "<la4>abc</la4>")),
++        {GP_G1 "la4", "abcd"}, E_OK},
++    /* LOCAL, positive */
++    {"gap: LOCAL existence must, the atom deleted", GP_T(GP_G("g1", "<b>y</b><d>y</d><la5>x</la5>")),
++        {"-" GP_G1 "d"}, E_BAD},
++    {"gap: LOCAL existence must, an unrelated leaf deleted", GP_T(GP_G("g1", "<b>y</b><d>y</d><la5>x</la5>")),
++        {"-" GP_G1 "b"}, E_OK},
++    {"gap: LOCAL equality must on the node itself, value replaced", GP_T(GP_G("g1", "<la6>ok</la6>")),
++        {GP_G1 "la6", "bad"}, E_BAD},
++    {"gap: LOCAL equality must on the node itself, another leaf added", GP_T(GP_G("g1", "<la6>ok</la6>")),
++        {GP_G1 "d", "y"}, E_OK},
++    /* leafref, LOCAL */
++    {"gap: LOCAL leafref, value replaced by a missing target", GP_T(GP_G("g1", "<d>x</d><lr1>x</lr1>")),
++        {GP_G1 "lr1", "y"}, E_BAD},
++    {"gap: LOCAL leafref, target value replaced", GP_T(GP_G("g1", "<d>x</d><lr1>x</lr1>")), {GP_G1 "d", "z"}, E_BAD},
++    {"gap: LOCAL leafref, target deleted", GP_T(GP_G("g1", "<d>x</d><lr1>x</lr1>")), {"-" GP_G1 "d"}, E_BAD},
++    {"gap: LOCAL leafref, target and referrer replaced together", GP_T(GP_G("g1", "<d>x</d><lr1>x</lr1>")),
++        {GP_G1 "d", "z", GP_G1 "lr1", "z"}, E_OK},
++    /* leafref, LIST-SCOPE */
++    {"gap: LIST-SCOPE leafref, added without a target",
++        GP_T(GP_G("g1", "<lst><name>l1</name><tag>t1</tag></lst>")), {GP_G1 "lr2", "zz"}, E_BAD},
++    {"gap: LIST-SCOPE leafref, added with a target",
++        GP_T(GP_G("g1", "<lst><name>l1</name><tag>t1</tag></lst>")), {GP_G1 "lr2", "t1"}, E_OK},
++    {"gap: LIST-SCOPE leafref, value replaced by a missing target",
++        GP_T(GP_G("g1", "<lst><name>l1</name><tag>t1</tag></lst><lr2>t1</lr2>")), {GP_G1 "lr2", "zz"}, E_BAD},
++    {"gap: LIST-SCOPE leafref, target value replaced",
++        GP_T(GP_G("g1", "<lst><name>l1</name><tag>t1</tag></lst><lr2>t1</lr2>")),
++        {GP_G1 "lst[name='l1']/tag", "t2"}, E_BAD},
++    /* must counting a nested list through a predicate, LIST-SCOPE */
++    {"gap: LIST-SCOPE count() with a predicate, value of the counted node replaced",
++        GP_T(GP_G("g1", "<lst><name>l1</name><tag>x</tag></lst><ls1>y</ls1>")), {GP_G1 "lst[name='l1']/tag", "y"}, E_BAD},
++    {"gap: LIST-SCOPE count() with a predicate, counted node deleted",
++        GP_T(GP_G("g1", "<lst><name>l1</name><tag>x</tag></lst><ls1>y</ls1>")), {"-" GP_G1 "lst[name='l1']"}, E_BAD},
++    {"gap: LIST-SCOPE count() with a predicate, added with nothing counted", GP_T(GP_G("g1", "")),
++        {GP_G1 "ls1", "y"}, E_BAD},
++    {"gap: LIST-SCOPE count() with a predicate, another counted node added",
++        GP_T(GP_G("g1", "<lst><name>l1</name><tag>x</tag></lst><ls1>y</ls1>")), {GP_G1 "lst[name='l2']/tag", "x"}, E_OK},
++    /* when */
++    {"gap: LIST-SCOPE when, node added while it is false", GP_T(GP_G("g1", "<lst><name>l1</name><tag>off</tag></lst>")),
++        {GP_G1 "wl1", "y"}, E_BAD},
++    {"gap: LIST-SCOPE when, node added while it is true", GP_T(GP_G("g1", "<lst><name>l1</name><tag>on</tag></lst>")),
++        {GP_G1 "wl1", "y"}, E_OK},
++    {"gap: LIST-SCOPE when, CASCADE the gate turns false and the node is dropped",
++        GP_T(GP_G("g1", "<lst><name>l1</name><tag>on</tag></lst><wl1>y</wl1>")), {GP_G1 "lst[name='l1']/tag", "off"}, E_OK},
++    {"gap: LOCAL not() when, node added while it is false", GP_T(GP_G("g1", "<b>y</b>")), {GP_G1 "wl2", "y"}, E_BAD},
++    {"gap: LOCAL not() when, CASCADE the atom appears and the node is dropped", GP_T(GP_G("g1", "<wl2>y</wl2>")),
++        {GP_G1 "b", "y"}, E_OK},
++    /* BOUNDED, relative path to another instance */
++    {"gap: BOUNDED count() through the peer instance, the counted node deleted",
++        GP_T(GP_G("g1", "<peer>g2</peer><bd>x</bd>") GP_G("g2", "<lst><name>l1</name></lst>")),
++        {"-" GP_P "g[name='g2']/lst[name='l1']"}, E_BAD},
++    {"gap: BOUNDED count() through the peer instance, another counted node is left",
++        GP_T(GP_G("g1", "<peer>g2</peer><bd>x</bd>") GP_G("g2", "<lst><name>l1</name></lst><lst><name>l2</name></lst>")),
++        {"-" GP_P "g[name='g2']/lst[name='l1']"}, E_OK},
++    {"gap: BOUNDED count() through the peer instance, added with nothing to count",
++        GP_T(GP_G("g1", "<peer>g2</peer>") GP_G("g2", "")), {GP_G1 "bd", "x"}, E_BAD},
++    {"gap: BOUNDED count() through the peer instance, the peer replaced by an empty one",
++        GP_T(GP_G("g1", "<peer>g2</peer><bd>x</bd>") GP_G("g2", "<lst><name>l1</name></lst>") GP_G("g3", "")),
++        {GP_G1 "peer", "g3"}, E_BAD},
++    /* UNBOUNDED, relative leafref over a whole list */
++    {"gap: UNBOUNDED relative leafref, target value replaced",
++        GP_T(GP_U("u1", "t1") "<u><name>u2</name><tag>t2</tag><r>t1</r></u>"), {GP_P "u[name='u1']/tag", "t9"}, E_BAD},
++    {"gap: UNBOUNDED relative leafref, value replaced by a missing target",
++        GP_T(GP_U("u1", "t1") "<u><name>u2</name><tag>t2</tag><r>t1</r></u>"), {GP_P "u[name='u2']/r", "zz"}, E_BAD},
++    {"gap: UNBOUNDED relative leafref, instance added without a target", GP_T(GP_U("u1", "t1")),
++        {GP_P "u[name='u3']/r", "zz"}, E_BAD},
++    {"gap: UNBOUNDED relative leafref, instance added with a target", GP_T(GP_U("u1", "t1")),
++        {GP_P "u[name='u3']/r", "t1"}, E_OK},
++    /* when over an absolute path */
++    {"gap: UNBOUNDED when over an absolute path, node added while it is false", GP_T(GP_U("u1", "off")),
++        {GP_P "wu", "x"}, E_BAD},
++    {"gap: UNBOUNDED when over an absolute path, node added while it is true", GP_T(GP_U("u1", "on")),
++        {GP_P "wu", "x"}, E_OK},
++    {"gap: UNBOUNDED when over an absolute path, CASCADE the gate turns false",
++        GP_T(GP_U("u1", "on") "<wu>x</wu>"), {GP_P "u[name='u1']/tag", "off"}, E_OK},
++    {"gap: BOUNDED not() when over an absolute path, node added while it is false", GP_T(GP_U("z", "t")),
++        {GP_P "wb", "x"}, E_BAD},
++    {"gap: BOUNDED not() when over an absolute path, node added while it is true", GP_T(GP_U("y", "t")),
++        {GP_P "wb", "x"}, E_OK},
++    /* BOUNDED, absolute path selected by the value of the node */
++    {"gap: BOUNDED boolean() and not(), added with no target", GP_T(GP_G("g1", "") GP_U("u1", "t1")),
++        {GP_G1 "bq", "nope"}, E_BAD},
++    {"gap: BOUNDED boolean() and not(), added with a target", GP_T(GP_G("g1", "") GP_U("u1", "t1")),
++        {GP_G1 "bq", "u1"}, E_OK},
++    {"gap: BOUNDED boolean() and not(), the optional leaf appears", GP_T(GP_G("g1", "<bq>u1</bq>") GP_U("u1", "t1")),
++        {GP_G1 "b", "y"}, E_BAD},
++    {"gap: BOUNDED value-keyed count(), a second node with the same value appears",
++        GP_T(GP_U("u1", "t") GP_G("g1", "<cq>t</cq>")), {GP_P "u[name='u2']/tag", "t"}, E_BAD},
++    {"gap: BOUNDED value-keyed count(), a node with another value appears",
++        GP_T(GP_U("u1", "t") GP_G("g1", "<cq>t</cq>")), {GP_P "u[name='u2']/tag", "o"}, E_OK},
++    /* LIST-SCOPE derived-from() through a key chosen by the node */
++    {"gap: LIST-SCOPE derived-from() must, the identity of the chosen instance replaced",
++        GP_T(GP_G("g1", "<lst><name>l1</name><kind xmlns:dl=\"urn:tests:dl\">dl:cap-sub</kind></lst><ld>l1</ld>")),
++        {GP_G1 "lst[name='l1']/kind", "dl:cap-other"}, E_BAD},
++    {"gap: LIST-SCOPE derived-from() must, the identity of the chosen instance deleted",
++        GP_T(GP_G("g1", "<lst><name>l1</name><kind xmlns:dl=\"urn:tests:dl\">dl:cap-sub</kind></lst><ld>l1</ld>")),
++        {"-" GP_G1 "lst[name='l1']/kind"}, E_BAD},
++    {"gap: LIST-SCOPE derived-from() must, the node moves to an instance of another identity",
++        GP_T(GP_G("g1", "<lst><name>l1</name><kind xmlns:dl=\"urn:tests:dl\">dl:cap-sub</kind></lst><lst><name>l2</name>"
++        "<kind xmlns:dl=\"urn:tests:dl\">dl:cap-other</kind></lst><ld>l1</ld>")), {GP_G1 "ld", "l2"}, E_BAD},
++    /* rules of another module, reading dl */
++    {"gap: cross-module when, node added while it is false", GP_T(GP_G("g1", "")), {GP_G1 "dm:xw-when", "y"}, E_BAD},
++    {"gap: cross-module when, node added while it is true", GP_T(GP_G("g1", "<b>y</b>")), {GP_G1 "dm:xw-when", "y"}, E_OK},
++    {"gap: cross-module when, CASCADE the atom is deleted and the node is dropped",
++        GP_T(GP_G("g1", "<b>y</b><xw-when xmlns=\"urn:tests:dm\">y</xw-when>")), {"-" GP_G1 "b"}, E_OK},
++    {"gap: cross-module not() when, node added while it is false", GP_T(GP_G("g1", "<b>y</b>")),
++        {GP_G1 "dm:xn-when", "y"}, E_BAD},
++    {"gap: cross-module not() when, CASCADE the atom appears and the node is dropped",
++        GP_T(GP_G("g1", "<xn-when xmlns=\"urn:tests:dm\">y</xn-when>")), {GP_G1 "b", "y"}, E_OK},
++    {"gap: cross-module not() must, the atom appears", GP_T(GP_G("g1", "")), {GP_G1 "dm:xm-must", "y", GP_G1 "b", "y"}, E_BAD},
++    {"gap: cross-module not() must, added while the atom exists", GP_T(GP_G("g1", "<b>y</b>")),
++        {GP_G1 "dm:xm-must", "y"}, E_BAD},
++    {"gap: cross-module count() must, the last counted node deleted",
++        GP_T(GP_G("g1", "<c><name>c1</name></c><xc-must xmlns=\"urn:tests:dm\">y</xc-must>")),
++        {"-" GP_G1 "c[name='c1']"}, E_BAD},
++    {"gap: cross-module leafref, added without a target", GP_T(GP_G("g1", "")), {GP_G1 "dm:xl-ref", "x"}, E_BAD},
++    {"gap: cross-module leafref, added with a target", GP_T(GP_G("g1", "<d>x</d>")), {GP_G1 "dm:xl-ref", "x"}, E_OK},
++    /* value read through a key chosen by the node, with a negation */
++    {"gap: BOUNDED derived-from() with not(), added for a missing instance", GP_T(GP_G("g1", "") GP_G("g2", "")),
++        {GP_G1 "pc", "g3"}, E_BAD},
++    {"gap: BOUNDED derived-from() with not(), added for a fitting instance",
++        GP_T(GP_G("g1", "") GP_G("g2", "<gk xmlns:dl=\"urn:tests:dl\">dl:cap-sub</gk>")), {GP_G1 "pc", "g2"}, E_OK},
++    {"gap: BOUNDED derived-from() with not(), the identity of the chosen instance replaced",
++        GP_T(GP_G("g1", "<pc>g2</pc>") GP_G("g2", "<gk xmlns:dl=\"urn:tests:dl\">dl:cap-sub</gk>")),
++        {GP_P "g[name='g2']/gk", "dl:cap-other"}, E_BAD},
++    {"gap: BOUNDED derived-from() with not(), the chosen instance appears in the not() list",
++        GP_T(GP_G("g1", "<pc>g2</pc>") GP_G("g2", "<gk xmlns:dl=\"urn:tests:dl\">dl:cap-sub</gk>")),
++        {GP_P "uq[name='g2']/tag", "1"}, E_BAD},
++    /* the shape of the preferred-channel-pair rule: a key chosen by the node, a comparison with a sibling and a negation that stays in the instance */
++    {"gap: BOUNDED chosen-instance comparison, the compared value of the chosen instance replaced",
++        GP_T(GP_G("g1", "<d>x</d><pk>g2</pk>") GP_G("g2", "<d>x</d><gk xmlns:dl=\"urn:tests:dl\">dl:cap-sub</gk>")),
++        {GP_P "g[name='g2']/d", "y"}, E_BAD},
++    {"gap: BOUNDED chosen-instance comparison, the identity of the chosen instance replaced",
++        GP_T(GP_G("g1", "<d>x</d><pk>g2</pk>") GP_G("g2", "<d>x</d><gk xmlns:dl=\"urn:tests:dl\">dl:cap-sub</gk>")),
++        {GP_P "g[name='g2']/gk", "dl:cap-other"}, E_BAD},
++    {"gap: BOUNDED chosen-instance comparison, the negated sibling gets the node's value",
++        GP_T(GP_G("g1", "<d>x</d><pk>g2</pk>") GP_G("g2", "<d>x</d><gk xmlns:dl=\"urn:tests:dl\">dl:cap-sub</gk>")),
++        {GP_G1 "pp", "g2"}, E_BAD},
++    {"gap: BOUNDED chosen-instance comparison, the negated sibling gets another value",
++        GP_T(GP_G("g1", "<d>x</d><pk>g2</pk>") GP_G("g2", "<d>x</d><gk xmlns:dl=\"urn:tests:dl\">dl:cap-sub</gk>")),
++        {GP_G1 "pp", "g3"}, E_OK},
++    {"gap: BOUNDED chosen-instance comparison, added while the compared values differ",
++        GP_T(GP_G("g1", "<d>z</d>") GP_G("g2", "<d>x</d><gk xmlns:dl=\"urn:tests:dl\">dl:cap-sub</gk>")),
++        {GP_G1 "pk", "g2"}, E_BAD},
++    {"gap: BOUNDED chosen-instance comparison, added while the compared values match",
++        GP_T(GP_G("g1", "<d>x</d>") GP_G("g2", "<d>x</d><gk xmlns:dl=\"urn:tests:dl\">dl:cap-sub</gk>")),
++        {GP_G1 "pk", "g2"}, E_OK},
++    /* structure: mandatory choice and leaf, max-elements, min-elements */
++    {"gap: mandatory choice, an instance added without a case", GS_T("<mnl><name>n1</name></mnl><mnl><name>n2</name></mnl>"),
++        {GS_P "mcl[name='m1']", NULL}, E_BAD},
++    {"gap: mandatory choice, an instance added with a case", GS_T("<mnl><name>n1</name></mnl><mnl><name>n2</name></mnl>"),
++        {GS_P "mcl[name='m1']/ca", "x"}, E_OK},
++    {"gap: mandatory choice, the only case deleted",
++        GS_T("<mnl><name>n1</name></mnl><mnl><name>n2</name></mnl><mcl><name>m1</name><ca>x</ca></mcl>"),
++        {"-" GS_P "mcl[name='m1']/ca"}, E_BAD},
++    {"gap: mandatory choice, the case switched in one edit",
++        GS_T("<mnl><name>n1</name></mnl><mnl><name>n2</name></mnl><mcl><name>m1</name><ca>x</ca></mcl>"),
++        {"-" GS_P "mcl[name='m1']/ca", NULL, GS_P "mcl[name='m1']/cb", "y"}, E_OK},
++    {"gap: mandatory leaf, an instance added without it", GS_T("<mnl><name>n1</name></mnl><mnl><name>n2</name></mnl>"),
++        {GS_P "mml[name='m1']", NULL}, E_BAD},
++    {"gap: mandatory leaf, deleted",
++        GS_T("<mnl><name>n1</name></mnl><mnl><name>n2</name></mnl><mml><name>m1</name><mand>x</mand></mml>"),
++        {"-" GS_P "mml[name='m1']/mand"}, E_BAD},
++    {"gap: max-elements, a third instance added",
++        GS_T("<mnl><name>n1</name></mnl><mnl><name>n2</name></mnl><mxl><name>x1</name></mxl><mxl><name>x2</name></mxl>"),
++        {GS_P "mxl[name='x3']", NULL}, E_BAD},
++    {"gap: max-elements, one instance replaced by another",
++        GS_T("<mnl><name>n1</name></mnl><mnl><name>n2</name></mnl><mxl><name>x1</name></mxl><mxl><name>x2</name></mxl>"),
++        {"-" GS_P "mxl[name='x1']", NULL, GS_P "mxl[name='x3']", NULL}, E_OK},
++    {"gap: min-elements, an instance deleted",
++        GS_T("<mnl><name>n1</name></mnl><mnl><name>n2</name></mnl>"), {"-" GS_P "mnl[name='n1']"}, E_BAD},
++    {"gap: min-elements, an instance replaced by another",
++        GS_T("<mnl><name>n1</name></mnl><mnl><name>n2</name></mnl>"),
++        {"-" GS_P "mnl[name='n1']", NULL, GS_P "mnl[name='n3']", NULL}, E_OK},
++    /* unique */
++    {"gap: unique, the value replaced by a duplicate",
++        GP_T("<uq><name>a</name><tag>1</tag></uq><uq><name>b</name><tag>2</tag></uq>"), {GP_P "uq[name='b']/tag", "1"}, E_BAD},
++    {"gap: unique, the value replaced by a new one",
++        GP_T("<uq><name>a</name><tag>1</tag></uq><uq><name>b</name><tag>2</tag></uq>"), {GP_P "uq[name='b']/tag", "3"}, E_OK},
++    {"gap: unique, an instance added with a duplicate", GP_T("<uq><name>a</name><tag>1</tag></uq>"),
++        {GP_P "uq[name='b']/tag", "1"}, E_BAD},
++};
++
++static void
++test_gap_shapes(void **state)
++{
++    dl_run((struct state *)*state, dl_gp_cases, sizeof dl_gp_cases / sizeof *dl_gp_cases);
++}
++
++static void
++test_delete_yang_probe(void **state)
++{
++    dl_run((struct state *)*state, dl_probe_cases, sizeof dl_probe_cases / sizeof *dl_probe_cases);
++}
++
++static void
++test_delete_ancestor_reader(void **state)
++{
++    dl_run((struct state *)*state, dl_ancestor_cases, sizeof dl_ancestor_cases / sizeof *dl_ancestor_cases);
++}
++
++static void
++apply_edits(sr_session_ctx_t *sess, const char *const *edits)
++{
++    uint32_t e;
++
++    for (e = 0; edits[e]; e += 2) {
++        if (edits[e][0] == '-') {
++            assert_int_equal(SR_ERR_OK, sr_delete_item(sess, edits[e] + 1, 0));
++        } else {
++            assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, edits[e], edits[e + 1], NULL, 0));
++        }
++    }
++}
++
++static uint64_t
++incr_calls(void)
++{
++    uint64_t calls = 0;
++
++    lyd_validate_incr_stats(NULL, &calls, NULL);
++    return calls;
++}
++
++static int
++count_change_cb(sr_session_ctx_t *session, uint32_t sub_id, const char *module_name, const char *xpath,
++        sr_event_t event, uint32_t operation_id, void *private_data)
++{
++    (void)session;
++    (void)sub_id;
++    (void)module_name;
++    (void)xpath;
++    (void)operation_id;
++
++    if (event == SR_EV_CHANGE) {
++        __atomic_add_fetch((uint32_t *)private_data, 1, __ATOMIC_SEQ_CST);
++    }
++    return SR_ERR_OK;
++}
++
++/*
++ * A rejected edit leaves the datastore as it was and no subscriber hears of it, whichever check rejects it and
++ * whether a valid change of the same or another module goes with it.
++ */
++#define RB_XML DL_T(DL_I("i1", "a") DL_I("i2", "b") DL_R("r", "<lref>i1</lref>")) \
++        DL_C("c-mn", "<mn><name>m1</name></mn><mn><name>m2</name></mn>") \
++        DL_C("c-neg", "<un><name>a</name><u>u1</u></un><un><name>b</name><u>u2</u></un>") DM_M("<iref>i2</iref>")
++static const struct dl_case rb_cases[] = {
++    {"rollback: a leafref target deleted", NULL, {"-" DL_P "item[name='i1']"}, E_BAD},
++    {"rollback: below min-elements", NULL, {"-/dl:c-mn/mn[name='m1']"}, E_BAD},
++    {"rollback: a unique value collides", NULL, {"/dl:c-neg/un[name='b']/u", "u1"}, E_BAD},
++    {"rollback: a valid change goes with a rejected one", NULL,
++        {DL_P "item[name='i3']/val", "c", "-" DL_P "item[name='i1']", NULL}, E_BAD},
++    {"rollback: another module reads the deleted node", NULL, {"-" DL_P "item[name='i2']"}, E_BAD},
++    {"rollback: a valid change of another module goes with a rejected one", NULL,
++        {"/dm:mtop/mr[name='m2']/iref", "i1", "-" DL_P "item[name='i2']", NULL}, E_BAD},
++    {"rollback: a key change leaves a reader behind", NULL,
++        {"-" DL_P "item[name='i1']", NULL, DL_P "item[name='i9']/val", "a"}, E_BAD},
++};
++
++static void
++test_rollback(void **state)
++{
++    struct state *st = (struct state *)*state;
++    const sr_datastore_t dss[] = {SR_DS_RUNNING, SR_DS_STARTUP};
++    sr_session_ctx_t *sess;
++    sr_subscription_ctx_t *sub;
++    uint32_t changes, d, i;
++    char *stored, *now;
++
++    dl_clear(st);
++    dl_load(st, RB_XML);
++    for (d = 0; d < sizeof dss / sizeof *dss; ++d) {
++        assert_int_equal(SR_ERR_OK, sr_session_start(st->conn, dss[d], &sess));
++        if (dss[d] == SR_DS_STARTUP) {
++            assert_int_equal(SR_ERR_OK, sr_copy_config(sess, NULL, SR_DS_RUNNING, 0));
++        }
++        changes = 0;
++        sub = NULL;
++        assert_int_equal(SR_ERR_OK, sr_module_change_subscribe(sess, "dl", NULL, count_change_cb, &changes, 0, 0, &sub));
++        assert_int_equal(SR_ERR_OK, sr_module_change_subscribe(sess, "dm", NULL, count_change_cb, &changes, 0, 0, &sub));
++        stored = stored_xml(st, dss[d]);
++
++        for (i = 0; i < sizeof rb_cases / sizeof *rb_cases; ++i) {
++            print_message("[  CASE    ] %s, %s\n", rb_cases[i].name, (dss[d] == SR_DS_STARTUP) ? "startup" : "running");
++            apply_edits(sess, rb_cases[i].edits);
++            assert_int_equal(SR_ERR_VALIDATION_FAILED, sr_apply_changes(sess, 0));
++            assert_int_equal(SR_ERR_OK, sr_discard_changes(sess));
++            now = stored_xml(st, dss[d]);
++            assert_string_equal(stored, now);
++            free(now);
++        }
++        assert_int_equal(0, __atomic_load_n(&changes, __ATOMIC_SEQ_CST));
++
++        /* the datastore still takes a valid edit, and that one is heard */
++        assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, DL_P "item[name='i3']/val",
++                (dss[d] == SR_DS_STARTUP) ? "s" : "r", NULL, 0));
++        assert_int_equal(SR_ERR_OK, sr_apply_changes(sess, 0));
++        assert_int_equal(1, __atomic_load_n(&changes, __ATOMIC_SEQ_CST));
++
++        free(stored);
++        sr_unsubscribe(sub);
++        sr_session_stop(sess);
++    }
++
++    dl_clear(st);
++    assert_int_equal(SR_ERR_OK, sr_session_start(st->conn, SR_DS_STARTUP, &sess));
++    assert_int_equal(SR_ERR_OK, sr_copy_config(sess, NULL, SR_DS_RUNNING, 0));
++    sr_session_stop(sess);
++}
++
++/**
++ * @brief Replace the stored running data of module @p mod_name without sysrepo and without validation, the way
++ * running is copied from startup on boot or a tool writes the file.
++ */
++static void
++write_running(struct state *st, const char *mod_name, const char *xml)
++{
++    const struct ly_ctx *ctx;
++    struct lyd_node *tree = NULL;
++    const char *dir, *prefix;
++    char *path;
++
++    dir = getenv(SR_SHM_PATH_ENV) ? getenv(SR_SHM_PATH_ENV) : SR_SHM_PATH;
++    prefix = getenv(SR_SHM_PREFIX_ENV) ? getenv(SR_SHM_PREFIX_ENV) : SR_SHM_PREFIX_DEFAULT;
++    assert_int_not_equal(-1, asprintf(&path, "%s/%s_%s.running", dir, prefix, mod_name));
++
++    ctx = sr_acquire_context(st->conn);
++    assert_non_null(ctx);
++    assert_int_equal(LY_SUCCESS, lyd_parse_data_mem(ctx, xml, LYD_XML, LYD_PARSE_ONLY | LYD_PARSE_STRICT, 0, &tree));
++    assert_int_equal(LY_SUCCESS, lyd_print_path(path, tree, LYD_JSON, LYD_PRINT_WITHSIBLINGS | LYD_PRINT_SHRINK |
++            LYD_PRINT_KEEPEMPTYCONT | LYD_PRINT_WD_IMPL_TAG));
++    lyd_free_all(tree);
++    sr_release_context(st->conn);
++    free(path);
++}
++
++/*
++ * Stored data that no connection validated, here a reader that points at nothing, are found by the first change of
++ * the module on a new connection however unrelated the change is, and once the data are repaired the later changes
++ * are validated incrementally again.
++ */
++static void
++test_unvalidated_stored(void **state)
++{
++    struct state *st = (struct state *)*state;
++    sr_conn_ctx_t *conn;
++    sr_session_ctx_t *sess;
++    uint64_t calls;
++
++    if (strcmp(SR_DEFAULT_RUNNING_DS, "JSON DS file")) {
++        skip();
++    }
++
++    dl_clear(st);
++    dl_load(st, DL_T(DL_I("i1", "a") DL_R("r", "<lref>i1</lref>")));
++    write_running(st, "dl", DL_T(DL_I("i1", "a") DL_R("r", "<lref>i7</lref>")));
++
++    assert_int_equal(SR_ERR_OK, sr_connect(0, &conn));
++    assert_int_equal(SR_ERR_OK, sr_session_start(conn, SR_DS_RUNNING, &sess));
++
++    calls = incr_calls();
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, "/dl:c-neg/un[name='a']/u", "u1", NULL, 0));
++    assert_int_equal(SR_ERR_VALIDATION_FAILED, sr_apply_changes(sess, 0));
++    assert_int_equal(SR_ERR_OK, sr_discard_changes(sess));
++
++    /* the repair is validated in full as well */
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, DL_P "r[name='r']/lref", "i1", NULL, 0));
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(sess, 0));
++    assert_int_equal(calls, incr_calls());
++
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, "/dl:c-neg/un[name='a']/u", "u1", NULL, 0));
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(sess, 0));
++#ifdef ENABLE_VALIDATE_INCREMENTAL
++    assert_true(incr_calls() > calls);
++#else
++    assert_int_equal(calls, incr_calls());
++#endif
++
++    sr_session_stop(sess);
++    sr_disconnect(conn);
++    dl_clear(st);
++}
++
++/*
++ * The baseline belongs to a connection: a connection that has not validated the module yet validates in full even
++ * when another connection has already done it. Each edit here is valid and unrelated to the dangling reader, so the
++ * only way to see the dirty data is a full validation; the counter of incremental calls tells which one ran.
++ */
++static void
++test_baseline_per_connection(void **state)
++{
++    struct state *st = (struct state *)*state;
++    sr_conn_ctx_t *conn_a, *conn_b;
++    sr_session_ctx_t *sess_a, *sess_b;
++    uint64_t calls;
++
++    if (strcmp(SR_DEFAULT_RUNNING_DS, "JSON DS file")) {
++        skip();
++    }
++
++    dl_clear(st);
++    dl_load(st, DL_T(DL_I("i1", "a") DL_R("r", "<lref>i1</lref>")));
++    write_running(st, "dl", DL_T(DL_I("i1", "a") DL_R("r", "<lref>i7</lref>")));
++
++    assert_int_equal(SR_ERR_OK, sr_connect(0, &conn_a));
++    assert_int_equal(SR_ERR_OK, sr_session_start(conn_a, SR_DS_RUNNING, &sess_a));
++    assert_int_equal(SR_ERR_OK, sr_connect(0, &conn_b));
++    assert_int_equal(SR_ERR_OK, sr_session_start(conn_b, SR_DS_RUNNING, &sess_b));
++
++    /* both connections see the dirty data on their first edit */
++    calls = incr_calls();
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess_a, "/dl:c-neg/un[name='a']/u", "u1", NULL, 0));
++    assert_int_equal(SR_ERR_VALIDATION_FAILED, sr_apply_changes(sess_a, 0));
++    assert_int_equal(SR_ERR_OK, sr_discard_changes(sess_a));
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess_b, "/dl:c-neg/un[name='a']/u", "u1", NULL, 0));
++    assert_int_equal(SR_ERR_VALIDATION_FAILED, sr_apply_changes(sess_b, 0));
++    assert_int_equal(SR_ERR_OK, sr_discard_changes(sess_b));
++    assert_int_equal(calls, incr_calls());
++
++    /* A repairs the data (in full) and then edits incrementally */
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess_a, DL_P "r[name='r']/lref", "i1", NULL, 0));
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(sess_a, 0));
++    assert_int_equal(calls, incr_calls());
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess_a, "/dl:c-neg/un[name='a']/u", "u1", NULL, 0));
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(sess_a, 0));
++#ifdef ENABLE_VALIDATE_INCREMENTAL
++    assert_true(incr_calls() > calls);
++#endif
++    calls = incr_calls();
++
++    /* B has no baseline of its own, its first successful edit is in full, the next one is incremental */
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess_b, "/dl:c-neg/un[name='a']/u", "u2", NULL, 0));
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(sess_b, 0));
++    assert_int_equal(calls, incr_calls());
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess_b, "/dl:c-neg/un[name='a']/u", "u3", NULL, 0));
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(sess_b, 0));
++#ifdef ENABLE_VALIDATE_INCREMENTAL
++    assert_true(incr_calls() > calls);
++#else
++    assert_int_equal(calls, incr_calls());
++#endif
++
++    sr_session_stop(sess_b);
++    sr_disconnect(conn_b);
++    sr_session_stop(sess_a);
++    sr_disconnect(conn_a);
++    dl_clear(st);
++}
++
++/*
++ * A schema change drops the context of every connection, so the baseline of a connection is gone with it: data that
++ * became dirty after the baseline are found by the first edit made after the change.
++ */
++static void
++test_baseline_context_switch(void **state)
++{
++    struct state *st = (struct state *)*state;
++    sr_conn_ctx_t *conn;
++    sr_session_ctx_t *sess;
++
++    if (strcmp(SR_DEFAULT_RUNNING_DS, "JSON DS file")) {
++        skip();
++    }
++
++    dl_clear(st);
++    dl_load(st, DL_T(DL_I("i1", "a") DL_R("r", "<lref>i1</lref>")));
++
++    assert_int_equal(SR_ERR_OK, sr_connect(0, &conn));
++    assert_int_equal(SR_ERR_OK, sr_session_start(conn, SR_DS_RUNNING, &sess));
++
++    /* the baseline of this connection */
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, "/dl:c-neg/un[name='a']/u", "u1", NULL, 0));
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(sess, 0));
++
++    /* another connection changes the schema (it validates the stored data, so it must run while they are valid) */
++    assert_int_equal(SR_ERR_OK, sr_install_module(st->conn, TESTS_SRC_DIR "/files/incr-u@2026-01-01.yang", NULL, NULL));
++
++    /* the data become dirty behind sysrepo; this connection still holds its old context until its next call */
++    write_running(st, "dl", DL_T(DL_I("i1", "a") DL_R("r", "<lref>i7</lref>")));
++
++    /* the first edit after the change is validated in full again */
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, "/dl:c-neg/un[name='a']/u", "u2", NULL, 0));
++    assert_int_equal(SR_ERR_VALIDATION_FAILED, sr_apply_changes(sess, 0));
++    assert_int_equal(SR_ERR_OK, sr_discard_changes(sess));
++
++    sr_session_stop(sess);
++    sr_disconnect(conn);
++    dl_clear(st);
++    assert_int_equal(SR_ERR_OK, sr_remove_module(st->conn, "incr-u", 0));
++}
++
++/*
++ * The baseline is kept per module: dm reads dl but is not validated together with it when only dm changes, so the
++ * first change of dm says nothing about the dangling reader of dl. The first change of dl on the same connection is
++ * still validated in full and finds it, the dirty data in dl cannot be seen by an edit that does not touch it.
++ */
++static void
++test_baseline_per_module(void **state)
++{
++    struct state *st = (struct state *)*state;
++    sr_conn_ctx_t *conn;
++    sr_session_ctx_t *sess;
++    uint64_t calls;
++
++    if (strcmp(SR_DEFAULT_RUNNING_DS, "JSON DS file")) {
++        skip();
++    }
++
++    dl_clear(st);
++    dl_load(st, DL_T(DL_I("i1", "a") DL_R("r", "<lref>i1</lref>")));
++    write_running(st, "dl", DL_T(DL_I("i1", "a") DL_R("r", "<lref>i7</lref>")));
++
++    assert_int_equal(SR_ERR_OK, sr_connect(0, &conn));
++    assert_int_equal(SR_ERR_OK, sr_session_start(conn, SR_DS_RUNNING, &sess));
++
++    /* the baseline of dm only, the dirty reader belongs to dl */
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, "/dm:mtop/mr[name='m1']", NULL, NULL, 0));
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(sess, 0));
++
++    /* dl has no baseline yet, so this unrelated edit is validated in full and rejected */
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, "/dl:c-neg/un[name='a']/u", "u1", NULL, 0));
++    assert_int_equal(SR_ERR_VALIDATION_FAILED, sr_apply_changes(sess, 0));
++    assert_int_equal(SR_ERR_OK, sr_discard_changes(sess));
++
++    /* the repair of dl is validated in full, and then dl is incremental as well */
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, DL_P "r[name='r']/lref", "i1", NULL, 0));
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(sess, 0));
++    calls = incr_calls();
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, "/dl:c-neg/un[name='a']/u", "u1", NULL, 0));
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(sess, 0));
++#ifdef ENABLE_VALIDATE_INCREMENTAL
++    assert_true(incr_calls() > calls);
++#else
++    assert_int_equal(calls, incr_calls());
++#endif
++
++    sr_session_stop(sess);
++    sr_disconnect(conn);
++    dl_clear(st);
++}
++
++/*
++ * An edit of dl validates dm as well, because dm reads dl, and dm has no baseline either: its dangling reader is found
++ * by an edit of dl that has nothing to do with it. Once dm is repaired, dl and dm are both incremental.
++ */
++static void
++test_baseline_inverse_dep(void **state)
++{
++    struct state *st = (struct state *)*state;
++    sr_conn_ctx_t *conn;
++    sr_session_ctx_t *sess;
++    uint64_t calls;
++
++    if (strcmp(SR_DEFAULT_RUNNING_DS, "JSON DS file")) {
++        skip();
++    }
++
++    dl_clear(st);
++    dl_load(st, DL_T(DL_I("i1", "a")));
++    write_running(st, "dm", DM_M("<iref>zz</iref>"));
++
++    assert_int_equal(SR_ERR_OK, sr_connect(0, &conn));
++    assert_int_equal(SR_ERR_OK, sr_session_start(conn, SR_DS_RUNNING, &sess));
++
++    /* dl and dm are both validated in full, so no incremental call can have happened */
++    calls = incr_calls();
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, "/dl:c-neg/un[name='a']/u", "u1", NULL, 0));
++    assert_int_equal(SR_ERR_VALIDATION_FAILED, sr_apply_changes(sess, 0));
++    assert_int_equal(SR_ERR_OK, sr_discard_changes(sess));
++    assert_int_equal(calls, incr_calls());
++
++    /* the repair of dm, and an edit of dl that now finds dm clean */
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, "/dm:mtop/mr[name='m1']/iref", "i1", NULL, 0));
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(sess, 0));
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, "/dl:c-neg/un[name='a']/u", "u1", NULL, 0));
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(sess, 0));
++
++    /* both modules have a baseline now */
++    calls = incr_calls();
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, "/dl:c-neg/un[name='a']/u", "u2", NULL, 0));
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(sess, 0));
++#ifdef ENABLE_VALIDATE_INCREMENTAL
++    assert_true(incr_calls() > calls);
++#else
++    assert_int_equal(calls, incr_calls());
++#endif
++
++    sr_session_stop(sess);
++    sr_disconnect(conn);
++    dl_clear(st);
++}
++
++/*
++ * One commit that changes two modules sets the baseline of both: the next edit of either of them is incremental.
++ */
++static void
++test_baseline_multi_module_commit(void **state)
++{
++    struct state *st = (struct state *)*state;
++    sr_conn_ctx_t *conn;
++    sr_session_ctx_t *sess;
++    uint64_t calls;
++
++    if (strcmp(SR_DEFAULT_RUNNING_DS, "JSON DS file")) {
++        skip();
++    }
++
++    dl_clear(st);
++    dl_load(st, DL_T(DL_I("i1", "a")));
++
++    assert_int_equal(SR_ERR_OK, sr_connect(0, &conn));
++    assert_int_equal(SR_ERR_OK, sr_session_start(conn, SR_DS_RUNNING, &sess));
++
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, "/dl:c-neg/un[name='a']/u", "u1", NULL, 0));
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, "/dm:mtop/mr[name='m1']/iref", "i1", NULL, 0));
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(sess, 0));
++
++    /* dl alone */
++    calls = incr_calls();
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, "/dl:c-neg/un[name='a']/u", "u2", NULL, 0));
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(sess, 0));
++#ifdef ENABLE_VALIDATE_INCREMENTAL
++    assert_true(incr_calls() > calls);
++#else
++    assert_int_equal(calls, incr_calls());
++#endif
++
++    /* dm alone */
++    calls = incr_calls();
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, "/dm:mtop/mr[name='m2']/iref", "i1", NULL, 0));
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(sess, 0));
++#ifdef ENABLE_VALIDATE_INCREMENTAL
++    assert_true(incr_calls() > calls);
++#else
++    assert_int_equal(calls, incr_calls());
++#endif
++
++    sr_session_stop(sess);
++    sr_disconnect(conn);
++    dl_clear(st);
++}
++
++/*
++ * A rejected commit that changes two modules sets the baseline of neither, one of them failing is enough to keep both
++ * validated in full, so the same commit is rejected again and again, with no incremental call in between.
++ */
++static void
++test_baseline_multi_module_rejected(void **state)
++{
++    struct state *st = (struct state *)*state;
++    sr_conn_ctx_t *conn;
++    sr_session_ctx_t *sess;
++    uint64_t calls;
++    int i;
++
++    if (strcmp(SR_DEFAULT_RUNNING_DS, "JSON DS file")) {
++        skip();
++    }
++
++    dl_clear(st);
++    dl_load(st, DL_T(DL_I("i1", "a") DL_R("r", "<lref>i1</lref>")));
++    write_running(st, "dl", DL_T(DL_I("i1", "a") DL_R("r", "<lref>i7</lref>")));
++
++    assert_int_equal(SR_ERR_OK, sr_connect(0, &conn));
++    assert_int_equal(SR_ERR_OK, sr_session_start(conn, SR_DS_RUNNING, &sess));
++
++    calls = incr_calls();
++    for (i = 0; i < 3; ++i) {
++        assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, "/dl:c-neg/un[name='a']/u", "u1", NULL, 0));
++        assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, "/dm:mtop/mr[name='m1']/iref", "i1", NULL, 0));
++        assert_int_equal(SR_ERR_VALIDATION_FAILED, sr_apply_changes(sess, 0));
++        assert_int_equal(SR_ERR_OK, sr_discard_changes(sess));
++        assert_int_equal(calls, incr_calls());
++    }
++
++    /* once dl is repaired, the same commit goes through */
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, DL_P "r[name='r']/lref", "i1", NULL, 0));
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(sess, 0));
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, "/dl:c-neg/un[name='a']/u", "u1", NULL, 0));
++    assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, "/dm:mtop/mr[name='m1']/iref", "i1", NULL, 0));
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(sess, 0));
++
++    sr_session_stop(sess);
++    sr_disconnect(conn);
++    dl_clear(st);
++}
++
++static void
++check_revision(struct state *st, const char *revision)
++{
++    const struct ly_ctx *ctx;
++    const struct lys_module *mod;
++
++    ctx = sr_acquire_context(st->conn);
++    assert_non_null(ctx);
++    mod = ly_ctx_get_module_implemented(ctx, "incr-u");
++    assert_non_null(mod);
++    assert_string_equal(revision, mod->revision);
++    sr_release_context(st->conn);
++}
++
++/**
++ * @brief Body of the child of test_crash_during_apply(), it commits two modules over and over until it is killed.
++ *
++ * It never returns and uses no cmocka assert (a failed one would jump into the test runner of the parent copy), a
++ * failure is its exit status. Every commit is valid: dl item i3 and the dm reader of dl items switch between two
++ * valid states, so whatever the kill leaves behind has to be one of those states.
++ *
++ * @param[in] ready_fd Pipe end that gets a byte after the first commit.
++ */
++static void
++crash_child(int ready_fd)
++{
++    sr_conn_ctx_t *conn;
++    sr_session_ctx_t *sess;
++    uint32_t n = 0;
++    char ready = 1;
++
++    if (sr_connect(0, &conn) != SR_ERR_OK) {
++        _exit(1);
++    }
++    if (sr_session_start(conn, SR_DS_RUNNING, &sess) != SR_ERR_OK) {
++        _exit(1);
++    }
++
++    for ( ; ; ++n) {
++        if (sr_set_item_str(sess, DL_P "item[name='i3']/val", (n & 1) ? "b" : "a", NULL, 0) ||
++                sr_set_item_str(sess, "/dm:mtop/mr[name='m1']/iref", (n & 1) ? "i2" : "i1", NULL, 0) ||
++                sr_apply_changes(sess, 0)) {
++            _exit(2);
++        }
++        if (!n && (write(ready_fd, &ready, 1) != 1)) {
++            _exit(3);
++        }
++    }
++}
++
++/**
++ * @brief Value of the leaf @p path in the running datastore as seen by @p sess, it has to exist.
++ */
++static void
++running_leaf(sr_session_ctx_t *sess, const char *path, char *buf, size_t size)
++{
++    sr_val_t *val = NULL;
++
++    assert_int_equal(SR_ERR_OK, sr_get_item(sess, path, 0, &val));
++    assert_non_null(val);
++    snprintf(buf, size, "%s", val->data.string_val);
++    sr_free_val(val);
++}
++
++/*
++ * A process killed in the middle of sr_apply_changes() (SIGKILL, no cleanup of any kind) leaves the stored data whole,
++ * every module in one of the states a commit produces, and the next connection finds them valid. The kill happens at
++ * a different moment in every round, so some land before, some during and some after the store of a module; which
++ * one cannot be told from the outside and does not have to be. A dead connection does not leave a baseline behind:
++ * the first change of a module on a new connection is validated in full, the next one incrementally. The connection
++ * that was there all along still commits afterwards.
++ *
++ * This is a process crash, the page cache survives it. A power cut that loses writes is not simulated, that depends
++ * on the storage and not on the validation.
++ */
++static void
++test_crash_during_apply(void **state)
++{
++    struct state *st = (struct state *)*state;
++    sr_conn_ctx_t *conn;
++    sr_session_ctx_t *sess;
++    uint64_t calls;
++    uint32_t round;
++    pid_t pid;
++    int fds[2], status;
++    char ready, val[16];
++
++    dl_clear(st);
++    dl_load(st, DL_T(DL_I("i1", "a") DL_I("i2", "b") DL_I("i3", "a") DL_R("r", "<lref>i1</lref>"))
++            DM_M("<iref>i1</iref>"));
++
++    for (round = 0; round < 15; ++round) {
++        assert_int_equal(0, pipe(fds));
++        pid = fork();
++        assert_int_not_equal(-1, pid);
++        if (!pid) {
++            close(fds[0]);
++            crash_child(fds[1]);
++        }
++        close(fds[1]);
++
++        /* the child committed at least once, kill it after a growing delay */
++        assert_int_equal(1, read(fds[0], &ready, 1));
++        close(fds[0]);
++        usleep(round * 700);
++        assert_int_equal(0, kill(pid, SIGKILL));
++        assert_int_equal(pid, waitpid(pid, &status, 0));
++        assert_true(WIFSIGNALED(status) && (WTERMSIG(status) == SIGKILL));
++
++        /* a new connection sees whole and valid data */
++        assert_int_equal(SR_ERR_OK, sr_connect(0, &conn));
++        assert_int_equal(SR_ERR_OK, sr_session_start(conn, SR_DS_RUNNING, &sess));
++        running_leaf(sess, DL_P "item[name='i3']/val", val, sizeof val);
++        assert_true(!strcmp(val, "a") || !strcmp(val, "b"));
++        running_leaf(sess, "/dm:mtop/mr[name='m1']/iref", val, sizeof val);
++        assert_true(!strcmp(val, "i1") || !strcmp(val, "i2"));
++        assert_int_equal(SR_ERR_OK, sr_validate(sess, NULL, 0));
++
++        /* no baseline survives: the first change is in full, the next one incremental */
++        calls = incr_calls();
++        assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, "/dl:c-neg/un[name='a']/u", "u1", NULL, 0));
++        assert_int_equal(SR_ERR_OK, sr_apply_changes(sess, 0));
++        assert_int_equal(calls, incr_calls());
++        assert_int_equal(SR_ERR_OK, sr_set_item_str(sess, "/dl:c-neg/un[name='a']/u", "u2", NULL, 0));
++        assert_int_equal(SR_ERR_OK, sr_apply_changes(sess, 0));
++#ifdef ENABLE_VALIDATE_INCREMENTAL
++        assert_true(incr_calls() > calls);
++#else
++        assert_int_equal(calls, incr_calls());
++#endif
++        sr_session_stop(sess);
++        sr_disconnect(conn);
++
++        /* the connection that outlived the crash still commits */
++        assert_int_equal(SR_ERR_OK, sr_set_item_str(st->sess, DL_P "item[name='i3']/val", "c", NULL, 0));
++        assert_int_equal(SR_ERR_OK, sr_apply_changes(st->sess, 0));
++    }
++
++    dl_clear(st);
++}
++
++/*
++ * A schema change over stored data, a new revision or a deviation that adds a rule: it is refused while the stored
++ * data break the new rule, and once in place the incremental edits are checked against it.
++ */
++static void
++test_schema_upgrade(void **state)
++{
++    struct state *st = (struct state *)*state;
++    const char *ud[] = {TESTS_SRC_DIR "/files/incr-ud.yang", NULL};
++    const char *mods[] = {"incr-ud", "incr-u", NULL};
++    uint64_t calls;
++
++    assert_int_equal(SR_ERR_OK, sr_install_module(st->conn, TESTS_SRC_DIR "/files/incr-u@2026-01-01.yang", NULL, NULL));
++    set_item(st, "/incr-u:u/item[name='a']/val", "v1");
++    set_item(st, "/incr-u:u/item[name='b']/val", "v1");
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(st->sess, 0));
++
++    /* the new revision wants unique values */
++    assert_int_not_equal(SR_ERR_OK, sr_update_module(st->conn, TESTS_SRC_DIR "/files/incr-u@2026-02-01.yang",
++            TESTS_SRC_DIR "/files"));
++    check_revision(st, "2026-01-01");
++    set_item(st, "/incr-u:u/item[name='b']/val", "v2");
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(st->sess, 0));
++    assert_int_equal(SR_ERR_OK, sr_update_module(st->conn, TESTS_SRC_DIR "/files/incr-u@2026-02-01.yang",
++            TESTS_SRC_DIR "/files"));
++    check_revision(st, "2026-02-01");
++
++    /* the first edit on the new context is validated in full, the next one incrementally */
++    set_item(st, "/incr-u:u/item[name='c']/val", "v3");
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(st->sess, 0));
++    calls = incr_calls();
++    set_item(st, "/incr-u:u/item[name='d']/val", "v1");
++    apply_rejected(st);
++#ifdef ENABLE_VALIDATE_INCREMENTAL
++    assert_true(incr_calls() > calls);
++#else
++    assert_int_equal(calls, incr_calls());
++#endif
++
++    /* the deviation wants short values */
++    set_item(st, "/incr-u:u/item[name='a']/val", "long");
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(st->sess, 0));
++    assert_int_not_equal(SR_ERR_OK, sr_install_modules(st->conn, ud, TESTS_SRC_DIR "/files", NULL));
++    set_item(st, "/incr-u:u/item[name='a']/val", "v1");
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(st->sess, 0));
++    assert_int_equal(SR_ERR_OK, sr_install_modules(st->conn, ud, TESTS_SRC_DIR "/files", NULL));
++
++    set_item(st, "/incr-u:u/item[name='e']/val", "v5");
++    assert_int_equal(SR_ERR_OK, sr_apply_changes(st->sess, 0));
++    calls = incr_calls();
++    set_item(st, "/incr-u:u/item[name='e']/val", "long");
++    apply_rejected(st);
++#ifdef ENABLE_VALIDATE_INCREMENTAL
++    assert_true(incr_calls() > calls);
++#else
++    assert_int_equal(calls, incr_calls());
++#endif
++
++    assert_int_equal(SR_ERR_OK, sr_remove_modules(st->conn, mods, 0));
++}
++
++int
++main(void)
++{
++    const struct CMUnitTest tests[] = {
++        cmocka_unit_test_teardown(test_add, clear_data),
++        cmocka_unit_test_teardown(test_delete, clear_data),
++        cmocka_unit_test_teardown(test_cross_module, clear_data),
++        cmocka_unit_test_teardown(test_when_cascade, clear_data),
++        cmocka_unit_test_teardown(test_when_cascade_leafref, clear_data),
++        cmocka_unit_test_teardown(test_dflt_case_replace, clear_data),
++        cmocka_unit_test_teardown(test_delete_matrix, clear_data),
++        cmocka_unit_test_teardown(test_delete_ancestor_reader, clear_data),
++        cmocka_unit_test_teardown(test_delete_yang_probe, clear_data),
++        cmocka_unit_test_teardown(test_add_relative_readers, clear_data),
++        cmocka_unit_test_teardown(test_modify_rules, clear_data),
++        cmocka_unit_test_teardown(test_key_change, clear_data),
++        cmocka_unit_test_teardown(test_product_shapes, clear_data),
++        cmocka_unit_test_teardown(test_gap_shapes, clear_data),
++        cmocka_unit_test_teardown(test_rollback, clear_data),
++        cmocka_unit_test_teardown(test_unvalidated_stored, clear_data),
++        cmocka_unit_test_teardown(test_baseline_per_connection, clear_data),
++        cmocka_unit_test_teardown(test_baseline_context_switch, clear_data),
++        cmocka_unit_test_teardown(test_baseline_per_module, clear_data),
++        cmocka_unit_test_teardown(test_baseline_inverse_dep, clear_data),
++        cmocka_unit_test_teardown(test_baseline_multi_module_commit, clear_data),
++        cmocka_unit_test_teardown(test_baseline_multi_module_rejected, clear_data),
++        cmocka_unit_test_teardown(test_crash_during_apply, clear_data),
++        cmocka_unit_test_teardown(test_schema_upgrade, clear_data),
++    };
++
++    setenv("CMOCKA_TEST_ABORT", "1", 1);
++    test_log_init();
++    return cmocka_run_group_tests(tests, setup_f, teardown_f);
++}

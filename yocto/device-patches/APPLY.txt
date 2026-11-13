@@ -1,6 +1,6 @@
 Incremental YANG validation patches (product pin libyang 3.9.13 / sysrepo 3.7.11).
 
-Squash tips: libyang 39cbdc60c on base efe43e37; sysrepo f9bacbf3 on base 1b720b19.
+Squash tips: libyang ce6c8e651 on base efe43e37; sysrepo d887153b on base 1b720b19.
 Regenerate from worktrees: ../sync_incremental_validation_patches.sh (before each sysrepo_performance commit).
 
 Semantics: incremental validation is a BUILD option of sysrepo, on by default.

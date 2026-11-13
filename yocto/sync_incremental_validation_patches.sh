@@ -99,9 +99,24 @@ ${SYSREPO_BASE:0:12} (Yocto sysrepo_3.7.11). Commits:
 $(commit_list "$SYSREPO_DIR" "$SYSREPO_BASE")
 EOF
 
-for d in "$LIBYANG_DIR" "$SYSREPO_DIR"; do
-  git -C "$d" rev-parse HEAD >/dev/null 2>&1 || { echo "missing git repo: $d" >&2; exit 1; }
-done
+die() { echo "ERROR: $*" >&2; exit 1; }
+
+# Preflight: a squash is base..HEAD, so anything not committed would be silently missing from the patches.
+preflight_repo() {
+  local d="$1" base="$2" branch untracked
+  git -C "$d" rev-parse HEAD >/dev/null 2>&1 || die "missing git repo: $d"
+  git -C "$d" rev-parse --verify "${base}^{commit}" >/dev/null 2>&1 || die "$d: base ${base:0:12} not found"
+  git -C "$d" merge-base --is-ancestor "$base" HEAD || die "$d: HEAD does not contain base ${base:0:12}"
+  branch="$(git -C "$d" branch --show-current)"
+  [[ "$branch" == Oreo/* ]] || die "$d: branch '$branch' does not start with Oreo/"
+  git -C "$d" diff --quiet HEAD -- || die "$d: tracked files have uncommitted changes, commit them first (they would be missing from the patch)"
+  untracked="$(git -C "$d" ls-files --others --exclude-standard -- src tests CMakeLists.txt)"
+  [[ -z "$untracked" ]] || die "$d: untracked source files would be missing from the patch:
+$untracked"
+}
+
+preflight_repo "$LIBYANG_DIR" "$LIBYANG_BASE"
+preflight_repo "$SYSREPO_DIR" "$SYSREPO_BASE"
 
 gen_squash_patch "$LIBYANG_DIR" "$LIBYANG_BASE" \
   "$OUT/libyang-incremental-validation.patch" \
@@ -113,24 +128,99 @@ gen_squash_patch "$SYSREPO_DIR" "$SYSREPO_BASE" \
   "validation FEATURE use the incremental validator when the diff is complete" \
   "$BODY_SR"
 
-if git -C "$META_XPON_DIR" rev-parse HEAD >/dev/null 2>&1; then
-  cp "$OUT/libyang-incremental-validation.patch" \
-    "$META_XPON_DIR/recipes-extended/libyang/libyang/0001-validation-FEATURE-incremental-validation-driven-by-.patch"
-  cp "$OUT/sysrepo-incremental-validation.patch" \
-    "$META_XPON_DIR/recipes-extended/sysrepo/sysrepo/0004-validation-FEATURE-use-the-incremental-validator-whe.patch"
-  (
-    cd "$META_XPON_DIR"
-    git rev-parse --verify "$META_XPON_BASE^{commit}" >/dev/null
-    git diff "${META_XPON_BASE}..HEAD" >"$OUT/meta-xpon-incremental-validation.patch"
-    echo "wrote $OUT/meta-xpon-incremental-validation.patch from meta-xpon ${META_XPON_BASE:0:7}..HEAD"
-  )
-else
-  echo "META_XPON_DIR not found; skipped meta-xpon-incremental-validation.patch" >&2
+PATCH_LY_NAME="0001-validation-FEATURE-incremental-validation-driven-by-.patch"
+PATCH_SR_NAME="0004-validation-FEATURE-use-the-incremental-validator-whe.patch"
+LY_BBAPPEND="recipes-extended/libyang/libyang_%.bbappend"
+SR_BBAPPEND="recipes-extended/sysrepo/sysrepo_%.bbappend"
+LY_PATCH_PATH="recipes-extended/libyang/libyang/$PATCH_LY_NAME"
+SR_PATCH_PATH="recipes-extended/sysrepo/sysrepo/$PATCH_SR_NAME"
+BUNDLE="$OUT/meta-xpon-incremental-validation.patch"
+
+git -C "$META_XPON_DIR" rev-parse HEAD >/dev/null 2>&1 || die "META_XPON_DIR not found: $META_XPON_DIR (set META_XPON_DIR); libyang/sysrepo patches were written, the meta-xpon bundle was NOT"
+git -C "$META_XPON_DIR" rev-parse --verify "${META_XPON_BASE}^{commit}" >/dev/null 2>&1 || die "meta-xpon base ${META_XPON_BASE:0:12} not found in $META_XPON_DIR"
+
+# Insert a file:// entry before the closing quote of "SRC_URI += \" in a bbappend read from stdin.
+add_src_uri() {
+  awk -v entry="    file://$1 \\\\" '
+    /^SRC_URI \+= "\\$/ { in_src = 1 }
+    in_src && $0 == "\"" { print entry; in_src = 0 }
+    { print }'
+}
+
+# Build the bundle as base -> (base + 0001/0004 + two bbappend lines) in a throw-away index and object store, so it
+# needs no commit in meta-xpon and does not touch its working tree, index or objects.
+(
+  cd "$META_XPON_DIR"
+  TMPD="$(mktemp -d)"
+  trap 'rm -rf "$TMPD"' EXIT
+  export GIT_ALTERNATE_OBJECT_DIRECTORIES="$(git rev-parse --absolute-git-dir)/objects"
+  export GIT_OBJECT_DIRECTORY="$TMPD/objects"
+  export GIT_INDEX_FILE="$TMPD/index"
+  mkdir -p "$GIT_OBJECT_DIRECTORY"
+  git read-tree "$META_XPON_BASE"
+
+  put() { git update-index --add --cacheinfo "100644,$(git hash-object -w --stdin),$1"; }
+  put "$LY_PATCH_PATH" <"$OUT/libyang-incremental-validation.patch"
+  put "$SR_PATCH_PATH" <"$OUT/sysrepo-incremental-validation.patch"
+  git show "${META_XPON_BASE}:${LY_BBAPPEND}" | add_src_uri "$PATCH_LY_NAME" | put "$LY_BBAPPEND"
+  git show "${META_XPON_BASE}:${SR_BBAPPEND}" | add_src_uri "$PATCH_SR_NAME" | put "$SR_BBAPPEND"
+
+  git diff --cached --no-color "$META_XPON_BASE" >"$BUNDLE"
+  echo "wrote $BUNDLE ($(wc -l <"$BUNDLE") lines) from meta-xpon ${META_XPON_BASE:0:7} + current squash patches"
+)
+
+# Optional: also drop the two patch files into the meta-xpon working tree (SYNC_META_XPON_TREE=1).
+if [[ "${SYNC_META_XPON_TREE:-0}" == 1 ]]; then
+  mkdir -p "$META_XPON_DIR/$(dirname "$LY_PATCH_PATH")" "$META_XPON_DIR/$(dirname "$SR_PATCH_PATH")"
+  cp "$OUT/libyang-incremental-validation.patch" "$META_XPON_DIR/$LY_PATCH_PATH"
+  cp "$OUT/sysrepo-incremental-validation.patch" "$META_XPON_DIR/$SR_PATCH_PATH"
 fi
+
+# Mirror the squash patches next to the recipe layout kept in this repo.
+cp "$OUT/libyang-incremental-validation.patch" "$SCRIPT_DIR/libyang/$PATCH_LY_NAME"
+cp "$OUT/sysrepo-incremental-validation.patch" "$SCRIPT_DIR/sysrepo/$PATCH_SR_NAME"
 
 if grep -q 'Squash tips' "$OUT/APPLY.txt" 2>/dev/null; then
   sed -i "s/^Squash tips.*/Squash tips: libyang ${LY_HEAD} on base ${LIBYANG_BASE:0:8}; sysrepo ${SR_HEAD} on base ${SYSREPO_BASE:0:8}./" \
     "$OUT/APPLY.txt"
 fi
 
-echo "Done. Verify: git am on libyang/sysrepo bases; git apply --check -p1 meta-xpon bundle on ${META_XPON_BASE:0:7}."
+# Verification: nothing may be missing from the patches and every patch must apply to its base.
+VT="$(mktemp -d)"
+trap 'rm -f "$BODY_LY" "$BODY_SR"; rm -rf "$VT"' EXIT
+
+# 1. Every commit base..HEAD is in the cover letter, and the patch body is exactly git diff base..HEAD.
+verify_squash() {
+  local repo="$1" base="$2" patch="$3" name="$4" h n missing=0
+  n="$(git -C "$repo" rev-list --count "${base}..HEAD")"
+  for h in $(git -C "$repo" rev-list --abbrev-commit "${base}..HEAD"); do
+    grep -q "^  ${h} " "$patch" || { echo "ERROR: $name: commit $h missing from the cover letter" >&2; missing=1; }
+  done
+  [[ "$missing" == 0 ]] || exit 1
+  awk '/^diff --git /{p=1} p' "$patch" >"$VT/$name.body"
+  git -C "$repo" diff "${base}..HEAD" | cmp -s - "$VT/$name.body" || die "$name: patch body differs from git diff ${base:0:8}..HEAD"
+  echo "ok $name: $n commits listed, body equals git diff ${base:0:8}..HEAD"
+}
+verify_squash "$LIBYANG_DIR" "$LIBYANG_BASE" "$OUT/libyang-incremental-validation.patch" libyang
+verify_squash "$SYSREPO_DIR" "$SYSREPO_BASE" "$OUT/sysrepo-incremental-validation.patch" sysrepo
+
+# 2. Each squash applies to a clean checkout of its base.
+for spec in "libyang:$LIBYANG_DIR:$LIBYANG_BASE" "sysrepo:$SYSREPO_DIR:$SYSREPO_BASE"; do
+  IFS=: read -r name repo base <<<"$spec"
+  mkdir -p "$VT/$name-base"
+  git -C "$repo" archive "$base" | tar -x -C "$VT/$name-base"
+  (cd "$VT/$name-base" && git apply --check "$OUT/$name-incremental-validation.patch") || die "$name patch does not apply to base ${base:0:8}"
+  echo "ok $name patch applies to base ${base:0:8}"
+done
+
+# 3. The bundle applies to a clean meta-xpon base and carries exactly the current squash patches.
+mkdir -p "$VT/meta"
+git -C "$META_XPON_DIR" archive "$META_XPON_BASE" | tar -x -C "$VT/meta"
+(cd "$VT/meta" && git apply --whitespace=nowarn --check -p1 "$BUNDLE" && git apply --whitespace=nowarn -p1 "$BUNDLE") || die "bundle does not apply to meta-xpon base ${META_XPON_BASE:0:7}"
+cmp -s "$VT/meta/$LY_PATCH_PATH" "$OUT/libyang-incremental-validation.patch" || die "bundle carries a stale libyang patch"
+cmp -s "$VT/meta/$SR_PATCH_PATH" "$OUT/sysrepo-incremental-validation.patch" || die "bundle carries a stale sysrepo patch"
+grep -q "file://$PATCH_LY_NAME" "$VT/meta/$LY_BBAPPEND" || die "libyang bbappend lacks 0001"
+grep -q "file://$PATCH_SR_NAME" "$VT/meta/$SR_BBAPPEND" || die "sysrepo bbappend lacks 0004"
+echo "ok bundle applies to meta-xpon ${META_XPON_BASE:0:7} and embeds the current libyang/sysrepo patches"
+
+echo "Done. Apply on the build server: cd <meta-xpon> && git apply -p1 $BUNDLE"
