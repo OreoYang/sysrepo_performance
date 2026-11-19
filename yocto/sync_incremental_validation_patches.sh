@@ -128,8 +128,8 @@ gen_squash_patch "$SYSREPO_DIR" "$SYSREPO_BASE" \
   "validation FEATURE use the incremental validator when the diff is complete" \
   "$BODY_SR"
 
-PATCH_LY_NAME="0001-validation-FEATURE-incremental-validation-driven-by-.patch"
-PATCH_SR_NAME="0004-validation-FEATURE-use-the-incremental-validator-whe.patch"
+PATCH_LY_NAME="0001-incremental-validation-driven-by-edit-diff.patch"
+PATCH_SR_NAME="0004-use-incremental-validator-when-diff-is-complete.patch"
 LY_BBAPPEND="recipes-extended/libyang/libyang_%.bbappend"
 SR_BBAPPEND="recipes-extended/sysrepo/sysrepo_%.bbappend"
 LY_PATCH_PATH="recipes-extended/libyang/libyang/$PATCH_LY_NAME"

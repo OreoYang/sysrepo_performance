@@ -1,8 +1,8 @@
-diff --git a/recipes-extended/libyang/libyang/0001-validation-FEATURE-incremental-validation-driven-by-.patch b/recipes-extended/libyang/libyang/0001-validation-FEATURE-incremental-validation-driven-by-.patch
+diff --git a/recipes-extended/libyang/libyang/0001-incremental-validation-driven-by-edit-diff.patch b/recipes-extended/libyang/libyang/0001-incremental-validation-driven-by-edit-diff.patch
 new file mode 100644
 index 0000000..997a3ed
 --- /dev/null
-+++ b/recipes-extended/libyang/libyang/0001-validation-FEATURE-incremental-validation-driven-by-.patch
++++ b/recipes-extended/libyang/libyang/0001-incremental-validation-driven-by-edit-diff.patch
 @@ -0,0 +1,8164 @@
 +From ce6c8e651a1ebb33e23d912044d69d90caa5a40c Mon Sep 17 00:00:00 2001
 +From: OreoYang <oreo.yang@vecima.com>
@@ -8169,20 +8169,20 @@ index 0000000..997a3ed
 ++    return cmocka_run_group_tests(tests, NULL, NULL);
 ++}
 diff --git a/recipes-extended/libyang/libyang_%.bbappend b/recipes-extended/libyang/libyang_%.bbappend
-index 0b85734..53d59ce 100644
+index 0b85734..963e850 100644
 --- a/recipes-extended/libyang/libyang_%.bbappend
 +++ b/recipes-extended/libyang/libyang_%.bbappend
 @@ -8,4 +8,5 @@
  
  FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
  SRC_URI += "\
-+    file://0001-validation-FEATURE-incremental-validation-driven-by-.patch \
++    file://0001-incremental-validation-driven-by-edit-diff.patch \
  "
-diff --git a/recipes-extended/sysrepo/sysrepo/0004-validation-FEATURE-use-the-incremental-validator-whe.patch b/recipes-extended/sysrepo/sysrepo/0004-validation-FEATURE-use-the-incremental-validator-whe.patch
+diff --git a/recipes-extended/sysrepo/sysrepo/0004-use-incremental-validator-when-diff-is-complete.patch b/recipes-extended/sysrepo/sysrepo/0004-use-incremental-validator-when-diff-is-complete.patch
 new file mode 100644
 index 0000000..8a8d1f3
 --- /dev/null
-+++ b/recipes-extended/sysrepo/sysrepo/0004-validation-FEATURE-use-the-incremental-validator-whe.patch
++++ b/recipes-extended/sysrepo/sysrepo/0004-use-incremental-validator-when-diff-is-complete.patch
 @@ -0,0 +1,3055 @@
 +From d887153b66d01ac8a1efd707212dd7bf211dd7c0 Mon Sep 17 00:00:00 2001
 +From: OreoYang <oreo.yang@vecima.com>
@@ -11240,13 +11240,13 @@ index 0000000..8a8d1f3
 ++    return cmocka_run_group_tests(tests, setup_f, teardown_f);
 ++}
 diff --git a/recipes-extended/sysrepo/sysrepo_%.bbappend b/recipes-extended/sysrepo/sysrepo_%.bbappend
-index 1fbb712..8463742 100644
+index 1fbb712..fbbf10c 100644
 --- a/recipes-extended/sysrepo/sysrepo_%.bbappend
 +++ b/recipes-extended/sysrepo/sysrepo_%.bbappend
 @@ -10,5 +10,6 @@ SRC_URI += "\
      file://0001-Allow-using-SYSREPO_SHM_DIR-ENV-for-shared-mem.patch \
      file://0002-patch-for-remove-forced-order-configuration.patch    \
      file://0003-disable-sysrepo-rpc-internal-factory-reset-handling.patch \
-+    file://0004-validation-FEATURE-use-the-incremental-validator-whe.patch \
++    file://0004-use-incremental-validator-when-diff-is-complete.patch \
  "
  FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
