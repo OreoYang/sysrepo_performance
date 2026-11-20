@@ -7,6 +7,7 @@ set -eu
 DIR="$(cd "$(dirname "$0")" && pwd)"
 WORK="${WORK:-/root/chicago_smoke/work}"
 N="${1:-${N:-1022}}"
+START="${START:-1}"
 TEMPLATE="${ONU_TEMPLATE:-default-onu-template}"
 CSV="${WORK}/virtual_${N}.csv"
 LOG="${WORK}/virtual_${N}.log"
@@ -17,14 +18,18 @@ cd "$DIR"
 
 ok=0
 fail=0
-i=1
+i=$START
 t0=$(date +%s)
 first_ms=""
 mid_ms=""
 last_ms=""
 
-echo "timestamp,idx,serial,tech,pon,rc,ms" > "$CSV"
-echo "virtual N=${N} template=${TEMPLATE} serial, mix xgs/gpon, ports 1-16"
+if [ "$START" -le 1 ]; then
+    echo "timestamp,idx,serial,tech,pon,rc,ms" > "$CSV"
+else
+    [ -f "$CSV" ] || { echo "resume: missing ${CSV}"; exit 1; }
+fi
+echo "virtual N=${N} START=${START} template=${TEMPLATE} serial, mix xgs/gpon, ports 1-16"
 echo "log=${LOG}"
 
 while [ "$i" -le "$N" ]; do
@@ -53,11 +58,11 @@ while [ "$i" -le "$N" ]; do
     ms=$(( end_ms - start_ms ))
     echo "$(date +%Y-%m-%dT%H:%M:%S),${i},${serial},${tech},${pon},${rc},${ms}" >> "$CSV"
 
-    if [ "$i" -eq 1 ]; then first_ms=$ms; fi
+    if [ "$i" -eq "$START" ]; then first_ms=$ms; fi
     if [ "$i" -eq $(( N / 2 )) ]; then mid_ms=$ms; fi
     if [ "$i" -eq "$N" ]; then last_ms=$ms; fi
 
-    if [ $(( i % 25 )) -eq 0 ] || [ "$i" -eq 1 ] || [ "$i" -eq "$N" ]; then
+    if [ $(( i % 25 )) -eq 0 ] || [ "$i" -eq "$START" ] || [ "$i" -eq "$N" ]; then
         now=$(date +%s)
         echo "[progress] ${i}/${N} ok=${ok} fail=${fail} last_ms=${ms} elapsed=$(( now - t0 ))s"
     fi
@@ -65,5 +70,5 @@ while [ "$i" -le "$N" ]; do
 done
 
 t1=$(date +%s)
-echo "DONE N=${N} ok=${ok} fail=${fail} wall=$(( t1 - t0 ))s first_ms=${first_ms} mid_ms=${mid_ms} last_ms=${last_ms}"
+echo "DONE N=${N} START=${START} ok=${ok} fail=${fail} wall=$(( t1 - t0 ))s first_ms=${first_ms} mid_ms=${mid_ms} last_ms=${last_ms}"
 echo "csv=${CSV}"

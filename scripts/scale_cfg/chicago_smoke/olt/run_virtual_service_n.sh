@@ -26,6 +26,19 @@ mid_i=$(( N / 2 ))
 
 echo "timestamp,idx,serial,tech,pon,rc,ms" > "$CSV"
 echo "virtual SERVICE N=${N} START=${START} TD=${TD} serial, shared fwd_nto1_cvlan2000"
+echo "log=${LOG}"
+
+while [ "$i" -le "$N" ]; do
+    pon=$(( (i - 1) % 16 + 1 ))
+    if [ $(( i % 2 )) -eq 0 ]; then
+        tech=xgs
+        serial=$(printf 'AA%010X' "$i")
+    else
+        tech=gpon
+        serial=$(printf 'BB%010X' "$i")
+    fi
+
+  ./gen_service.sh "$serial" "$TD" "$XML" >/dev/null
 
     start_ms=$(date +%s%3N)
     if sysrepocfg --edit="$XML" -d running -f xml >/dev/null 2>>"$LOG"; then

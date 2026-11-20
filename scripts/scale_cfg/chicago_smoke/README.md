@@ -47,6 +47,28 @@ STAGE=provision ./run_smoke_remote.sh
 | `/root/chicago_smoke/work/` | Generated XML, NETCONF logs, timings |
 | `env.chicago.sh` | Lab IPs, default SN / template |
 
+## Export running for full-validation audit (no reboot)
+
+The file **`/root/chicago_smoke/work/running_full_audit.xml` does not exist until you export.** It is not part of deploy.
+
+On the OLT:
+
+```bash
+mkdir -p /root/chicago_smoke/work
+cd /root/chicago_smoke/olt
+./export_running_audit.sh
+# default: /root/chicago_smoke/work/running_full_audit.xml
+```
+
+From the PC (after `deploy_to_olt.sh` once):
+
+```bash
+./run_export_running_remote.sh
+scp root@10.254.20.137:/root/chicago_smoke/work/running_full_audit.xml /tmp/
+```
+
+Use the XML on the host with a **full-only** sysrepo/libyang runtime to validate offline (does not touch live running).
+
 ## Manual SSH
 
 ```bash

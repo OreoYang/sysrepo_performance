@@ -83,6 +83,11 @@ fresh_repo() {
     fi
     rm -rf "${FRESH_REPO}"
     cp -a "${YANG_CACHE}" "${FRESH_REPO}"
+    if [[ -n "${STRIP_FORWARDER_MUST_COUNT:-}" ]]; then
+        log "  STRIP_FORWARDER_MUST_COUNT: removing forwarder-port must count() from fresh repo"
+        python3 "${SCRIPT_DIR}/tools/strip_forwarder_must_count.py" "${FRESH_REPO}" >> "${LOG}" 2>&1 \
+            || die "strip_forwarder_must_count failed"
+    fi
     export SYSREPO_REPOSITORY_PATH="${FRESH_REPO}"
     export SYSREPO_SHM_DIR="${WORK_DIR}/shm/${shm_id}"
     rm -rf "${SYSREPO_SHM_DIR}"

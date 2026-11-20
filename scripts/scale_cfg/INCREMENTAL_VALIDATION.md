@@ -57,6 +57,10 @@ Product-pin CSV: `results/ab_validate_product_pin.csv` (1022 + 1522). Snapshots:
 Private A/B: `results/ab_validate_edit_diff_onu_scale.csv`.  
 N=1522 first/mid taken from that run’s `SR_EDIT` lines (not the appended per-edit file).
 
+### VoIP largescale (`db_1230_voip`)
+
+Same product-pin stack; input is **not** the 1522 SFU-only export. Snapshot has **1024** provision files and **976** service files; **432** service RPCs include `vecima-onu-voip` (plus shared `bbf-voip-media` / `bbf-voip-sip` in base). Prep once: `./prep_voip_db.sh`. A/B: `./run_product_pin_voip_editdiff.sh` (`AB_N_LIST` default **1024**). Prior host compare (2026-10-31, Release): `results/voip_vs_std_1022_2026-10-31.csv` — provision wall similar to standard N≈1022; **full** service last-50 avg **4.35 s** (voip) vs **3.23 s** (standard), so VoIP belongs in the pin set, not only N=1022 non-VoIP.
+
 **Same-harness comparison (the fair one):**
 
 - Product 3.7.11+3.9.13 vs 4.5.4+5.8 **full** (N=1022): service **1901 s / 978 s ≈ 1.94×**. Last apply **3.38 s / 1.61 s ≈ 2.1×**. Upgrade helps the constant; **curve still linear in N**.
