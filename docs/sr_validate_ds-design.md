@@ -95,7 +95,7 @@ incremental path:
 | `sr-validate/sr_validate_ds.c` | New. The tool (about 330 lines) |
 | `sr-validate/CMakeLists.txt` | New. `make_bin(sr_validate_ds)`, links `sysrepo` and `yang`, same pattern as `debug-client` |
 | `CMakeLists.txt` | One line: `add_subdirectory(sr-validate)` inside the `xpon` block |
-| `sr-validate/test/` | CTest `sr_validate_ds`: builds its own small database from `vds-test.yang` (leafref and must), 21 cases for stored data, `-e` and `-f`. Needs only `sysrepoctl` and `sysrepocfg`, skipped when they are missing |
+| `sr-validate/test/` | CTest `sr_validate_ds` (Python unittest, `sr_validate_ds_test.py`): builds its own small database from `vds-test.yang` (leafref and must), 17 cases for stored data, `-e` and `-f`. Needs only python3, `sysrepoctl` and `sysrepocfg`, skipped when sysrepo tools are missing |
 
 No change in `meta-xpon`. The existing `xpon-apps` recipe packages `${bindir}` by default, so the binary ships like
 `dbc`. The `dpoe` build is not touched.
@@ -125,7 +125,7 @@ How to repeat the PC test: `docs/running-snapshot-audit.md`.
 
 ## Unit tests (keep in sync with xpon-apps)
 
-Self-contained database: `fixtures/vds-test.yang` (leafref + must), 21 cases for CLI, stored data,
+Self-contained database: `fixtures/vds-test.yang` (leafref + must), 17 cases for CLI, stored data,
 `-e`, and `-f`. No OLT repo copy is required.
 
 | Location | How to run |
