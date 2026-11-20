@@ -1,0 +1,7 @@
+<vds xmlns="urn:vecima:vds-test">
+  <item>
+    <name>z</name>
+    <kind>a</kind>
+    <peer>x</peer>
+  </item>
+</vds>

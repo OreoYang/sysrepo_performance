@@ -1,0 +1,11 @@
+<vds xmlns="urn:vecima:vds-test">
+  <item>
+    <name>x</name>
+    <kind>a</kind>
+  </item>
+  <item>
+    <name>y</name>
+    <kind>a</kind>
+    <peer>x</peer>
+  </item>
+</vds>

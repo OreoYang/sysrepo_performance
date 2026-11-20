@@ -1,0 +1,32 @@
+module vds-test {
+  yang-version 1.1;
+  namespace "urn:vecima:vds-test";
+  prefix vds;
+
+  description
+    "Small schema for the sr_validate_ds unit test: one leafref and one must,
+     the two kinds of rule that incremental validation can miss.";
+
+  container vds {
+    list item {
+      key "name";
+      leaf name {
+        type string;
+      }
+      leaf kind {
+        type enumeration {
+          enum a;
+          enum b;
+        }
+      }
+      leaf peer {
+        type leafref {
+          path "/vds:vds/vds:item/vds:name";
+        }
+        must "/vds:vds/vds:item[vds:name = current()]/vds:kind = 'b'" {
+          error-message "peer must be an item of kind b";
+        }
+      }
+    }
+  }
+}

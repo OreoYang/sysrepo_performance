@@ -1,0 +1,6 @@
+<vds xmlns="urn:vecima:vds-test">
+  <item>
+    <name>y</name>
+    <peer>no-such-item</peer>
+  </item>
+</vds>

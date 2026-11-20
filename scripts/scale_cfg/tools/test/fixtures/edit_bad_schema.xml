@@ -1,0 +1,6 @@
+<vds xmlns="urn:vecima:vds-test">
+  <item>
+    <name>x</name>
+    <no-such-leaf>1</no-such-leaf>
+  </item>
+</vds>

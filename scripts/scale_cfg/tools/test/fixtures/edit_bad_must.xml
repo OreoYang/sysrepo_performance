@@ -1,0 +1,7 @@
+<!-- x stops being kind b, but y still has x as its peer: the edit touches x, the broken rule is on y -->
+<vds xmlns="urn:vecima:vds-test">
+  <item>
+    <name>x</name>
+    <kind>a</kind>
+  </item>
+</vds>
