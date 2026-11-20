@@ -123,6 +123,18 @@ No change in `meta-xpon`. The existing `xpon-apps` recipe packages `${bindir}` b
 
 How to repeat the PC test: `docs/running-snapshot-audit.md`.
 
+## Unit tests (keep in sync with xpon-apps)
+
+Self-contained database: `fixtures/vds-test.yang` (leafref + must), 21 cases for CLI, stored data,
+`-e`, and `-f`. No OLT repo copy is required.
+
+| Location | How to run |
+|---|---|
+| **sysrepo_performance** | `scripts/scale_cfg/tools/test/run_ut.sh` |
+| **xpon-apps** | `ctest -R sr_validate_ds -V` (needs `BUILD_TESTING=ON`, `sr_validate_ds` built) |
+
+Files mirrored between repos are listed in `scripts/scale_cfg/tools/SYNC-xpon-apps.md`.
+
 ## Not done yet
 
 - `bitbake xpon-apps -c compile -f` and a check that the binary lands in the image. The Yocto workspace builds the
